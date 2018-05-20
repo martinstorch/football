@@ -4,7 +4,7 @@ library(plotrix)
 library(graphics)
 library(reshape2)
 
-input_file<-"D:\\Models\\model_skimmed_1718_2/new_predictions_df_2.csv"
+input_file<-"D:\\Models\\model_mb_1718_2/new_predictions_df.csv"
 season<-"2017/18"
 data <- read.csv(input_file)
 
