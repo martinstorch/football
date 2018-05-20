@@ -50,7 +50,7 @@ import matplotlib.colors as colors
 #from Estimators import DiscreteRNNModel as drm
 #from Estimators import LSTMModel as lstm
 #from Estimators import LSTM_m21_Model as lstm_m21
-from Estimators import MiniBatch_Model as themodel
+from Estimators import condprob_Model as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -699,6 +699,10 @@ def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefi
   df = pd.DataFrame()  
   df["GS"] = labels[:,0].astype(np.int)
   df["GC"] = labels[:,1].astype(np.int)
+  if prefix=="cp1/":
+    df["GS"] = labels[:,2].astype(np.int)
+    df["GC"] = labels[:,3].astype(np.int)
+    
   df['pGS'] = [p[prefix+"pred"][0] for p in predictions]
   df['pGC'] = [p[prefix+"pred"][1] for p in predictions]
 
@@ -1165,7 +1169,7 @@ def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefi
     plt.close()
   return preparePrintData(prefix, df)
 
-def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False):                             
+def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False, output_name="outputs_poisson"):                             
   features = features["newgame"]
   features = features[:len(predictions)] # cut off features if not enough predictions are present
   labels = labels[:len(predictions)] # cut off labels if not enough predictions are present
@@ -1184,7 +1188,7 @@ def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_
     fig, ax = plt.subplots(1+(len(label_column_names)//4), 4, figsize=(20,70))
   for i,col in enumerate(label_column_names):
     #print(i)
-    df["p_"+col]=[np.exp(p["outputs_poisson"][i]) for p in predictions]
+    df["p_"+col]=[np.exp(p[output_name][i]) for p in predictions]
     df[col]=labels[:,i]
     dfcorr = df[["p_"+col, col]]
     cor_p = dfcorr[col].corr(dfcorr["p_"+col], method='pearson') 
@@ -1476,7 +1480,13 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
       df.to_csv(model_dir+"/test_outputs_poisson.csv")  
       fig.savefig(model_dir+"/test_outputs_poisson.pdf")
       plt.close(fig)
-    
+#      label_column_names_cp = []
+#      df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), train_prediction["cp/labels"], team_onehot_encoder, label_column_names_cp, output_name="cp/outputs")                             
+#      df.to_csv(model_dir+"/train_outputs_poisson_cp.csv")  
+#      fig.savefig(model_dir+"/train_outputs_poisson_cp.pdf")
+#      plt.close(fig)
+#    def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False, output_name="outputs_poisson"):                             
+
     results = pd.DataFrame()
     results["Measure"] = test_result.keys()
     results["Train"] = train_result.values()
@@ -1810,7 +1820,7 @@ if __name__ == "__main__":
       #default="D:/Models/model_map_1718_2",
       #default="C:/tmp/Football/models_gru9_bn_1718_bin2",
       #default="C:/tmp/Football/models_1718_new2", # always use UNIX-style path names!!!
-      default="D:/Models/model_mb_1718_2",
+      default="D:/Models/model_cp_1718",
       #default="D:/Models/rolling_skimmed_1418",
       help="Base directory for output models."
   )
@@ -1819,8 +1829,8 @@ if __name__ == "__main__":
       #default=["1112", "1213", "1314"], #
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
-      default=["1415", "1516", "1617"], #
-      #default=["1415", "1516", "1617", "1718"], #
+      #default=["1415", "1516", "1617"], #
+      default=["1415", "1516", "1617", "1718"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
       help="Path to the training data."
   )
