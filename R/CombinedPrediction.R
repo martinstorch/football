@@ -4,6 +4,7 @@ library(plotrix)
 library(graphics)
 library(reshape2)
 library(RColorBrewer)
+library(ggplot2)
 
 point_type<-"z_points"
 cut_off_level_low<-1.5
@@ -19,8 +20,8 @@ human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
 result_file     <-"D:\\Models\\model_gen2_pistor_1819//results_df.csv"
 predictions_file<-"D:\\Models\\model_gen2_pistor_1819/new_predictions_df.csv"
-result_file     <-"D:\\Models\\simple_pistor_1819//results_df.csv"
-predictions_file<-"D:\\Models\\simple_pistor_1819/new_predictions_df.csv"
+result_file     <-"D:\\Models\\simple36_pistor_1819//results_df.csv"
+predictions_file<-"D:\\Models\\simple36_pistor_1819/new_predictions_df.csv"
 #result_file     <-"D:\\Models\\model_gen_pistor_1819_2//results_df\ -\ Copy.csv"
 #predictions_file<-"D:\\Models\\model_gen_pistor_1819_2/new_predictions_df\ -\ Copy.csv"
 
@@ -32,8 +33,8 @@ human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
 result_file     <-"D:\\Models\\model_gen2_sky_1819//results_df.csv"
 predictions_file<-"D:\\Models\\model_gen2_sky_1819/new_predictions_df.csv"
-result_file     <-"D:\\Models\\simple_sky_1819//results_df.csv"
-predictions_file<-"D:\\Models\\simple_sky_1819/new_predictions_df.csv"
+result_file     <-"D:\\Models\\simple36_sky_1819//results_df.csv"
+predictions_file<-"D:\\Models\\simple36_sky_1819/new_predictions_df.csv"
 
 
 
@@ -101,6 +102,46 @@ linedata[is.na(linedata)]<-0
 linedata<-linedata%>%select(-step)
 matplot(linedata  , type = c("b"), col=1:ncol(linedata), pch=1:ncol(linedata), add=T)
 
+# ranking of strategies
+rankdata<-point_data %>% group_by(step) %>% mutate(rank=rank(-Test, ties.method = "min"))
+plot(-rank~step, data=rankdata, col=Prefix, pch=as.integer(Prefix))
+legend("bottomright", legend = levels(point_data$Prefix), horiz = T, text.col = as.integer(point_data$Prefix),
+       pch = as.integer(point_data$Prefix), col = as.integer(point_data$Prefix))
+linedata<-  rankdata%>%select(step, Prefix, rank)%>%mutate(rank=-rank)%>%dcast(step~Prefix, value.var="rank")
+linedata[is.na(linedata)]<-0
+linedata<-linedata%>%select(-step)
+matplot(linedata  , type = c("b"), col=1:ncol(linedata), pch=1:ncol(linedata), add=T)
+boxplot(-rank~Prefix, data=rankdata)
+
+theme_set(theme_classic())
+# Histogram on a Continuous (Numeric) Variable
+g <- ggplot(rankdata, aes(rank)) + scale_fill_brewer(palette = "Spectral")
+g + geom_histogram(aes(fill=Prefix), 
+                   binwidth = 1.0, 
+                   col="black", 
+                   size=1.0) +  # change binwidth
+  labs(title="Relative strategy ranking", 
+       subtitle="1=best, 6=worst")  
+
+g <- ggplot(point_data, aes(Test)) + scale_fill_brewer(palette = "Spectral")
+g + geom_histogram(aes(fill=Prefix),
+                   bins=20,
+                   #binwidth = 0.01, 
+                   col="black"
+                   #,size=0.01
+                   ) +  # change binwidth
+  labs(title="Test scores", 
+       subtitle="")  
+
+g <- ggplot(point_data, aes(Test))
+g + geom_density(aes(fill=Prefix), alpha=0.5) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Test scores",
+       fill="Prefix")
+
+# http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
 
 # test ~ train  - points and ellipsis summary
 pp<-point_data %>%filter(!is.na(Test), !is.na(Train), Prefix!="cp1")%>%mutate(Prefix=factor(Prefix))
@@ -120,25 +161,25 @@ with (pp,
 
 print(data_summary%>%arrange(-TestMean))
 
-all_data<-combined_data
-
-combined_data%>%select(Team1, Team2)%>%unique()
-combined_data%>%group_by(Team1, Team2)%>%count()
-
-combined_data%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z==0, ii<=8*54)%>%select(ii, z, Team1, Team2, Prefix)
-
-combined_data<-
-rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z<9)
-, all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z<18)
-)
-combined_data<-
-  rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z>=9, z<18)
-        , all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z>=18,z<36)
-  )
-combined_data<-
-  rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z>=18)
-        , all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z>=36)
-  )
+# all_data<-combined_data
+# 
+#combined_data%>%select(Team1, Team2)%>%unique()
+#combined_data%>%group_by(Team1, Team2)%>%count()
+# 
+# combined_data%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z==0, ii<=8*54)%>%select(ii, z, Team1, Team2, Prefix)
+# 
+# combined_data<-
+# rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z<9)
+# , all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z<18)
+# )
+# combined_data<-
+#   rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z>=9, z<18)
+#         , all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z>=18,z<36)
+#   )
+# combined_data<-
+#   rbind(all_data%>%filter(Prefix=="ens")%>%mutate(ii=row_number()-1, z=ii%%27)%>%filter(z>=18)
+#         , all_data%>%filter(Prefix!="ens")%>%mutate(ii=row_number()-1, z=ii%%54)%>%filter(z>=36)
+#   )
 
 t <- 1
 evaluate<-function(t){
@@ -146,7 +187,8 @@ evaluate<-function(t){
   onematch2 <- combined_data %>% filter(Team2==hometeams[t] & !is.na(Train) & !is.na(Test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, Train, Test) %>% mutate(pred=stringi::stri_reverse(pred))
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
-  onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
+  #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
+  onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 

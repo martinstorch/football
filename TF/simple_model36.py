@@ -42,7 +42,7 @@ from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import simple_Model as themodel
+from Estimators import simple_Model36 as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -135,38 +135,6 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
     newdata["Predict"]=False
     all_data.append(newdata)
 
-#
-#  for s in train_seasons:
-#    newdata = download_data(model_dir, s, skip_download) 
-#    replace_teamnames(newdata, s)
-#    newdata["Train"]=True
-#    newdata["Test"]=(s in test_seasons)
-#    newdata["Predict"]=False
-#    train_data.append(newdata)
-#
-#  if train_data:
-#    train_data = pd.concat(train_data, ignore_index=True)
-#    print(train_data.shape)  
-#    teamnames.extend(train_data["HomeTeam"].tolist())
-#    teamnames.extend(train_data["AwayTeam"].tolist())
-#    all_data.append(train_data)
-#  
-#  test_data = []
-#  for s in test_seasons:
-#    if s not in train_seasons:
-#      newdata = download_data(model_dir, s, skip_download)
-#      replace_teamnames(newdata, s)
-#      newdata["Train"]=False
-#      newdata["Test"]=True
-#      newdata["Predict"]=False
-#      test_data.append(newdata )
-#  if test_data:
-#    test_data = pd.concat(test_data, ignore_index=True)
-#    print(test_data.shape)  
-#    teamnames.extend(test_data["HomeTeam"].tolist())
-#    teamnames.extend(test_data["AwayTeam"].tolist())
-#    all_data.append(test_data)
-
   file_name = "NewGames.csv"
   cur_dir = os.path.dirname(model_dir + "/NewGames.csv") # Dir from where search starts 
   
@@ -203,7 +171,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
 #    train_data = train_data[0:9]
 #    test_data = test_data[0:9]
   
-  all_data = pd.concat(all_data , ignore_index=True)
+  all_data = pd.concat(all_data , ignore_index=True, sort=False)
   all_data = all_data.fillna(0)
 
   teamnames.extend(all_data["HomeTeam"].tolist())
@@ -278,9 +246,9 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df1['HomeTeam'] = df1["Team1"]
   df1['Season'] = df_data["Season"]
   df1["Train"] = df_data["Train"]
-  print(df_data["Date"])
-  df_data["Date"] = df_data["Date"].str.replace("2018","18")
-  print(df_data["Date"])
+  print(df_data["Date"].tail(18))
+  df_data["Date"] = df_data["Date"].str.replace("2018","18").str.replace("2019","19")
+  print(df_data["Date"].tail(18))
   df1["Date"]= [(datetime.strptime(dt, '%d/%m/%y').toordinal()-734138) for dt in df_data["Date"]]
     
   df2 = pd.DataFrame()
@@ -557,19 +525,6 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
       "match_history_t12": match_history_t12,
       }, labels, team_onehot_encoder, label_column_names
 
-def input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN):
-  print(mode)
-#  print({k:v.shape for k,v in features.items()})
-#  print("Labels: {}".format(labels.shape))
-  return tf.estimator.inputs.numpy_input_fn(
-    x=features,
-    y=labels,
-    batch_size=128 if mode==tf.estimator.ModeKeys.TRAIN else len(labels), #len(labels),
-    num_epochs=None if mode==tf.estimator.ModeKeys.TRAIN else 1,
-    shuffle= (mode==tf.estimator.ModeKeys.TRAIN), # False
-    num_threads= 3 if mode==tf.estimator.ModeKeys.TRAIN else 1
-    )
-
 def plot_confusion_matrix(plotaxis, cm, classes,
                           normalize=False,
                           title='Confusion matrix',
@@ -619,16 +574,16 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
 
   sp = pred[prefix+"p_pred_12"]
   spt = pred[prefix+"ev_points"]
-  gs = min(gs,6)
-  gc = min(gc,6)
+  gs = min(gs,6.0)
+  gc = min(gc,6.0)
   margin_pred_prob1 = pred[prefix+"p_marg_1"]
   margin_poisson_prob1 = pred[prefix+"p_poisson_1"]
   margin_pred_prob2 = pred[prefix+"p_marg_2"]
   margin_poisson_prob2 = pred[prefix+"p_poisson_2"]
   margin_pred_expected1 = pred[prefix+"ev_goals_1"] 
   margin_pred_expected2 = pred[prefix+"ev_goals_2"] 
-  g=[0,1,2,3,4,5,6]
-  g1=[0]*7+[1]*7+[2]*7+[3]*7+[4]*7+[5]*7+[6]*7
+  g=[0.0,1.0,2.0,3.0,4.0,5.0,6.0]
+  g1=[0.0]*7+[1.0]*7+[2.0]*7+[3.0]*7+[4.0]*7+[5.0]*7+[6.0]*7
   g2=g*7
   fig, ax = plt.subplots(1,3,figsize=(15,5))
   ax[0].scatter(g1, g2, s=sp*10000, alpha=0.4, color=default_color)
@@ -643,10 +598,10 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
   ax[1].set_title(prefix)
   max_sp = max(sp)
   max_sp_index = np.argmax(sp) 
-  ax[0].scatter(max_sp_index//7, np.mod(max_sp_index, 7), s=max_sp*10000, facecolors='none', edgecolors='black', linewidth='2')
+  ax[0].scatter((max_sp_index//7).astype(float), np.mod(max_sp_index, 7).astype(float), s=max_sp*10000.0, facecolors='none', edgecolors='black', linewidth=2)
   max_spt = max(spt)
   max_spt_index = np.argmax(spt) 
-  ax[1].scatter(max_spt_index//7, np.mod(max_spt_index, 7), s=max_spt*500, facecolors='none', edgecolors='black', linewidth='2')
+  ax[1].scatter((max_spt_index//7).astype(float), np.mod(max_spt_index, 7).astype(float), s=max_spt*500.0, facecolors='none', edgecolors='black', linewidth=2)
   
   p_loss=0.0
   p_win=0.0
@@ -1377,6 +1332,80 @@ def get_input_data(model_dir, train_data, test_data, skip_download):
     print("Saving features - elapsed time = {}".format(toc-tic))
   return data
 
+def input_fn_old(features, labels, mode=tf.estimator.ModeKeys.TRAIN):
+  print(mode)
+#  print({k:v.shape for k,v in features.items()})
+#  print("Labels: {}".format(labels.shape))
+  return tf.estimator.inputs.numpy_input_fn(
+    x=features,
+    y=labels,
+    batch_size=128 if mode==tf.estimator.ModeKeys.TRAIN else len(labels), #len(labels),
+    num_epochs=None if mode==tf.estimator.ModeKeys.TRAIN else 1,
+    shuffle= (mode==tf.estimator.ModeKeys.TRAIN), # False
+    num_threads= 3 if mode==tf.estimator.ModeKeys.TRAIN else 1
+    )
+
+def input_fn_fixed(features, labels, mode=tf.estimator.ModeKeys.TRAIN):
+  #assert features.shape[0] == labels.shape[0]
+#  features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features.items()}
+#  print("features_placeholder: ", features_placeholder)
+#  label_placeholder=tf.placeholder(labels.dtype,shape=labels.shape)
+#  #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
+#  dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
+
+  dataset = tf.data.Dataset.from_tensor_slices((features, labels))
+  if mode==tf.estimator.ModeKeys.TRAIN:
+    dataset = dataset.shuffle(buffer_size=6000).batch(128).repeat()
+  else:
+    dataset = dataset.batch(len(labels)).repeat(1)
+  print("dataset: ", dataset)
+#  dataset.make_initializable_iterator()
+#  print(dataset.make_initializable_iterator().get_next())
+#  print([v.graph for k,v in dataset.make_initializable_iterator().get_next()[0].items()])
+  return dataset  
+
+class IteratorInitializerHook(tf.train.SessionRunHook):
+    """Hook to initialise data iterator after Session is created."""
+
+    def __init__(self):
+        super(IteratorInitializerHook, self).__init__()
+        self.iterator_initializer_func = None
+
+    def after_create_session(self, session, coord):
+        """Initialise the iterator after the session has been created."""
+        self.iterator_initializer_func(session)
+
+def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN, data_index=[]):
+  #assert features.shape[0] == labels.shape[0]
+
+  iterator_initializer_hook = IteratorInitializerHook()
+
+  def train_inputs():
+    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features.items()}
+    print("features_placeholder: ", features_placeholder)
+    label_placeholder=tf.placeholder(labels.dtype,shape=[None]+[x for x in labels.shape[1:]])
+    feed_dict = {features_placeholder[k]:v[data_index] for k,v in features.items()}
+    feed_dict[label_placeholder]=labels[data_index]
+    #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
+    dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
+    if mode==tf.estimator.ModeKeys.TRAIN:
+      dataset = dataset.shuffle(buffer_size=6000).batch(128).repeat()
+    else:
+      dataset = dataset.batch(len(labels)).repeat(1)
+    print("dataset: ", dataset)
+    iterator = dataset.make_initializable_iterator()
+    next_example, next_label = iterator.get_next()
+    # Set runhook to initialize iterator
+    iterator_initializer_hook.iterator_initializer_func = \
+        lambda sess: sess.run(
+            iterator.initializer,
+            feed_dict=feed_dict)
+    # Return batched (features, labels)
+    return next_example, next_label
+
+  # Return function and hook
+  return train_inputs, iterator_initializer_hook
+
 
 def evaluate_metrics_and_predict(model, features, labels, model_dir, outputname, modes, pred_X = None, pred_y=None):
   
@@ -1395,10 +1424,11 @@ def evaluate_metrics_and_predict(model, features, labels, model_dir, outputname,
   if "eval" not in modes or features["newgame"].shape[0]==0:
     eval_results = {}
   else:
+    input_fn, iterator_hook = get_input_fn(features, labels, mode=tf.estimator.ModeKeys.EVAL)
     eval_results = model.evaluate(
-      input_fn=input_fn(features, labels, mode=tf.estimator.ModeKeys.EVAL),
+      input_fn=input_fn,
       steps=1, name=outputname,
-      hooks = [EvaluationSaverHook(model_dir)])
+      hooks = [iterator_hook, EvaluationSaverHook(model_dir)])
       
   if "predict" not in modes:
     return eval_results, None
@@ -1407,8 +1437,42 @@ def evaluate_metrics_and_predict(model, features, labels, model_dir, outputname,
     features = {k: np.concatenate([features[k], pred_X[k]], axis=0) for k in features.keys()}
     labels = np.concatenate([labels, pred_y], axis=0)
 
+  input_fn, iterator_hook = get_input_fn(features, labels, mode=tf.estimator.ModeKeys.PREDICT)
   predictions = model.predict(
-      input_fn=input_fn(features, labels, mode=tf.estimator.ModeKeys.PREDICT)
+      input_fn=input_fn, hooks = [iterator_hook]
+  )
+  predictions = list(predictions)
+  predictions = decode_predictions(predictions)
+  
+  return eval_results, predictions
+
+def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, outputname, modes, pred_iter, pred_hook):
+  
+  class EvaluationSaverHook (tf.train.SummarySaverHook):
+    def __init__(self, model_dir):
+      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
+                       scaffold=None, summary_op=tf.no_op)
+    def begin(self):
+      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
+      super().begin()
+
+#  summary_hook = tf.train.SummarySaverHook(save_steps=1,
+#                                     output_dir=model_dir+"/evaluation",
+#                                     scaffold=None,
+#                                     summary_op=tf.no_op)
+  if "eval" not in modes: #or features["newgame"].shape[0]==0:
+    eval_results = {}
+  else:
+    eval_results = model.evaluate(
+      input_fn=eval_iter,
+      steps=1, name=outputname,
+      hooks = [eval_hook, EvaluationSaverHook(model_dir)])
+      
+  if "predict" not in modes:
+    return eval_results, None
+  
+  predictions = model.predict(
+      input_fn=pred_iter, hooks = [pred_hook]
   )
   predictions = list(predictions)
   predictions = decode_predictions(predictions)
@@ -1471,16 +1535,20 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
   print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
   
   
-  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-  train_y = labels_array[train_idx]
-  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-  test_y = labels_array[test_idx]
+#  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+#  train_y = labels_array[train_idx]
+#  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+#  test_y = labels_array[test_idx]
+#  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
+#  pred_y = labels_array[pred_idx]
   pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
   pred_y = labels_array[pred_idx]
 
   tf.reset_default_graph()
-
-  model = themodel.create_estimator(model_dir, label_column_names, save_steps, max_to_keep, len(teamnames))
+  print({k: v.shape for k, v in features_arrays.items()})
+  my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items()]
+  print(my_feature_columns)  
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, max_to_keep, len(teamnames))
 
   class PrinterHook (tf.train.SessionRunHook):
     def after_create_session(self, session, coord):
@@ -1491,9 +1559,10 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
 
 
   if predict_new:
+    pred_input_fn, pred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=pred_idx)
     new_predictions = model.predict(
-      input_fn=input_fn(pred_X, pred_y, mode=tf.estimator.ModeKeys.PREDICT)
-      , hooks=[ tf.train.LoggingTensorHook(["Model/cp2/cutpoints/read:0"], at_end=True), PrinterHook()]
+      input_fn=pred_input_fn
+      , hooks=[ pred_iterator_hook, tf.train.LoggingTensorHook(["Model/cp2/cutpoints/read:0"], at_end=True), PrinterHook()]
     )
     new_predictions = list(new_predictions)
 #    print(new_predictions[0].keys())
@@ -1511,7 +1580,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
   
     with open(model_dir+'/newprediction.dmp', 'wb') as fp:
       pickle.dump(new_predictions, fp)
-    
+
     df, _ = prepare_label_fit(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, label_column_names, skip_plotting=True)                             
     df.to_csv(model_dir+"/prediction_outputs_poisson.csv")  
     
@@ -1530,6 +1599,10 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     return 
   
   with tf.Session() as sess:
+    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+    train_y = labels_array[train_idx]
+    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+    test_y = labels_array[test_idx]
     sess = sess # dummy to avoid syntax warning
     plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
     plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
@@ -1544,17 +1617,35 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     hooks = [debug_hook]
   else:
     hooks = []
-    
+  
+  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
+  testeval_input_fn, testeval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=test_idx)
+  traineval_input_fn, traineval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=train_idx)
+  testpred_input_fn, testpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=test_idx+pred_idx)
+  trainpred_input_fn, trainpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=train_idx)
+  #testeval_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
+  #traineval_input_fn, traineval_iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.EVAL)
+  
+#  if pred_X is not None and pred_y is not None:
+#    features = {k: np.concatenate([features[k], pred_X[k]], axis=0) for k in features.keys()}
+#    labels = np.concatenate([labels, pred_y], axis=0)
+#
+#  testpred_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
+
   for i in range(train_steps//evaluate_after_steps):
     if "train" in modes: 
+      #input_fn, iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN)
+
       model.train(
-          input_fn=input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN),
+          input_fn=train_input_fn,
           steps=evaluate_after_steps,
-          hooks=hooks)
+          hooks=hooks+[train_iterator_hook])
 
     # set steps to None to run evaluation until all data consumed.
-    test_result, test_prediction = evaluate_metrics_and_predict(model, test_X, test_y, model_dir, "test", modes, pred_X, pred_y)
-    train_result, train_prediction = evaluate_metrics_and_predict(model, train_X, train_y, model_dir, "train", modes)
+#    test_result, test_prediction = evaluate_metrics_and_predict(model, test_X, test_y, model_dir, "test", modes, pred_X, pred_y)
+#    train_result, train_prediction = evaluate_metrics_and_predict(model, train_X, train_y, model_dir, "train", modes)
+    test_result, test_prediction = evaluate_metrics_and_predict_new(model, testeval_input_fn, testeval_iterator_hook, model_dir, "test", modes, testpred_input_fn, testpred_iterator_hook)
+    train_result, train_prediction = evaluate_metrics_and_predict_new(model, traineval_input_fn, traineval_iterator_hook, model_dir, "train", modes, trainpred_input_fn, trainpred_iterator_hook)
     
     if "predict" in modes:
       test_prediction, new_prediction = test_prediction[:2*len(test_idx)], test_prediction[2*len(test_idx):] 
@@ -1574,7 +1665,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
 
       results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
         for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
-      results = pd.concat(results)
+      results = pd.concat(results, sort=False)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
@@ -1587,8 +1678,8 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
       #for prefix in ["sp/"]:
         test_predictions.extend ([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, prefix, dataset = "Test", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
         train_predictions.extend([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, prefix, dataset = "Train", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
-      train_predictions = pd.concat(train_predictions) 
-      test_predictions  = pd.concat(test_predictions)  
+      train_predictions = pd.concat(train_predictions, sort=False) 
+      test_predictions  = pd.concat(test_predictions, sort=False)  
     
       test_ens_predictions = pd.concat([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, "ens/", dataset = "Test", skip_plotting=skip_plotting)])                          
       train_ens_predictions= pd.concat([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, "ens/", dataset = "Train", skip_plotting=skip_plotting)])                             
@@ -1704,7 +1795,7 @@ def rolling_train_and_eval(model_dir, train_data, test_data,
     print_match_dates(train_X, team_onehot_encoder)
     # pretraining
     model.train(
-        input_fn=input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN),
+        input_fn=lambda: input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN),
   #      steps=10)
         steps=1000)
     predictions = []  
@@ -1737,19 +1828,19 @@ def rolling_train_and_eval(model_dir, train_data, test_data,
         #print_match_dates(chunk_train_X, team_onehot_encoder)
         print_match_dates(chunk_pred_X, team_onehot_encoder)
         model.train(
-            input_fn=input_fn(chunk_train_X, chunk_train_y, mode=tf.estimator.ModeKeys.TRAIN),
+            input_fn=lambda: input_fn(chunk_train_X, chunk_train_y, mode=tf.estimator.ModeKeys.TRAIN),
             steps=evaluate_after_steps)
         
         model.evaluate(
-            input_fn=input_fn(chunk_pred_X, chunk_pred_y, mode=tf.estimator.ModeKeys.EVAL),
+            input_fn=lambda: input_fn(chunk_pred_X, chunk_pred_y, mode=tf.estimator.ModeKeys.EVAL),
             steps=1, name="Chunk"+season)
         
         model.evaluate(
-            input_fn=input_fn(chunk_train_X, chunk_train_y, mode=tf.estimator.ModeKeys.EVAL),
+            input_fn=lambda: input_fn(chunk_train_X, chunk_train_y, mode=tf.estimator.ModeKeys.EVAL),
             steps=1, name="Train")
         
         chunk_predictions = model.predict(
-            input_fn=input_fn(chunk_pred_X, chunk_pred_y, mode=tf.estimator.ModeKeys.PREDICT)
+            input_fn=lambda: input_fn(chunk_pred_X, chunk_pred_y, mode=tf.estimator.ModeKeys.PREDICT)
         )
         chunk_predictions = list(chunk_predictions)
         predictions.extend(chunk_predictions)
@@ -1786,7 +1877,7 @@ def rolling_train_and_eval(model_dir, train_data, test_data,
 
   if predict_new:
     new_predictions = model.predict(
-      input_fn=input_fn(pred_X, pred_y, mode=tf.estimator.ModeKeys.PREDICT)
+      input_fn=lambda: input_fn(pred_X, pred_y, mode=tf.estimator.ModeKeys.PREDICT)
     )
     new_predictions = list(new_predictions)
     #print(new_predictions)
@@ -1903,7 +1994,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=False, 
+      default=True, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1963,8 +2054,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/simple_pistor_1819",
-      #default="D:/Models/simple_sky_1819",
+      default="D:/Models/simple36_pistor_1819",
+      #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
