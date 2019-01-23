@@ -1548,7 +1548,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
   print({k: v.shape for k, v in features_arrays.items()})
   my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items()]
   print(my_feature_columns)  
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, max_to_keep, len(teamnames))
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, len(teamnames))
 
   class PrinterHook (tf.train.SessionRunHook):
     def after_create_session(self, session, coord):
@@ -1604,8 +1604,9 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     test_X = {k: v[test_idx] for k, v in features_arrays.items()}
     test_y = labels_array[test_idx]
     sess = sess # dummy to avoid syntax warning
-    plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
-    plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
+    if False:
+      plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
+      plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
 
   if "upgrade" in modes: # change to True if model structure has been changed
     utils.upgrade_estimator_model(model_dir, model, train_X, train_y)
@@ -1631,8 +1632,20 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
 #    labels = np.concatenate([labels, pred_y], axis=0)
 #
 #  testpred_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
+  class EvaluationSaverHook (tf.train.SummarySaverHook):
+    def __init__(self, model_dir, outputname):
+      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
+                       scaffold=None, summary_op=tf.no_op)
+    def begin(self):
+      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
+      super().begin()
 
-  for i in range(train_steps//evaluate_after_steps):
+
+  train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=None, hooks=[train_iterator_hook])
+  eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10) # , EvaluationSaverHook(model_dir, "test")
+  tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
+  
+  for i in range(-100000 + train_steps//evaluate_after_steps):
     if "train" in modes: 
       #input_fn, iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN)
 
@@ -1728,7 +1741,8 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     with open(model_dir+'/results_df.csv', 'a') as f:
       results.to_csv(f, header=f.tell()==0)
 
-    plot_point_summary(results)
+    if False:
+      plot_point_summary(results)
     
 #  print(feature_columns)
 #  feature_spec = tf.feature_column.make_parse_example_spec(feature_columns)
@@ -2016,13 +2030,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=500,
+      default=200,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
       "--evaluate_after_steps", type=int,
-      default=500,
+      default=200,
       #default=300,
       help="Number of training steps after which to run evaluation. Should be a multiple of save_steps"
   )
@@ -2054,7 +2068,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/simple36_pistor_1819",
+      default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
@@ -2070,12 +2084,14 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train,eval,predict",
+      default="train,eval",
+      #default="train,eval,predict",
       #default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"
   )
   FLAGS, unparsed = parser.parse_known_args()
+  print([sys.argv[0]] + unparsed)
   tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
 
 

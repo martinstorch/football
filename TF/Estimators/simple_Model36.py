@@ -15,6 +15,7 @@ from tensorflow.python.ops.losses import losses
 from tensorflow.contrib.layers import l2_regularizer
 from tensorflow.contrib import rnn
 from tensorflow.python import debug as tf_debug
+from tensorflow.contrib.opt.python.training.weight_decay_optimizers import extend_with_decoupled_weight_decay
 
 GLOBAL_REGULARIZER = l2_regularizer(scale=0.1)
 MINOR_REGULARIZER = l2_regularizer(scale=0.005)
@@ -135,12 +136,12 @@ def constant_tensors():
 
     return (tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix)
 
-def add_weight_noise(X, stddev_factor):  
-  with tf.variable_scope("Weight_Noise"):
-    mean, variance = tf.nn.moments(X, axes=[0], keepdims=True)
-    noise = tf.random_normal(shape=tf.shape(X), mean=0.0, stddev=variance * stddev_factor, dtype=tf.float32) 
-  return X+noise
-  
+#def add_weight_noise(X, stddev_factor):  
+#  with tf.variable_scope("Weight_Noise"):
+#    mean, variance = tf.nn.moments(X, axes=[0], keepdims=True)
+#    noise = tf.random_normal(shape=tf.shape(X), mean=0.0, stddev=variance * stddev_factor, dtype=tf.float32) 
+#  return X+noise
+#  
 def variable_summaries(var, name, mode):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     name = var.name[:-2]+"/"+name
@@ -394,7 +395,7 @@ def build_cond_prob_layer(X, labels, mode, regularizer, keep_prob, eval_metric_o
 
 
 
-def create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, max_to_keep, teams_count):    
+def create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, teams_count):    
   
   
   def buildGraph(features, labels, mode, params): 
@@ -495,7 +496,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
         def rnn_histogram(section, num, part, regularizer=None):
           scope = tf.get_variable_scope().name
           summary_name = "gru_cell/"+section+num+"/"+part
-          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+"/read:0"
+          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
           node = tf.get_default_graph().get_tensor_by_name(node_name)
           eval_metric_ops.update(variable_summaries(node, summary_name, mode))
           if regularizer is not None:
@@ -981,7 +982,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
   def create_losses_RNN(outputs, sp_logits, cond_probs, t_labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops):
     tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
     h1_logits, h2_logits, p_pred_h1, label_features_h1, p_pred_h2, label_features_h2, t_mask, test_p_pred_12_h2, p_pred_12_h2 = cond_probs
-   
+    
     with tf.variable_scope("Prediction"):
       labels_float  = t_labels[:,0]
       labels_float2 = t_labels[:,1]
@@ -1006,6 +1007,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
       match_date = features["newgame"][:,4]
       sequence_length = features['newgame'][:,0]
       t_weight = tf.exp(0.5*match_date) * (sequence_length + 0.05) # sequence_length ranges from 0 to 1 - depending on the number of prior matches of team 1
+      
+      # result importance = log(1/frequency) - mean adjusted to 1.0
+      # 1:1 has low importance, 3:2 much higher, 5:0 overvalued but rare
+      result_importance = tf.constant([0.610699463302517, 0.636624134693228, 0.688478206502995, 0.861174384773783, 1.09447971749187, 1.45916830182096, 1.45916830182096, 0.565089593736748, 0.490552492978211, 0.620077094945206, 0.760233563222618, 0.992062709888034, 1.31889788143772, 1.49409788361176, 0.584692048161506, 0.540777816952666, 0.664928108155794, 0.870617157643794, 1.10781260749576, 1.4022220211579, 1.53541081027154, 0.690646584367668, 0.698403607367345, 0.828902824753833, 0.983969215334149, 1.45916830182096, 1.58597374606561, 1.90009939460063, 0.888152492546633, 0.865846586541708, 1.00917224994398, 1.33703505934424, 1.45916830182096, 1.65116070787927, 0.226593757678754, 1.12197933011558, 1.11478527326307, 1.30210547755345, 1.45916830182096, 1.74303657033312, 0.226593757678754, 0.226593757678754, 1.30210547755345, 1.4022220211579, 1.4289109217981, 1.65116070787927, 0.226593757678754, 0.226593757678754, 0.226593757678754])
+      row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
+      t_weight = t_weight * row_weight
+      
       l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
       poisson_column_weights = tf.ones(shape=[1, t_labels.shape[1]])
       poisson_column_weights = tf.concat([
@@ -1143,7 +1151,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
         #reg_term = tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, reg_variables)
         for r in reg_variables:
           reg_eval_metric_ops.update(collect_summary("regularization", r.name[6:-2], mode, tensor=r))
-          l_regularization += r
+          if "kernel" in r.name:
+            l_regularization += r
 
 #        #print(reg_term)
 #        tf.summary.scalar("regularization/reg_term", reg_term)
@@ -1151,7 +1160,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
 #      for r in reg_variables:
 #        tf.summary.scalar("regularization/"+r.name[6:-2], tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, r))
 #        
-      loss += l_regularization
+      if True:
+        loss += l_regularization
       
       ### ensemble
       t_home_points = tf.stack([predictions[p+"z_points"][0::2] for p in ens_prefix_list], axis=1)
@@ -1442,7 +1452,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     if mode == tf.estimator.ModeKeys.EVAL:
 #      for key, value in eval_metric_ops.items():
 #        tf.summary.scalar(key, value[1])
-      summary_op=tf.summary.merge_all()
+      #summary_op=tf.summary.merge_all()
       return tf.estimator.EstimatorSpec(
           mode=mode, # predictions=predictions, 
           loss= loss, eval_metric_ops={k:v[0] for k,v in eval_metric_ops.items()})
@@ -1451,12 +1461,25 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     global_step = tf.train.get_global_step()
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
+    learning_rate = 1e-2 
     print("Learning rate = {}".format(learning_rate))
-    optimizer = tf.train.AdamOptimizer(learning_rate)
 
+    decay_steps=200
+    learning_rate = tf.train.cosine_decay(learning_rate,
+                          global_step=tf.mod(global_step-1, decay_steps),
+                          decay_steps=decay_steps,
+                          alpha=0.03)
+    tf.summary.scalar('learning_rate', learning_rate)
+    
+    optimizer = tf.train.AdamOptimizer(learning_rate)
+    optimizer_class = extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
+    optimizer = optimizer_class(weight_decay=0.002, learning_rate=learning_rate)
+    
+    #print("WEIGHTS: ", tf.get_collection(tf.GraphKeys.WEIGHTS))
+    #print("REGULARIZATION_LOSSES", tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     gradients, variables = zip(*optimizer.compute_gradients(loss))
     #print(gradients)
-    #print(variables)
+    #print("gradient variables: ", variables)
     
     # handle model upgrades gently
     variables = [v for g,v in zip(gradients, variables) if g is not None]
@@ -1478,7 +1501,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     global_norm = tf.global_norm(gradients)
     eval_metric_ops.update(collect_summary("Gradients", "global_norm", mode, tensor=global_norm))
 
-    train_op = optimizer.apply_gradients(zip(gradients, variables), global_step=global_step, name="ApplyGradients")
+    train_op = optimizer.apply_gradients(zip(gradients, variables), 
+                                         global_step=global_step, name="ApplyGradients", 
+                                         decay_var_list=tf.get_collection(tf.GraphKeys.WEIGHTS))
 #    print(train_op)
 
 #    reset_node = tf.get_default_graph().get_tensor_by_name("Model/HomeBias/HomeBias/bias:0")
@@ -1494,34 +1519,39 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
       train = tf.group( train_op) #, tf.assign_add(global_step, 1))
     
     # keep only summary-level metrics for training
-#    eval_metric_ops = {k:v for k,v in eval_metric_ops.items() if 
-#                       "summary/" in k or 
-#                       "losses/" in k or 
-#                       "Gradients/" in k or 
-#                       "histogram/" in k}
+    eval_metric_ops = {k:v for k,v in eval_metric_ops.items() if 
+                       "summary/" in k or 
+                       "losses/" in k or 
+                       "Gradients/" in k } 
+                       # or "histogram/" in k}
     
-    for key, value in eval_metric_ops.items():
-      tf.summary.scalar(key, value[1])
-      #tf.summary.scalar(key, value[0][1])
+    if True:
+      for key, value in eval_metric_ops.items():
+        tf.summary.scalar(key, value[1])
+        #tf.summary.scalar(key, value[0][1])
 
-    summary_op=tf.summary.merge_all()
-    summary_hook = tf.train.SummarySaverHook(save_steps=100,
-                                       output_dir=model_dir+"/train",
-                                       scaffold=None,
-                                       summary_op=summary_op)
-    
-    checkpoint_hook = tf.train.CheckpointSaverHook(model_dir, 
-                                            save_steps=save_steps, 
-                                            saver = tf.train.Saver(max_to_keep=max_to_keep))
+#    summary_op=tf.summary.merge_all()
+#    summary_hook = tf.train.SummarySaverHook(save_steps=100,
+#                                       output_dir=model_dir+"/train",
+#                                       scaffold=None,
+#                                       summary_op=summary_op)
+#    
+#    checkpoint_hook = tf.train.CheckpointSaverHook(model_dir, 
+#                                            save_steps=save_steps, 
+#                                            saver = tf.train.Saver(max_to_keep=max_to_keep))
     
     return tf.estimator.EstimatorSpec(mode=mode #, predictions=predictions 
                                       , loss= loss, train_op=train
-                                      #, eval_metric_ops={k:v[0] for k,v in eval_metric_ops.items()}
-                                      , training_hooks = [summary_hook, checkpoint_hook]  )
+                                      , eval_metric_ops={k:v[0] for k,v in eval_metric_ops.items()}
+                                      )# , training_hooks = [summary_hook, checkpoint_hook]  )
 
   return tf.estimator.Estimator(model_fn=model, model_dir=model_dir,
                                 params={'feature_columns': my_feature_columns},
-                                config = tf.estimator.RunConfig(save_checkpoints_steps=100,save_summary_steps=100))
+                                config = tf.estimator.RunConfig(
+                                    save_checkpoints_steps=save_steps,
+                                    save_summary_steps=100,
+                                    keep_checkpoint_max=max_to_keep,
+                                    log_step_count_steps=20))
 
 
 def makeStaticPrediction(features, labels):
