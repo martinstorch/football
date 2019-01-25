@@ -1446,304 +1446,6 @@ def evaluate_metrics_and_predict(model, features, labels, model_dir, outputname,
   
   return eval_results, predictions
 
-def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, outputname, modes, pred_iter, pred_hook):
-  
-  class EvaluationSaverHook (tf.train.SummarySaverHook):
-    def __init__(self, model_dir):
-      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
-                       scaffold=None, summary_op=tf.no_op)
-    def begin(self):
-      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
-      super().begin()
-
-#  summary_hook = tf.train.SummarySaverHook(save_steps=1,
-#                                     output_dir=model_dir+"/evaluation",
-#                                     scaffold=None,
-#                                     summary_op=tf.no_op)
-  if "eval" not in modes: #or features["newgame"].shape[0]==0:
-    eval_results = {}
-  else:
-    eval_results = model.evaluate(
-      input_fn=eval_iter,
-      steps=1, name=outputname,
-      hooks = [eval_hook, EvaluationSaverHook(model_dir)])
-      
-  if "predict" not in modes:
-    return eval_results, None
-  
-  predictions = model.predict(
-      input_fn=pred_iter, hooks = [pred_hook]
-  )
-  predictions = list(predictions)
-  predictions = decode_predictions(predictions)
-  
-  return eval_results, predictions
-
-def train_and_eval(model_dir, train_steps, train_data, test_data, 
-                   predict_new, save_steps, skip_download, max_to_keep, evaluate_after_steps, skip_plotting, target_system, modes):
-  tf.logging.set_verbosity(tf.logging.INFO)
-  
-  """Train and evaluate the model."""
-  #train_file_name, test_file_name, teamnames = maybe_download(train_data, test_data)
-  # Specify file path below if want to find the output easily
-  model_dir = tempfile.mkdtemp() if not model_dir else model_dir
-  print(model_dir)
-  
-  global point_scheme 
-  if target_system=="TCS":
-    point_scheme = point_scheme_tcs
-    themodel.point_scheme = point_scheme_tcs
-  elif target_system=="Pistor":
-    point_scheme = point_scheme_pistor
-    themodel.point_scheme = point_scheme_pistor
-  elif target_system=="Sky":
-    point_scheme = point_scheme_sky
-    themodel.point_scheme = point_scheme_sky
-  else:
-    raise Exception("Unknown point scheme")
-    
-  global_prepare()
-
-  all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names = get_input_data(model_dir, train_data, test_data, skip_download)
-
-#  train_idx = range(2*306*len(train_data))
-#  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
-#  print(train_idx)
-#  print(test_idx)
-  print(labels_array.shape)
-
-#  print(feature_columns)
-#  print(teamnames)
-  train_idx = all_data.index[all_data['Train']].tolist()
-  test_idx  = all_data.index[all_data['Test']].tolist()
-  pred_idx  = all_data.index[all_data['Predict']].tolist()
-  # skip first rounds if test data is placed first
-  if test_idx:
-    if np.min(test_idx)==0 and np.min(train_idx)>45:
-      test_idx = [t for t in test_idx if t>45]
-  
-#  train_idx = [[2*i, 2*i+1] for i in train_idx ]
-#  test_idx = [[2*i, 2*i+1] for i in test_idx ]
-#  pred_idx = [[2*i, 2*i+1] for i in pred_idx ]
-#  train_idx = [val for sublist in train_idx for val in sublist]
-#  test_idx = [val for sublist in test_idx for val in sublist]
-#  pred_idx = [val for sublist in pred_idx for val in sublist]
-  if train_idx:
-    print("Train index {}-{}".format(np.min(train_idx), np.max(train_idx)))
-  if test_idx:
-    print("Test index {}-{}".format(np.min(test_idx), np.max(test_idx)))
-  print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
-  
-  
-#  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-#  train_y = labels_array[train_idx]
-#  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-#  test_y = labels_array[test_idx]
-#  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
-#  pred_y = labels_array[pred_idx]
-  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
-  pred_y = labels_array[pred_idx]
-
-  tf.reset_default_graph()
-  print({k: v.shape for k, v in features_arrays.items()})
-  my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items()]
-  print(my_feature_columns)  
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, len(teamnames))
-
-  class PrinterHook (tf.train.SessionRunHook):
-    def after_create_session(self, session, coord):
-      t = tf.get_default_graph().get_tensor_by_name("Model/condprob/H2/W/read:0")
-      w = session.run(t)
-      print(w)
-      np.savetxt("d:/models/X3.txt", w)
-
-
-  if predict_new:
-    pred_input_fn, pred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=pred_idx)
-    new_predictions = model.predict(
-      input_fn=pred_input_fn
-      , hooks=[ pred_iterator_hook, tf.train.LoggingTensorHook(["Model/cp2/cutpoints/read:0"], at_end=True), PrinterHook()]
-    )
-    new_predictions = list(new_predictions)
-#    print(new_predictions[0].keys())
-#    print({k:v.shape for k,v in new_predictions[0].items()})
-    new_predictions = decode_predictions(new_predictions)
-
-    
-    print(new_predictions[1]["test_p_pred_12_h2"][0:12, 0:12])
-    print(new_predictions[1]["test_p_pred_12_h2"][12:24, 0:12])
-    print(new_predictions[1]["p_pred_12_h2"])
-    print(new_predictions[2]["test_p_pred_12_h2"][0:12, 0:12])
-    print(new_predictions[2]["test_p_pred_12_h2"][12:24, 0:12])
-    print(new_predictions[2]["p_pred_12_h2"])
-    return
-  
-    with open(model_dir+'/newprediction.dmp', 'wb') as fp:
-      pickle.dump(new_predictions, fp)
-
-    df, _ = prepare_label_fit(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, label_column_names, skip_plotting=True)                             
-    df.to_csv(model_dir+"/prediction_outputs_poisson.csv")  
-    
-#    results = [plot_predictions_2(new_predictions, pred_X, pred_y, team_onehot_encoder, prefix, True, skip_plotting=True) 
-#      #for prefix in ["ens/", "p1/", "p2/", "p4/", "p6/", "sp/", "sm/"]]
-#      for prefix in ["ens/"] + themodel.prefix_list ] #["ens/", "p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/"]]
-
-    results = [plot_predictions_2(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=(skip_plotting | (prefix not in themodel.plot_list))) 
-      for prefix in ["ens/"] + themodel.prefix_list ]
-      # for prefix in ["ens/", "sk/", "smpi/"]]
-
-    results = pd.concat(results)
-    results = results[["Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
-    results.to_csv("new_predictions_df.csv")
-    print(results)
-    return 
-  
-  with tf.Session() as sess:
-    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-    train_y = labels_array[train_idx]
-    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-    test_y = labels_array[test_idx]
-    sess = sess # dummy to avoid syntax warning
-    if False:
-      plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
-      plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
-
-  if "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, train_X, train_y)
-  
-  DEBUG =False
-  if DEBUG:
-    debug_hook = tf_debug.LocalCLIDebugHook(ui_type='readline', dump_root='C:/tmp/Football/debug_dump')
-    debug_hook.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
-    hooks = [debug_hook]
-  else:
-    hooks = []
-  
-  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
-  testeval_input_fn, testeval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=test_idx)
-  traineval_input_fn, traineval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=train_idx)
-  testpred_input_fn, testpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=test_idx+pred_idx)
-  trainpred_input_fn, trainpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=train_idx)
-  #testeval_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
-  #traineval_input_fn, traineval_iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.EVAL)
-  
-#  if pred_X is not None and pred_y is not None:
-#    features = {k: np.concatenate([features[k], pred_X[k]], axis=0) for k in features.keys()}
-#    labels = np.concatenate([labels, pred_y], axis=0)
-#
-#  testpred_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
-  class EvaluationSaverHook (tf.train.SummarySaverHook):
-    def __init__(self, model_dir, outputname):
-      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
-                       scaffold=None, summary_op=tf.no_op)
-    def begin(self):
-      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
-      super().begin()
-
-
-  train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=None, hooks=[train_iterator_hook])
-  eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10) # , EvaluationSaverHook(model_dir, "test")
-  tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
-  
-  for i in range(-100000 + train_steps//evaluate_after_steps):
-    if "train" in modes: 
-      #input_fn, iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN)
-
-      model.train(
-          input_fn=train_input_fn,
-          steps=evaluate_after_steps,
-          hooks=hooks+[train_iterator_hook])
-
-    # set steps to None to run evaluation until all data consumed.
-#    test_result, test_prediction = evaluate_metrics_and_predict(model, test_X, test_y, model_dir, "test", modes, pred_X, pred_y)
-#    train_result, train_prediction = evaluate_metrics_and_predict(model, train_X, train_y, model_dir, "train", modes)
-    test_result, test_prediction = evaluate_metrics_and_predict_new(model, testeval_input_fn, testeval_iterator_hook, model_dir, "test", modes, testpred_input_fn, testpred_iterator_hook)
-    train_result, train_prediction = evaluate_metrics_and_predict_new(model, traineval_input_fn, traineval_iterator_hook, model_dir, "train", modes, trainpred_input_fn, trainpred_iterator_hook)
-    
-    if "predict" in modes:
-      test_prediction, new_prediction = test_prediction[:2*len(test_idx)], test_prediction[2*len(test_idx):] 
-      with open(model_dir+'/testprediction.dmp', 'wb') as fp:
-        pickle.dump(test_prediction, fp)
-      with open(model_dir+'/trainprediction.dmp', 'wb') as fp:
-        pickle.dump(train_prediction, fp)
-      
-      if False:
-        model_dir="D:/Models/model_gen2_sky_1819"
-        test_prediction = pickle.load(open(model_dir+'/testprediction.dmp', 'rb'))
-        train_prediction = pickle.load(open(model_dir+'/trainprediction.dmp', 'rb'))
-
-#      train_prediction= decode_dict(train_prediction)
-#      test_prediction = decode_dict(test_prediction) 
-#      new_prediction  = decode_dict(new_prediction)
-
-      results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
-        for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
-      results = pd.concat(results, sort=False)
-      results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
-      with open(model_dir+'/new_predictions_df.csv', 'a') as f:
-        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC)
-      print(results)
-  
-      train_predictions = []
-      test_predictions = []
-      for prefix in themodel.prefix_list: # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/"]:
-      #for prefix in ["sp/"]:
-        test_predictions.extend ([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, prefix, dataset = "Test", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
-        train_predictions.extend([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, prefix, dataset = "Train", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
-      train_predictions = pd.concat(train_predictions, sort=False) 
-      test_predictions  = pd.concat(test_predictions, sort=False)  
-    
-      test_ens_predictions = pd.concat([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, "ens/", dataset = "Test", skip_plotting=skip_plotting)])                          
-      train_ens_predictions= pd.concat([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, "ens/", dataset = "Train", skip_plotting=skip_plotting)])                             
-  
-  #    test_result = run_evaluation(all_data.copy(), teamnames, model, outputname="test")
-  #    train_result = run_evaluation(all_data.copy(), teamnames, model, outputname="train")
-      
-      #print(test_predictions)
-      print_prediction_summary(test_predictions, test_ens_predictions)
-      #print(train_predictions)
-      print_prediction_summary(train_predictions, train_ens_predictions)
-      
-      df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, label_column_names)                             
-      df.to_csv(model_dir+"/train_outputs_poisson.csv")  
-      fig.savefig(model_dir+"/train_outputs_poisson.pdf")
-      plt.close(fig)
-      
-      df, fig = prepare_label_fit(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, label_column_names)                             
-      df.to_csv(model_dir+"/test_outputs_poisson.csv")  
-      fig.savefig(model_dir+"/test_outputs_poisson.pdf")
-      plt.close(fig)
-#      label_column_names_cp = []
-#      df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), train_prediction["cp/labels"], team_onehot_encoder, label_column_names_cp, output_name="cp/outputs")                             
-#      df.to_csv(model_dir+"/train_outputs_poisson_cp.csv")  
-#      fig.savefig(model_dir+"/train_outputs_poisson_cp.pdf")
-#      plt.close(fig)
-#    def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False, output_name="outputs_poisson"):                             
-
-    results = pd.DataFrame()
-    results["Measure"] = test_result.keys()
-    results["Train"] = train_result.values()
-    results["Test"] = test_result.values()
-    results["Diff abs"] = results["Train"] - results["Test"]
-    results["Test %"] = results["Test"] / results["Train"] *100
-    results = results.sort_values(by="Measure")
-    is_reg = results["Measure"].str.startswith("regularization/")
-    reg_results = results[is_reg]
-    results = results[~is_reg]
-    
-    with pd.option_context('display.max_rows', None):
-      print(reg_results)
-      print(results.loc[~ results["Measure"].str.contains("histogram/")])
-
-    with open(model_dir+'/results_df.csv', 'a') as f:
-      reg_results.to_csv(f, header=f.tell()==0)
-    with open(model_dir+'/results_df.csv', 'a') as f:
-      results.to_csv(f, header=f.tell()==0)
-
-    if False:
-      plot_point_summary(results)
-    
 #  print(feature_columns)
 #  feature_spec = tf.feature_column.make_parse_example_spec(feature_columns)
 #  print(feature_spec)
@@ -1986,6 +1688,309 @@ def eval_rolling_prediction(model_dir, train_data, test_data, skip_download, ski
   p3 = pd.read_csv(model_dir+"/ens_rolling_predictions_df.csv", index_col = "Unnamed: 0")
   print_prediction_summary(p, p3)
 
+
+def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, outputname, modes, pred_iter, pred_hook):
+  
+  class EvaluationSaverHook (tf.train.SummarySaverHook):
+    def __init__(self, model_dir):
+      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
+                       scaffold=None, summary_op=tf.no_op)
+    def begin(self):
+      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
+      super().begin()
+
+#  summary_hook = tf.train.SummarySaverHook(save_steps=1,
+#                                     output_dir=model_dir+"/evaluation",
+#                                     scaffold=None,
+#                                     summary_op=tf.no_op)
+  if "eval" not in modes: #or features["newgame"].shape[0]==0:
+    eval_results = {}
+  else:
+    eval_results = model.evaluate(
+      input_fn=eval_iter,
+      steps=1, name=outputname,
+      hooks = [eval_hook, EvaluationSaverHook(model_dir)])
+      
+  if "predict" not in modes:
+    return eval_results, None
+  
+  predictions = model.predict(
+      input_fn=pred_iter, hooks = [pred_hook]
+  )
+  predictions = list(predictions)
+  predictions = decode_predictions(predictions)
+  
+  return eval_results, predictions
+
+def train_and_eval(model_dir, train_steps, train_data, test_data, 
+                   predict_new, save_steps, skip_download, max_to_keep, evaluate_after_steps, skip_plotting, target_system, modes, use_swa):
+  tf.logging.set_verbosity(tf.logging.INFO)
+  
+  """Train and evaluate the model."""
+  #train_file_name, test_file_name, teamnames = maybe_download(train_data, test_data)
+  # Specify file path below if want to find the output easily
+  model_dir = tempfile.mkdtemp() if not model_dir else model_dir
+  print(model_dir)
+  
+  global point_scheme 
+  if target_system=="TCS":
+    point_scheme = point_scheme_tcs
+    themodel.point_scheme = point_scheme_tcs
+  elif target_system=="Pistor":
+    point_scheme = point_scheme_pistor
+    themodel.point_scheme = point_scheme_pistor
+  elif target_system=="Sky":
+    point_scheme = point_scheme_sky
+    themodel.point_scheme = point_scheme_sky
+  else:
+    raise Exception("Unknown point scheme")
+    
+  global_prepare()
+
+  all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names = get_input_data(model_dir, train_data, test_data, skip_download)
+
+#  train_idx = range(2*306*len(train_data))
+#  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
+#  print(train_idx)
+#  print(test_idx)
+  print(labels_array.shape)
+
+#  print(feature_columns)
+#  print(teamnames)
+  train_idx = all_data.index[all_data['Train']].tolist()
+  test_idx  = all_data.index[all_data['Test']].tolist()
+  pred_idx  = all_data.index[all_data['Predict']].tolist()
+  # skip first rounds if test data is placed first
+  if test_idx:
+    if np.min(test_idx)==0 and np.min(train_idx)>45:
+      test_idx = [t for t in test_idx if t>45]
+  
+#  train_idx = [[2*i, 2*i+1] for i in train_idx ]
+#  test_idx = [[2*i, 2*i+1] for i in test_idx ]
+#  pred_idx = [[2*i, 2*i+1] for i in pred_idx ]
+#  train_idx = [val for sublist in train_idx for val in sublist]
+#  test_idx = [val for sublist in test_idx for val in sublist]
+#  pred_idx = [val for sublist in pred_idx for val in sublist]
+  if train_idx:
+    print("Train index {}-{}".format(np.min(train_idx), np.max(train_idx)))
+  if test_idx:
+    print("Test index {}-{}".format(np.min(test_idx), np.max(test_idx)))
+  print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
+  
+  
+#  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+#  train_y = labels_array[train_idx]
+#  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+#  test_y = labels_array[test_idx]
+#  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
+#  pred_y = labels_array[pred_idx]
+  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
+  pred_y = labels_array[pred_idx]
+
+  tf.reset_default_graph()
+  print({k: v.shape for k, v in features_arrays.items()})
+  my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items()]
+  print(my_feature_columns)  
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa)
+
+  class PrinterHook (tf.train.SessionRunHook):
+    def after_create_session(self, session, coord):
+      t = tf.get_default_graph().get_tensor_by_name("Model/condprob/H2/W/read:0")
+      w = session.run(t)
+      print(w)
+      np.savetxt("d:/models/X3.txt", w)
+
+
+  if predict_new:
+    pred_input_fn, pred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=pred_idx)
+    new_predictions = model.predict(
+      input_fn=pred_input_fn
+      , hooks=[ pred_iterator_hook, tf.train.LoggingTensorHook(["Model/cp2/cutpoints/read:0"], at_end=True), PrinterHook()]
+    )
+    new_predictions = list(new_predictions)
+#    print(new_predictions[0].keys())
+#    print({k:v.shape for k,v in new_predictions[0].items()})
+    new_predictions = decode_predictions(new_predictions)
+
+    
+    print(new_predictions[1]["test_p_pred_12_h2"][0:12, 0:12])
+    print(new_predictions[1]["test_p_pred_12_h2"][12:24, 0:12])
+    print(new_predictions[1]["p_pred_12_h2"])
+    print(new_predictions[2]["test_p_pred_12_h2"][0:12, 0:12])
+    print(new_predictions[2]["test_p_pred_12_h2"][12:24, 0:12])
+    print(new_predictions[2]["p_pred_12_h2"])
+    return
+  
+    with open(model_dir+'/newprediction.dmp', 'wb') as fp:
+      pickle.dump(new_predictions, fp)
+
+    df, _ = prepare_label_fit(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, label_column_names, skip_plotting=True)                             
+    df.to_csv(model_dir+"/prediction_outputs_poisson.csv")  
+    
+#    results = [plot_predictions_2(new_predictions, pred_X, pred_y, team_onehot_encoder, prefix, True, skip_plotting=True) 
+#      #for prefix in ["ens/", "p1/", "p2/", "p4/", "p6/", "sp/", "sm/"]]
+#      for prefix in ["ens/"] + themodel.prefix_list ] #["ens/", "p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/"]]
+
+    results = [plot_predictions_2(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=(skip_plotting | (prefix not in themodel.plot_list))) 
+      for prefix in ["ens/"] + themodel.prefix_list ]
+      # for prefix in ["ens/", "sk/", "smpi/"]]
+
+    results = pd.concat(results)
+    results = results[["Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
+    results.to_csv("new_predictions_df.csv")
+    print(results)
+    return 
+  
+  with tf.Session() as sess:
+    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+    train_y = labels_array[train_idx]
+    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+    test_y = labels_array[test_idx]
+    sess = sess # dummy to avoid syntax warning
+    if False:
+      plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
+      plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
+
+  if "upgrade" in modes: # change to True if model structure has been changed
+    utils.upgrade_estimator_model(model_dir, model, train_X, train_y)
+  
+  DEBUG =False
+  if DEBUG:
+    debug_hook = tf_debug.LocalCLIDebugHook(ui_type='readline', dump_root='C:/tmp/Football/debug_dump')
+    debug_hook.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
+    hooks = [debug_hook]
+  else:
+    hooks = []
+  
+  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
+  testeval_input_fn, testeval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=test_idx)
+  traineval_input_fn, traineval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=train_idx)
+  testpred_input_fn, testpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=test_idx+pred_idx)
+  trainpred_input_fn, trainpred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=train_idx)
+  #testeval_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
+  #traineval_input_fn, traineval_iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.EVAL)
+  
+#  if pred_X is not None and pred_y is not None:
+#    features = {k: np.concatenate([features[k], pred_X[k]], axis=0) for k in features.keys()}
+#    labels = np.concatenate([labels, pred_y], axis=0)
+#
+#  testpred_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
+  class EvaluationSaverHook (tf.train.SummarySaverHook):
+    def __init__(self, model_dir, outputname):
+      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
+                       scaffold=None, summary_op=tf.no_op)
+    def begin(self):
+      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
+      super().begin()
+
+
+  if "train_eval" in modes:
+    train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=train_steps, hooks=[train_iterator_hook])
+    eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10) # , EvaluationSaverHook(model_dir, "test")
+    tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
+  else:
+    for i in range(train_steps//evaluate_after_steps):
+      if "train" in modes: 
+        #input_fn, iterator_hook = get_input_fn(train_X, train_y, mode=tf.estimator.ModeKeys.TRAIN)
+  
+        model.train(
+            input_fn=train_input_fn,
+            steps=evaluate_after_steps,
+            hooks=hooks+[train_iterator_hook])
+  
+      # set steps to None to run evaluation until all data consumed.
+  #    test_result, test_prediction = evaluate_metrics_and_predict(model, test_X, test_y, model_dir, "test", modes, pred_X, pred_y)
+  #    train_result, train_prediction = evaluate_metrics_and_predict(model, train_X, train_y, model_dir, "train", modes)
+      test_result, test_prediction = evaluate_metrics_and_predict_new(model, testeval_input_fn, testeval_iterator_hook, model_dir, "test", modes, testpred_input_fn, testpred_iterator_hook)
+      train_result, train_prediction = evaluate_metrics_and_predict_new(model, traineval_input_fn, traineval_iterator_hook, model_dir, "train", modes, trainpred_input_fn, trainpred_iterator_hook)
+      
+      if "predict" in modes:
+        test_prediction, new_prediction = test_prediction[:2*len(test_idx)], test_prediction[2*len(test_idx):] 
+        with open(model_dir+'/testprediction.dmp', 'wb') as fp:
+          pickle.dump(test_prediction, fp)
+        with open(model_dir+'/trainprediction.dmp', 'wb') as fp:
+          pickle.dump(train_prediction, fp)
+        
+        if False:
+          model_dir="D:/Models/model_gen2_sky_1819"
+          test_prediction = pickle.load(open(model_dir+'/testprediction.dmp', 'rb'))
+          train_prediction = pickle.load(open(model_dir+'/trainprediction.dmp', 'rb'))
+  
+  #      train_prediction= decode_dict(train_prediction)
+  #      test_prediction = decode_dict(test_prediction) 
+  #      new_prediction  = decode_dict(new_prediction)
+  
+        results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
+          for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
+        results = pd.concat(results, sort=False)
+        results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
+        with open(model_dir+'/new_predictions_df.csv', 'a') as f:
+          results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC)
+        print(results)
+    
+        train_predictions = []
+        test_predictions = []
+        for prefix in themodel.prefix_list: # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/"]:
+        #for prefix in ["sp/"]:
+          test_predictions.extend ([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, prefix, dataset = "Test", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
+          train_predictions.extend([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, prefix, dataset = "Train", skip_plotting=(skip_plotting | (prefix not in themodel.plot_list)))])                             
+        train_predictions = pd.concat(train_predictions, sort=False) 
+        test_predictions  = pd.concat(test_predictions, sort=False)  
+      
+        test_ens_predictions = pd.concat([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, "ens/", dataset = "Test", skip_plotting=skip_plotting)])                          
+        train_ens_predictions= pd.concat([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, "ens/", dataset = "Train", skip_plotting=skip_plotting)])                             
+    
+    #    test_result = run_evaluation(all_data.copy(), teamnames, model, outputname="test")
+    #    train_result = run_evaluation(all_data.copy(), teamnames, model, outputname="train")
+        
+        #print(test_predictions)
+        print_prediction_summary(test_predictions, test_ens_predictions)
+        #print(train_predictions)
+        print_prediction_summary(train_predictions, train_ens_predictions)
+        
+        df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, label_column_names)                             
+        df.to_csv(model_dir+"/train_outputs_poisson.csv")  
+        fig.savefig(model_dir+"/train_outputs_poisson.pdf")
+        plt.close(fig)
+        
+        df, fig = prepare_label_fit(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, label_column_names)                             
+        df.to_csv(model_dir+"/test_outputs_poisson.csv")  
+        fig.savefig(model_dir+"/test_outputs_poisson.pdf")
+        plt.close(fig)
+  #      label_column_names_cp = []
+  #      df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), train_prediction["cp/labels"], team_onehot_encoder, label_column_names_cp, output_name="cp/outputs")                             
+  #      df.to_csv(model_dir+"/train_outputs_poisson_cp.csv")  
+  #      fig.savefig(model_dir+"/train_outputs_poisson_cp.pdf")
+  #      plt.close(fig)
+  #    def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False, output_name="outputs_poisson"):                             
+  
+      results = pd.DataFrame()
+      results["Measure"] = test_result.keys()
+      results["Train"] = train_result.values()
+      results["Test"] = test_result.values()
+      results["Diff abs"] = results["Train"] - results["Test"]
+      results["Test %"] = results["Test"] / results["Train"] *100
+      results = results.sort_values(by="Measure")
+      is_reg = results["Measure"].str.startswith("regularization/")
+      reg_results = results[is_reg]
+      results = results[~is_reg]
+      
+      with pd.option_context('display.max_rows', None):
+        print(reg_results)
+        print(results.loc[~ results["Measure"].str.contains("histogram/")])
+  
+      with open(model_dir+'/results_df.csv', 'a') as f:
+        reg_results.to_csv(f, header=f.tell()==0)
+      with open(model_dir+'/results_df.csv', 'a') as f:
+        results.to_csv(f, header=f.tell()==0)
+  
+      if False:
+        plot_point_summary(results)
+    
+
+
+
 FLAGS = None
 
 def main(_):
@@ -1997,7 +2002,7 @@ def main(_):
   train_and_eval(FLAGS.model_dir, FLAGS.train_steps,
                  FLAGS.train_data, FLAGS.test_data, FLAGS.predict_new,
                  FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
-                 FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes)
+                 FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa)
   
 #  rolling_train_and_eval(FLAGS.model_dir, FLAGS.train_data, FLAGS.test_data, FLAGS.predict_new, FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, FLAGS.evaluate_after_steps, FLAGS.skip_predictions)
 #  eval_rolling_prediction(FLAGS.model_dir, FLAGS.train_data, FLAGS.test_data, FLAGS.skip_download, FLAGS.skip_predictions)
@@ -2013,8 +2018,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -2042,8 +2047,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--max_to_keep", type=int,
-      default=60,
+      default=150,
       help="Number of checkpoint files to keep."
+  )
+  parser.add_argument(
+      "--swa", type=bool,
+      default=False,
+      help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
       "--train_data", type=str,
@@ -2084,7 +2094,9 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train,eval",
+      default="train_eval",
+      #default="train,eval",
+      #default="eval,predict",
       #default="train,eval,predict",
       #default="predict",
       #default="upgrade,train,eval,predict",

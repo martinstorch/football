@@ -66,6 +66,64 @@ def collect_summary(scope, name, mode, tensor=None, metric= tf.metrics.mean, red
     cache = {scope+"/"+name : (metric,  None)}
   return cache
 
+def makeStaticPrediction(features, labels):
+  with tf.variable_scope("Static_Prediction"):
+    tc_1d1_goals_f, tc_home_points_i, _ , calc_poisson_prob, _ , _, _ = constant_tensors()
+    features = features["newgame"]
+    labels = labels[features[:,2]==1] # Home only
+    features = features[features[:,2]==1] # Home only
+    labels = labels.round(0).astype('int32') # integer goal values only
+    
+    def count_probs(t1goals, t2goals):
+      results = pd.Series(["{}:{}".format(gs, gc) for gs,gc in zip(t1goals, t2goals)])
+      counts = results.value_counts()
+      print_counts = {k:v for k,v in zip(counts.keys().tolist(), counts.tolist())}
+      print(sorted( ((v,k) for k,v in print_counts.items()), reverse=True))
+      counts2 = ["{}:{}".format(x, y) in counts 
+              and (counts["{}:{}".format(x, y)] / np.sum(counts))
+              or 0.000001 for x in range(7) for y in range(7)]
+      return tf.constant(counts2, shape=[1, 49], dtype=tf.float32)
+   
+    H1_p_pred_12 = count_probs(labels[:,2], labels[:,3]) # GHT
+    H2_p_pred_12 = count_probs(labels[:,0] - labels[:,2], labels[:,1] - labels[:,3]) # GFT - GHT
+    p_pred_12 = count_probs(labels[:,0], labels[:,1]) # GFT
+    ev_points =  tf.matmul(p_pred_12, tc_home_points_i)
+  
+    a = tf.argmax(ev_points, axis=1)
+    pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
+  
+    def build_predictions(p_pred_12, prefix):
+      p_pred_12_m = tf.reshape(p_pred_12, [-1,7,7])
+      p_marg_1  = tf.reduce_sum(p_pred_12_m, axis=2)
+      p_marg_2  = tf.reduce_sum(p_pred_12_m, axis=1)
+      ev_goals_1 = tf.matmul(p_marg_1, tc_1d1_goals_f)[:,0]
+      ev_goals_2 = tf.matmul(p_marg_2, tc_1d1_goals_f)[:,0]
+      
+      p_poisson_1 = calc_poisson_prob(ev_goals_1)
+      p_poisson_2 = calc_poisson_prob(ev_goals_2)
+      
+      predictions = {
+        prefix+"p_marg_1":p_marg_1.eval()[0],
+        prefix+"p_marg_2":p_marg_2.eval()[0],
+        prefix+"p_pred_12":p_pred_12.eval()[0], 
+        prefix+"ev_goals_1":ev_goals_1.eval()[0],
+        prefix+"ev_goals_2":ev_goals_2.eval()[0],
+        prefix+"p_poisson_1":p_poisson_1.eval()[0],
+        prefix+"p_poisson_2":p_poisson_2.eval()[0],
+      }
+      return predictions
+    
+    predictions = {
+      "ev_points":ev_points.eval()[0],
+      "pred":pred.eval()[0],
+    }
+  
+    predictions.update(build_predictions(p_pred_12, ""))
+    predictions.update(build_predictions(H1_p_pred_12, "H1_"))
+    predictions.update(build_predictions(H2_p_pred_12, "H2_"))
+  return predictions
+
+      
 def constant_tensors():
   
   d = pd.DataFrame()
@@ -395,7 +453,7 @@ def build_cond_prob_layer(X, labels, mode, regularizer, keep_prob, eval_metric_o
 
 
 
-def create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, teams_count):    
+def create_estimator(model_dir, label_column_names, my_feature_columns, save_steps, evaluate_after_steps, max_to_keep, teams_count, use_swa):    
   
   
   def buildGraph(features, labels, mode, params): 
@@ -1151,8 +1209,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
         #reg_term = tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, reg_variables)
         for r in reg_variables:
           reg_eval_metric_ops.update(collect_summary("regularization", r.name[6:-2], mode, tensor=r))
-          if "kernel" in r.name:
-            l_regularization += r
+          l_regularization += r
 
 #        #print(reg_term)
 #        tf.summary.scalar("regularization/reg_term", reg_term)
@@ -1160,7 +1217,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
 #      for r in reg_variables:
 #        tf.summary.scalar("regularization/"+r.name[6:-2], tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, r))
 #        
-      if True:
+      if False:
         loss += l_regularization
       
       ### ensemble
@@ -1459,27 +1516,50 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
   
   
     global_step = tf.train.get_global_step()
+    tf.summary.scalar("global_step/global_step", global_step)
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
-    learning_rate = 1e-2 
+    learning_rate = 2e-3 
     print("Learning rate = {}".format(learning_rate))
 
-    decay_steps=200
-    learning_rate = tf.train.cosine_decay(learning_rate,
-                          global_step=tf.mod(global_step-1, decay_steps),
-                          decay_steps=decay_steps,
-                          alpha=0.03)
+#    decay_steps=200
+#    learning_rate = tf.train.cosine_decay(learning_rate,
+#                          global_step=tf.mod(global_step-1, decay_steps),
+#                          decay_steps=decay_steps,
+#                          alpha=0.03)
     tf.summary.scalar('learning_rate', learning_rate)
     
     optimizer = tf.train.AdamOptimizer(learning_rate)
-    optimizer_class = extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
-    optimizer = optimizer_class(weight_decay=0.002, learning_rate=learning_rate)
+#    optimizer_class = extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
+#    optimizer = optimizer_class(weight_decay=0.01, learning_rate=learning_rate)
     
     #print("WEIGHTS: ", tf.get_collection(tf.GraphKeys.WEIGHTS))
     #print("REGULARIZATION_LOSSES", tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     gradients, variables = zip(*optimizer.compute_gradients(loss))
     #print(gradients)
     #print("gradient variables: ", variables)
+
+    # handle regularization weight-decay apart from other weights
+    # AdamOptimizer shall not include regularization in its momentum
+    reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    reg_loss = tf.add_n(reg_variables)
+    print("reg_loss", reg_loss)
+    tf.summary.scalar('losses/regularization_loss', reg_loss)
+    
+    reg_optimizer = tf.train.GradientDescentOptimizer(learning_rate)
+    reg_gradients, reg_variables = zip(*reg_optimizer.compute_gradients(reg_loss))
+    
+    gradients = list(gradients) # tuple to list
+    for i,v in enumerate(variables):
+      for j,rv in enumerate(reg_variables):
+        if v==rv and reg_gradients[j] is not None:
+          print(v, gradients[i], reg_gradients[j])
+          if gradients[i] is None:
+            gradients[i] = reg_gradients[j]
+            #print("Replacing gradient with regularization: ", v)
+          else:
+            gradients[i] = gradients[i] + reg_gradients[j]
+            #print("Merged gradient from regularization: ", v)
     
     # handle model upgrades gently
     variables = [v for g,v in zip(gradients, variables) if g is not None]
@@ -1501,9 +1581,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     global_norm = tf.global_norm(gradients)
     eval_metric_ops.update(collect_summary("Gradients", "global_norm", mode, tensor=global_norm))
 
+    print("gradient variables", variables)
     train_op = optimizer.apply_gradients(zip(gradients, variables), 
-                                         global_step=global_step, name="ApplyGradients", 
-                                         decay_var_list=tf.get_collection(tf.GraphKeys.WEIGHTS))
+                                         global_step=global_step, name="ApplyGradients") 
+                                         #,decay_var_list=tf.get_collection(tf.GraphKeys.WEIGHTS))
 #    print(train_op)
 
 #    reset_node = tf.get_default_graph().get_tensor_by_name("Model/HomeBias/HomeBias/bias:0")
@@ -1516,7 +1597,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     #print(update_ops)
     with tf.control_dependencies(update_ops):
       # Ensures that we execute the update_ops before performing the train_step
-      train = tf.group( train_op) #, tf.assign_add(global_step, 1))
+      if use_swa:
+        train = tf.assign_add(global_step, 1) # no gradient descent, only adjust batch normalization weights from train data
+      else:
+        train = tf.group( train_op) #, tf.assign_add(global_step, 1))
     
     # keep only summary-level metrics for training
     eval_metric_ops = {k:v for k,v in eval_metric_ops.items() if 
@@ -1525,9 +1609,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
                        "Gradients/" in k } 
                        # or "histogram/" in k}
     
-    if True:
-      for key, value in eval_metric_ops.items():
-        tf.summary.scalar(key, value[1])
+    for key, value in eval_metric_ops.items():
+      tf.summary.scalar(key, value[1])
         #tf.summary.scalar(key, value[0][1])
 
 #    summary_op=tf.summary.merge_all()
@@ -1540,75 +1623,32 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
 #                                            save_steps=save_steps, 
 #                                            saver = tf.train.Saver(max_to_keep=max_to_keep))
     
+    print(eval_metric_ops["summary/ens/z_points"][0][1])
+    logging_hook = tf.train.LoggingTensorHook({"loss" : loss, 
+                                               "ens" : eval_metric_ops["summary/ens/z_points"][0][1],
+                                               "cp" : eval_metric_ops["summary/cp/z_points"][0][1],
+                                               "cp2" : eval_metric_ops["summary/cp2/z_points"][0][1], 
+                                               "pgpt" : eval_metric_ops["summary/pgpt/z_points"][0][1],
+                                               "pg2" : eval_metric_ops["summary/pg2/z_points"][0][1],
+                                               "sp" : eval_metric_ops["summary/sp/z_points"][0][1]}, 
+      every_n_iter=20)
+    
     return tf.estimator.EstimatorSpec(mode=mode #, predictions=predictions 
-                                      , loss= loss, train_op=train
+                                      , loss= loss+reg_loss, train_op=train
                                       , eval_metric_ops={k:v[0] for k,v in eval_metric_ops.items()}
+                                      , training_hooks=[logging_hook]
+                                      , evaluation_hooks=[logging_hook]
+                                      , prediction_hooks=[logging_hook]
                                       )# , training_hooks = [summary_hook, checkpoint_hook]  )
-
+  if use_swa:  
+    model_dir = model_dir+"/swa"
+    
   return tf.estimator.Estimator(model_fn=model, model_dir=model_dir,
                                 params={'feature_columns': my_feature_columns},
                                 config = tf.estimator.RunConfig(
                                     save_checkpoints_steps=save_steps,
                                     save_summary_steps=100,
                                     keep_checkpoint_max=max_to_keep,
-                                    log_step_count_steps=20))
+                                    log_step_count_steps=20),
+                              )
 
-
-def makeStaticPrediction(features, labels):
-  with tf.variable_scope("Static_Prediction"):
-    tc_1d1_goals_f, tc_home_points_i, _ , calc_poisson_prob, _ , _, _ = constant_tensors()
-    features = features["newgame"]
-    labels = labels[features[:,2]==1] # Home only
-    features = features[features[:,2]==1] # Home only
-    labels = labels.round(0).astype('int32') # integer goal values only
-    
-    def count_probs(t1goals, t2goals):
-      results = pd.Series(["{}:{}".format(gs, gc) for gs,gc in zip(t1goals, t2goals)])
-      counts = results.value_counts()
-      print_counts = {k:v for k,v in zip(counts.keys().tolist(), counts.tolist())}
-      print(sorted( ((v,k) for k,v in print_counts.items()), reverse=True))
-      counts2 = ["{}:{}".format(x, y) in counts 
-              and (counts["{}:{}".format(x, y)] / np.sum(counts))
-              or 0.000001 for x in range(7) for y in range(7)]
-      return tf.constant(counts2, shape=[1, 49], dtype=tf.float32)
-   
-    H1_p_pred_12 = count_probs(labels[:,2], labels[:,3]) # GHT
-    H2_p_pred_12 = count_probs(labels[:,0] - labels[:,2], labels[:,1] - labels[:,3]) # GFT - GHT
-    p_pred_12 = count_probs(labels[:,0], labels[:,1]) # GFT
-    ev_points =  tf.matmul(p_pred_12, tc_home_points_i)
-  
-    a = tf.argmax(ev_points, axis=1)
-    pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
-  
-    def build_predictions(p_pred_12, prefix):
-      p_pred_12_m = tf.reshape(p_pred_12, [-1,7,7])
-      p_marg_1  = tf.reduce_sum(p_pred_12_m, axis=2)
-      p_marg_2  = tf.reduce_sum(p_pred_12_m, axis=1)
-      ev_goals_1 = tf.matmul(p_marg_1, tc_1d1_goals_f)[:,0]
-      ev_goals_2 = tf.matmul(p_marg_2, tc_1d1_goals_f)[:,0]
-      
-      p_poisson_1 = calc_poisson_prob(ev_goals_1)
-      p_poisson_2 = calc_poisson_prob(ev_goals_2)
-      
-      predictions = {
-        prefix+"p_marg_1":p_marg_1.eval()[0],
-        prefix+"p_marg_2":p_marg_2.eval()[0],
-        prefix+"p_pred_12":p_pred_12.eval()[0], 
-        prefix+"ev_goals_1":ev_goals_1.eval()[0],
-        prefix+"ev_goals_2":ev_goals_2.eval()[0],
-        prefix+"p_poisson_1":p_poisson_1.eval()[0],
-        prefix+"p_poisson_2":p_poisson_2.eval()[0],
-      }
-      return predictions
-    
-    predictions = {
-      "ev_points":ev_points.eval()[0],
-      "pred":pred.eval()[0],
-    }
-  
-    predictions.update(build_predictions(p_pred_12, ""))
-    predictions.update(build_predictions(H1_p_pred_12, "H1_"))
-    predictions.update(build_predictions(H2_p_pred_12, "H2_"))
-  return predictions
-
-      
