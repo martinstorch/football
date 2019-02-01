@@ -218,6 +218,20 @@ def variable_summaries(var, name, mode):
       eval_metric_ops.update(collect_summary("histogram", name+"_max", mode, tensor=tf.reduce_max(var)))
     return eval_metric_ops
 
+def corrcoef(x_t,y_t):
+  def t(x): return tf.transpose(x)
+  x_t = tf.cast(x_t, tf.float32)
+  y_t = tf.cast(y_t, tf.float32)
+  x_t = tf.expand_dims(x_t, axis=0)
+  y_t = tf.expand_dims(y_t, axis=0)
+  xy_t = tf.concat([x_t, y_t], axis=0)
+  mean_t = tf.reduce_mean(xy_t, axis=1, keepdims=True)
+  cov_t = ((xy_t-mean_t) @ t(xy_t-mean_t))/tf.cast(tf.shape(x_t)[1]-1, x_t.dtype)
+  cov2_t = tf.diag(1/tf.sqrt(tf.diag_part(cov_t)+0.000001))
+  cor = cov2_t @ cov_t @ cov2_t
+  #print(cor)
+  return cor[0,1]
+  
 #from tensorflow.python.framework import ops
 #
 #@ops.RegisterGradient("BernoulliSample_ST")
@@ -470,16 +484,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         match_history_t1 = features['match_history_t1']
         match_history_t2 = features['match_history_t2'] 
         match_history_t12 = features['match_history_t12']
-        all_data = params["data"]
-        all_labels = params["labels"]
-        
-
-#      "match_input_layer": match_input_layer,
-#      "gameindex": features.index.values, 
-#      "match_history_t1": mh1.values,
-#      "match_history_t2": mh2.values,
-#      "match_history_t12": mh12.values,
-
         
         f_date_round = features_newgame[:,4+2*teams_count : 4+2*teams_count+2]
         suppress_team_names = False
@@ -1052,18 +1056,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     metrics.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
     return metrics
 
-  def corrcoef(x_t,y_t):
-    def t(x): return tf.transpose(x)
-    x_t = tf.expand_dims(x_t, axis=0)
-    y_t = tf.expand_dims(y_t, axis=0)
-    xy_t = tf.concat([x_t, y_t], axis=0)
-    mean_t = tf.reduce_mean(xy_t, axis=1, keepdims=True)
-    cov_t = ((xy_t-mean_t) @ t(xy_t-mean_t))/tf.cast(tf.shape(x_t)[1]-1, x_t.dtype)
-    cov2_t = tf.diag(1/tf.sqrt(tf.diag_part(cov_t)+0.000001))
-    cor = cov2_t @ cov_t @ cov2_t
-    #print(cor)
-    return cor[0,1]
-    
   def create_poisson_correlation_metrics(outputs, t_labels, mode):
     metrics={}
     for i,col in enumerate(label_column_names):
@@ -1426,8 +1418,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     features = {k:tf.feature_column.input_layer(features, f) for k,f in zip(features.keys(), fc) if k != 'match_input_layer'}
     print(features)
     
-    alldata_placeholder = tf.placeholder(params["data"].dtype, shape=params["data"].shape, name="alldata")
-    alllabels_placeholder = tf.placeholder(params["labels"].dtype, shape=params["labels"].shape, name="alllabels")
+    #alldata_placeholder = tf.placeholder(params["data"].dtype, shape=params["data"].shape, name="alldata")
+    #alllabels_placeholder = tf.placeholder(params["labels"].dtype, shape=params["labels"].shape, name="alllabels")
+    alllabels_placeholder = tf.get_default_graph().get_tensor_by_name("alllabels:0")
+    alldata_placeholder = tf.get_default_graph().get_tensor_by_name("alldata:0")
 
     print(alldata_placeholder)
     print(alllabels_placeholder)

@@ -1431,19 +1431,31 @@ def get_input_data(model_dir, train_data, test_data, skip_download):
 class IteratorInitializerHook(tf.train.SessionRunHook):
     """Hook to initialise data iterator after Session is created."""
 
-    def __init__(self):
+    def __init__(self, features, labels):
         super(IteratorInitializerHook, self).__init__()
         self.iterator_initializer_func = None
+        self.feed_dict = {"alllabels:0":labels,
+                          "alldata:0": features['match_input_layer'] }
 
     def after_create_session(self, session, coord):
         """Initialise the iterator after the session has been created."""
         self.iterator_initializer_func(session)
+    
+    def before_run(self, run_context):
+#        a = run_context.original_args
+#        if a.feed_dict is None:
+#          a.feed_dict = self.feed_dict
+#        else:
+#          a.feed_dict.update(self.feed_dict)
+        return tf.train.SessionRunArgs(run_context.original_args.fetches,
+                                       self.feed_dict,
+                                       run_context.original_args.options)
 
 def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN, 
                  data_index=[]):
   #assert features.shape[0] == labels.shape[0]
 
-  iterator_initializer_hook = IteratorInitializerHook()
+  iterator_initializer_hook = IteratorInitializerHook(features, labels)
 
   def train_inputs():
     features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features.items()}
@@ -1452,9 +1464,9 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
     feed_dict = {features_placeholder[k]:v[data_index] for k,v in features.items()}
     feed_dict[label_placeholder]=labels[data_index]
     alldata_placeholder = tf.placeholder(features['match_input_layer'].dtype, shape=features['match_input_layer'].shape, name="alldata")
-    feed_dict[alldata_placeholder]=features
+    #feed_dict[alldata_placeholder]=features['match_input_layer']
     alllabels_placeholder = tf.placeholder(labels.dtype, shape=labels.shape, name="alllabels")
-    feed_dict[alllabels_placeholder]=labels
+    #feed_dict[alllabels_placeholder]=labels
     #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
     dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
     if mode==tf.estimator.ModeKeys.TRAIN:
@@ -1465,6 +1477,7 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
     iterator = dataset.make_initializable_iterator()
     next_example, next_label = iterator.get_next()
     # Set runhook to initialize iterator
+    print("feed_dict", feed_dict.keys())
     iterator_initializer_hook.iterator_initializer_func = \
         lambda sess: sess.run(
             iterator.initializer,
