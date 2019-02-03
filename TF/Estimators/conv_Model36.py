@@ -183,10 +183,10 @@ def constant_tensors():
 #        8.525161361065415,
 #        10.604602902745251,
 #        12.801827480081469]
-    tc_1d7_logfactorial_f = tf.constant(logfactorial, dtype=tf.float16, shape=[1,7])
+    tc_1d7_logfactorial_f = tf.constant(logfactorial, dtype=tf.float32, shape=[1,7])
 
     l = [tc_1d7_goals_f, tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, p_tendency_mask_f, p_gdiff_mask_f]
-    l = [tf.cast(x, tf.float16) for x in l]
+    l = [tf.cast(x, tf.float32) for x in l]
     tc_1d7_goals_f, tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, p_tendency_mask_f, p_gdiff_mask_f = l
     
     def calc_poisson_prob(lambda0):
@@ -537,72 +537,118 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print("tanh smooth")
           return tf.tanh(x)
 
-      def make_rnn_cell():
-        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=64, 
-                                          activation=tanhStochastic,
-                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
-        if mode == tf.estimator.ModeKeys.TRAIN:
-          # 13.12.2017: was 0.9
-          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
-               input_keep_prob=0.99, 
-               output_keep_prob=0.99,
-               state_keep_prob=0.99)
-        return rnn_cell
+#      def make_rnn_cell():
+#        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=64, 
+#                                          activation=tanhStochastic,
+#                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+#        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
+#        if mode == tf.estimator.ModeKeys.TRAIN:
+#          # 13.12.2017: was 0.9
+#          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
+#               input_keep_prob=0.99, 
+#               output_keep_prob=0.99,
+#               state_keep_prob=0.99)
+#        return rnn_cell
+#      
+#
+#      def make_gru_cell():
+#        return tf.nn.rnn_cell.MultiRNNCell([
+#            make_rnn_cell(), 
+#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
+#          ])
+#      
+#      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
+#        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float16)
+#        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
+#                                   initial_state=initial_state,
+#                                   dtype=tf.float16,
+#                                   sequence_length = sequence_length)
+#        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
+#        # 'state' is a tensor of shape [batch_size, num_units]
+#        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
+#        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
+#        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
+#        return state[1] # use upper layer state
+#
+#      def rnn_histograms():
+#        def rnn_histogram(section, num, part, regularizer=None):
+#          scope = tf.get_variable_scope().name
+#          summary_name = "gru_cell/"+section+num+"/"+part
+#          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
+#          node = tf.get_default_graph().get_tensor_by_name(node_name)
+#          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
+#          if regularizer is not None:
+#            loss = tf.identity(regularizer(node), name=summary_name)
+#            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
+#            if loss is not None:
+#              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
+#
+#        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
+#        rnn_histogram("gates", "0", "bias")
+#        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
+#        rnn_histogram("candidate", "0", "bias")
+#        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
+#        rnn_histogram("gates", "1", "bias")
+#        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
+#        rnn_histogram("candidate", "1", "bias")
+#
+#      with tf.variable_scope("RNN_1"):
+#        shared_rnn_cell = make_gru_cell()
+#        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
+#        rnn_histograms()
+#      with tf.variable_scope("RNN_2"):
+#        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
+#      with tf.variable_scope("RNN_12"):
+#        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
+#        rnn_histograms()
+      def conv_layer(X, name):
+        return tf.layers.conv1d(X,
+                  filters=16, kernel_size=3, strides=1,
+                  padding='valid',
+                  data_format='channels_last',
+                  dilation_rate=1,
+                  activation=tanhStochastic,
+                  use_bias=True,
+                  kernel_initializer=None,
+                  bias_initializer=tf.zeros_initializer(),
+                  kernel_regularizer=l2_regularizer(scale=0.1),
+                  bias_regularizer=None,
+                  activity_regularizer=None,
+                  kernel_constraint=None,
+                  bias_constraint=None,
+                  trainable=True,
+                  name=name,
+                  reuse=None
+              )  
+      def avg_pool(X, name):
+        return tf.layers.average_pooling1d(X, pool_size=2, strides=2,
+              padding='valid',
+              data_format='channels_last',
+              name=name
+            )
+          
+      with tf.variable_scope("CNN_1"):
+        match_history_t1 = conv_layer(match_history_t1, name="conv1")
+        match_history_t1 = conv_layer(match_history_t1, name="conv2")
+        match_history_t1 = avg_pool(match_history_t1, name="avgpool")
+
+      with tf.variable_scope("CNN_2"):
+        match_history_t2 = conv_layer(match_history_t2, name="conv1")
+        match_history_t2 = conv_layer(match_history_t2, name="conv2")
+        match_history_t2 = avg_pool(match_history_t2, name="avgpool")
+
+      with tf.variable_scope("CNN_12"):
+        match_history_t12 = conv_layer(match_history_t12, name="conv1")
+        match_history_t12 = conv_layer(match_history_t12, name="conv2")
+        match_history_t12 = avg_pool(match_history_t12, name="avgpool")
+        
+      print(match_history_t1)
+      match_history_t1 = tf.reshape(match_history_t1, (-1, match_history_t1.shape[1]*match_history_t1.shape[2]))
+      match_history_t2 = tf.reshape(match_history_t2, (-1, match_history_t2.shape[1]*match_history_t2.shape[2]))
+      match_history_t12 = tf.reshape(match_history_t12, (-1, match_history_t12.shape[1]*match_history_t12.shape[2]))
       
-
-      def make_gru_cell():
-        return tf.nn.rnn_cell.MultiRNNCell([
-            make_rnn_cell(), 
-            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
-          ])
-      
-      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
-        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float16)
-        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
-                                   initial_state=initial_state,
-                                   dtype=tf.float16,
-                                   sequence_length = sequence_length)
-        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
-        # 'state' is a tensor of shape [batch_size, num_units]
-        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
-        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
-        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
-        return state[1] # use upper layer state
-
-      def rnn_histograms():
-        def rnn_histogram(section, num, part, regularizer=None):
-          scope = tf.get_variable_scope().name
-          summary_name = "gru_cell/"+section+num+"/"+part
-          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
-          node = tf.get_default_graph().get_tensor_by_name(node_name)
-          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
-          if regularizer is not None:
-            loss = tf.identity(regularizer(node), name=summary_name)
-            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
-            if loss is not None:
-              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
-
-        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
-        rnn_histogram("gates", "0", "bias")
-        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
-        rnn_histogram("candidate", "0", "bias")
-        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
-        rnn_histogram("gates", "1", "bias")
-        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
-        rnn_histogram("candidate", "1", "bias")
-
-      with tf.variable_scope("RNN_1"):
-        shared_rnn_cell = make_gru_cell()
-        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
-        rnn_histograms()
-      with tf.variable_scope("RNN_2"):
-        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
-      with tf.variable_scope("RNN_12"):
-        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
-        rnn_histograms()
       with tf.variable_scope("Combine"):
-        X = tf.concat([features_newgame, history_state_t1, history_state_t2, history_state_t12], axis=1)
+        X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
         
       with tf.variable_scope("Layer0"):
           X0,Z0 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=10.0), keep_prob=1.0, batch_norm=True, activation=None, eval_metric_ops=eval_metric_ops)
@@ -1405,34 +1451,40 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     return s
 
   def model(features, labels, mode, params):
-    print("labels", labels)
+#    print("labels", labels)
     tc = constant_tensors()
     tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
     
-    print("features", features)
+#    print("features", features)
     fc = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:].as_list(), dtype=v.dtype) for k, v in features.items()]
     #fc = {k:tf.feature_column.numeric_column(key=k, shape=fc.shape, dtype=fc.dtype) for k,fc in zip(features.keys(), params['feature_columns'])}
-    print(fc)
+#    print(fc)
     #features = tf.feature_column.input_layer(features, fc)
     #features = {k:tf.reshape(tf.feature_column.input_layer(features, fc), [-1]+[x for x in fc.shape]) for k,fc in zip(features.keys(), params['feature_columns']) if k != 'match_input_layer'}
     features = {k:tf.feature_column.input_layer(features, f) for k,f in zip(features.keys(), fc) if k != 'match_input_layer'}
-    print(features)
+#    print(features)
     
     #alldata_placeholder = tf.placeholder(params["data"].dtype, shape=params["data"].shape, name="alldata")
     #alllabels_placeholder = tf.placeholder(params["labels"].dtype, shape=params["labels"].shape, name="alllabels")
     alllabels_placeholder = tf.get_default_graph().get_tensor_by_name("alllabels:0")
     alldata_placeholder = tf.get_default_graph().get_tensor_by_name("alldata:0")
 
-    print(alldata_placeholder)
-    print(alllabels_placeholder)
+#    print(alldata_placeholder)
+#    print(alllabels_placeholder)
     selected_batch = tf.cast(features['gameindex'], tf.int32)
     
     features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
+    features["newgame"] = tf.cast(features["newgame"], tf.float32)
+    #labels = tf.cast(labels, tf.float32)
+    alldata0 = tf.concat([alldata_placeholder[0:1]*0.0, alldata_placeholder], axis=0)
+    alllabels0 = tf.concat([alllabels_placeholder[0:1]*0.0, alllabels_placeholder], axis=0)
     def build_history_input(name):
       hist_idx = tf.cast(features[name], tf.int32)
-      data = tf.gather(params=alldata_placeholder, indices=hist_idx)
-      labels = tf.gather(params=alllabels_placeholder, indices=hist_idx)
+      hist_idx = hist_idx+1
+      data = tf.gather(params=alldata0, indices=hist_idx)
+      labels = tf.gather(params=alllabels0, indices=hist_idx)
       features[name] = tf.concat([data, labels], axis=2)
+      features[name] = tf.cast(features[name], tf.float32)
     
     build_history_input("match_history_t1")
     build_history_input("match_history_t2")
@@ -1518,14 +1570,14 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      predictions_ensemble = apply_prefix(predictions_ensemble, "ens/")
 #      predictions.update(predictions_ensemble)
       
-      export_outputs = { "predictions": predictions["sp/p_pred_12"] }
+      export_outputs = { "predictions": tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])}
           
     if mode == tf.estimator.ModeKeys.PREDICT:
       return tf.estimator.EstimatorSpec(
           mode=mode, 
           predictions    = predictions, 
-          export_outputs = export_outputs,
-          wrapper_fun=tf.estimator.export.ClassificationOutput)
+          export_outputs = export_outputs)
+          #wrapper_fun=tf.estimator.export.ClassificationOutput)
 #      return tf.estimator.EstimatorSpec(
 #          mode=mode, 
 #          predictions    = encode_home_away_match_predictions(predictions), 

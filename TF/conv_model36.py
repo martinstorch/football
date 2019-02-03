@@ -183,11 +183,13 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
 
 # combine home and away versions of the same match to a single sample in dim 0. 
 def encode_home_away_matches(x):
+  return x
   x_new =  np.stack((x[0::2], x[1::2]), axis=-1)
   return x_new
     
 # split samples into home and away versions of the same match using the last dimension 
 def decode_home_away_matches(x):
+  return x
   s = list(x.shape)
   #print(s)
   r = len(s) # rank
@@ -212,6 +214,7 @@ def decode_array(a):
   return decode_home_away_matches(a)
 
 def decode_predictions(x):
+  return x
   pred = []
   for l in x: 
     pred.append({k:np.rollaxis(v, -1, 0) for k,v in l.items()})
@@ -505,7 +508,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   lc = len(label_column_names)
   fc = len(feature_column_names)
 
-  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+lc+fc], dtype=np.float16)
+  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+lc+fc], dtype=np.float32)
   match_input_layer[:, 0] = features["mh1len"] * 0.1
   match_input_layer[:, 1] = features["Where"] 
   match_input_layer[:, 2] = features["mh2len"] * 0.1
@@ -516,7 +519,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   j = j+lc
   match_input_layer[:, j:j+fc] = features[feature_column_names]
   
-  labels = features [label_column_names].values.astype(np.float16)
+  labels = features [label_column_names].values.astype(np.float32)
   return {
       "match_input_layer": match_input_layer,
       "gameindex": features.gameindex.values.astype(np.int16), 
@@ -754,7 +757,9 @@ def global_prepare():
 
 def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefix="sp/", is_prediction=False, dataset = "Test", skip_plotting=False):
 
-  features = features["newgame"]
+  features = features["gameindex"]
+  print(features)
+  print(predictions)
   if predictions is None:
     return []
   if len(predictions)==0:
@@ -1530,7 +1535,7 @@ def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, out
       input_fn=pred_iter, hooks = [pred_hook]
   )
   predictions = list(predictions)
-  predictions = decode_predictions(predictions)
+  #predictions = decode_predictions(predictions)
   
   return eval_results, predictions
 
@@ -1740,12 +1745,15 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
           test_prediction = pickle.load(open(model_dir+'/testprediction.dmp', 'rb'))
           train_prediction = pickle.load(open(model_dir+'/trainprediction.dmp', 'rb'))
   
-  #      train_prediction= decode_dict(train_prediction)
-  #      test_prediction = decode_dict(test_prediction) 
-  #      new_prediction  = decode_dict(new_prediction)
+        train_prediction= decode_dict(train_prediction)
+        test_prediction = decode_dict(test_prediction) 
+        new_prediction  = decode_dict(new_prediction)
   
         results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
           for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
+#        results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
+#          for prefix in themodel.prefix_list   ]
+        print(results)
         results = pd.concat(results, sort=False)
         results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
@@ -1859,7 +1867,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=1,
+      default=200,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
@@ -1919,11 +1927,11 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train_eval",
+      #default="train_eval",
       #default="train,eval",
       #default="eval,predict",
       #default="train,eval,predict",
-      #default="predict",
+      default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"
   )
