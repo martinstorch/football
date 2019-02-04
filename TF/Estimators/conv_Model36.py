@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import os
+import sys
 from tensorflow.python.training.session_run_hook import SessionRunHook
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
@@ -1472,9 +1473,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #    print(alldata_placeholder)
 #    print(alllabels_placeholder)
     selected_batch = tf.cast(features['gameindex'], tf.int32)
-    
-    features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
-    features["newgame"] = tf.cast(features["newgame"], tf.float32)
+    print_op = tf.print(selected_batch, output_stream=sys.stdout)
+    with tf.control_dependencies([print_op]):
+        features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
+        features["newgame"] = tf.cast(features["newgame"], tf.float32)
     #labels = tf.cast(labels, tf.float32)
     alldata0 = tf.concat([alldata_placeholder[0:1]*0.0, alldata_placeholder], axis=0)
     alllabels0 = tf.concat([alllabels_placeholder[0:1]*0.0, alllabels_placeholder], axis=0)

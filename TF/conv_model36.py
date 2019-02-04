@@ -757,9 +757,9 @@ def global_prepare():
 
 def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefix="sp/", is_prediction=False, dataset = "Test", skip_plotting=False):
 
-  features = features["gameindex"]
-  print(features)
-  print(predictions)
+  features = features["match_input_layer"]
+  print("features.shape", features.shape)
+  print("len(predictions)", len(predictions))
   if predictions is None:
     return []
   if len(predictions)==0:
@@ -1317,7 +1317,7 @@ def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefi
   return preparePrintData(prefix, df)
 
 def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False, output_name="outputs_poisson"):                             
-  features = features["newgame"]
+  features = features["match_input_layer"]
   features = features[:len(predictions)] # cut off features if not enough predictions are present
   labels = labels[:len(predictions)] # cut off labels if not enough predictions are present
   tn = len(team_onehot_encoder.classes_)
@@ -1468,16 +1468,17 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
     label_placeholder=tf.placeholder(labels.dtype,shape=[None]+[x for x in labels.shape[1:]])
     feed_dict = {features_placeholder[k]:v[data_index] for k,v in features.items()}
     feed_dict[label_placeholder]=labels[data_index]
-    alldata_placeholder = tf.placeholder(features['match_input_layer'].dtype, shape=features['match_input_layer'].shape, name="alldata")
+    tf.placeholder(features['match_input_layer'].dtype, shape=features['match_input_layer'].shape, name="alldata")
     #feed_dict[alldata_placeholder]=features['match_input_layer']
-    alllabels_placeholder = tf.placeholder(labels.dtype, shape=labels.shape, name="alllabels")
+    tf.placeholder(labels.dtype, shape=labels.shape, name="alllabels")
     #feed_dict[alllabels_placeholder]=labels
     #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
     dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
     if mode==tf.estimator.ModeKeys.TRAIN:
       dataset = dataset.shuffle(buffer_size=6000).batch(128).repeat()
     else:
-      dataset = dataset.batch(len(labels)).repeat(1)
+      dataset = dataset.batch(len(labels[data_index])).repeat(1)
+    print(data_index)
     print("dataset: ", dataset)
     iterator = dataset.make_initializable_iterator()
     next_example, next_label = iterator.get_next()
@@ -1535,7 +1536,7 @@ def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, out
       input_fn=pred_iter, hooks = [pred_hook]
   )
   predictions = list(predictions)
-  #predictions = decode_predictions(predictions)
+  predictions = decode_predictions(predictions)
   
   return eval_results, predictions
 
@@ -1570,8 +1571,10 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
 #  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
 #  print(train_idx)
 #  print(test_idx)
+  print(all_data.shape)
   print(labels_array.shape)
   print(labels_array.dtype)
+  print([(k, v.shape, v.dtype) for k,v in features_arrays.items()])
 
 #  print(feature_columns)
 #  print(teamnames)
@@ -1583,9 +1586,10 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     if np.min(test_idx)==0 and np.min(train_idx)>45:
       test_idx = [t for t in test_idx if t>45]
   
-#  train_idx = [[2*i, 2*i+1] for i in train_idx ]
-#  test_idx = [[2*i, 2*i+1] for i in test_idx ]
-#  pred_idx = [[2*i, 2*i+1] for i in pred_idx ]
+  train_idx = list(sum([(2*i, 2*i+1) for i in train_idx ], ()))
+  test_idx = list(sum([(2*i, 2*i+1) for i in test_idx ], ()))
+  pred_idx = list(sum([(2*i, 2*i+1) for i in pred_idx ], ()))
+
 #  train_idx = [val for sublist in train_idx for val in sublist]
 #  test_idx = [val for sublist in test_idx for val in sublist]
 #  pred_idx = [val for sublist in pred_idx for val in sublist]
@@ -1707,9 +1711,8 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     
     features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items()}
     print("features_placeholder: ", features_placeholder)
-    receiver_tensors = {'predictions': tf.placeholder(dtype=tf.float32, shape=[None, 49], name='sp/p_pred_12')}
-    
-#    theexporter = tf.estimator.LatestExporter("football", lambda: tf.estimator.export.ServingInputReceiver(features_placeholder, receiver_tensors), as_text=False, exports_to_keep=50)
+    #receiver_tensors = {'predictions': tf.placeholder(dtype=tf.float32, shape=[None, 49], name='sp/p_pred_12')}
+    #theexporter = tf.estimator.LatestExporter("football", lambda: tf.estimator.export.ServingInputReceiver(features_placeholder, receiver_tensors), as_text=False, exports_to_keep=50)
     eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10) # exporters=[theexporter], EvaluationSaverHook(model_dir, "test")
     print(model.config)  
     print(model.params)  
@@ -1734,7 +1737,8 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
       train_result, train_prediction = evaluate_metrics_and_predict_new(model, traineval_input_fn, traineval_iterator_hook, model_dir, "train", modes, trainpred_input_fn, trainpred_iterator_hook)
       
       if "predict" in modes:
-        test_prediction, new_prediction = test_prediction[:2*len(test_idx)], test_prediction[2*len(test_idx):] 
+        #test_prediction, new_prediction = test_prediction[:2*len(test_idx)], test_prediction[2*len(test_idx):] 
+        test_prediction, new_prediction = test_prediction[:len(test_idx)], test_prediction[len(test_idx):] 
         with open(model_dir+'/testprediction.dmp', 'wb') as fp:
           pickle.dump(test_prediction, fp)
         with open(model_dir+'/trainprediction.dmp', 'wb') as fp:
@@ -1744,22 +1748,24 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
           model_dir="D:/Models/model_gen2_sky_1819"
           test_prediction = pickle.load(open(model_dir+'/testprediction.dmp', 'rb'))
           train_prediction = pickle.load(open(model_dir+'/trainprediction.dmp', 'rb'))
-  
-        train_prediction= decode_dict(train_prediction)
-        test_prediction = decode_dict(test_prediction) 
-        new_prediction  = decode_dict(new_prediction)
+        
+        #print("new prediction", new_prediction)
+        #train_prediction= decode_dict(train_prediction)
+        #test_prediction = decode_dict(test_prediction) 
+        #new_prediction  = decode_dict(new_prediction)
   
         results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
-          for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
+          #for prefix in themodel.prefix_list + ["ens/"]]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
+          for prefix in themodel.prefix_list ]   # ["p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/", "ens/"]]
 #        results = [plot_predictions_2(new_prediction, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=True) 
 #          for prefix in themodel.prefix_list   ]
-        print(results)
+        #print(results)
         results = pd.concat(results, sort=False)
         results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
         with open(model_dir+'/new_predictions_df.csv', 'a') as f:
           results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC)
-        print(results)
+        #print(results)
     
         train_predictions = []
         test_predictions = []
@@ -1770,16 +1776,16 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
         train_predictions = pd.concat(train_predictions, sort=False) 
         test_predictions  = pd.concat(test_predictions, sort=False)  
       
-        test_ens_predictions = pd.concat([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, "ens/", dataset = "Test", skip_plotting=skip_plotting)])                          
-        train_ens_predictions= pd.concat([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, "ens/", dataset = "Train", skip_plotting=skip_plotting)])                             
+        #test_ens_predictions = pd.concat([plot_predictions_2(test_prediction, decode_dict(test_X), decode_array(test_y), team_onehot_encoder, "ens/", dataset = "Test", skip_plotting=skip_plotting)])                          
+        #train_ens_predictions= pd.concat([plot_predictions_2(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, "ens/", dataset = "Train", skip_plotting=skip_plotting)])                             
     
     #    test_result = run_evaluation(all_data.copy(), teamnames, model, outputname="test")
     #    train_result = run_evaluation(all_data.copy(), teamnames, model, outputname="train")
         
         #print(test_predictions)
-        print_prediction_summary(test_predictions, test_ens_predictions)
+        print_prediction_summary(test_predictions, None) #test_ens_predictions)
         #print(train_predictions)
-        print_prediction_summary(train_predictions, train_ens_predictions)
+        print_prediction_summary(train_predictions, None) #, train_ens_predictions)
         
         df, fig = prepare_label_fit(train_prediction, decode_dict(train_X), decode_array(train_y), team_onehot_encoder, label_column_names)                             
         df.to_csv(model_dir+"/train_outputs_poisson.csv")  
@@ -1817,7 +1823,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
       with open(model_dir+'/results_df.csv', 'a') as f:
         results.to_csv(f, header=f.tell()==0)
   
-      if False:
+      if True:
         plot_point_summary(results)
     
 
@@ -1845,7 +1851,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1910,7 +1916,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/simple_test",
+      default="C:/Models/simple_test",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1930,8 +1936,8 @@ if __name__ == "__main__":
       #default="train_eval",
       #default="train,eval",
       #default="eval,predict",
-      #default="train,eval,predict",
-      default="predict",
+      default="train,eval,predict",
+      #default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"
   )
