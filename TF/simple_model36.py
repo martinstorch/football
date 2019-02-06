@@ -17,6 +17,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+os.environ["PYTHONPATH"]=os.getcwd()
+
 import argparse
 #import shutil
 import sys
@@ -2013,13 +2016,13 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -2030,12 +2033,12 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=500000,
+      default=160000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
+      default=500,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
@@ -2078,8 +2081,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/simple36_pistor_1819_2",
-      #default="D:/Models/simple36_sky_1819",
+      default="c:/Models/simple36_pistor_1819_2",
+      #default="C:/Models/simple36_sky_1819_3",
       help="Base directory for output models."
   )
   parser.add_argument(

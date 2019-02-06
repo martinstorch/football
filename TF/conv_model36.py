@@ -515,8 +515,8 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   match_input_layer[:, 3] = features["mh12len"] * 0.1
   j = 4+2*tn
   match_input_layer[:, 4:j] = teamsoh
-  match_input_layer[:, j:j+lc] = features [label_column_names]
-  j = j+lc
+#  match_input_layer[:, j:j+lc] = features [label_column_names]
+#  j = j+lc
   match_input_layer[:, j:j+fc] = features[feature_column_names]
   
   labels = features [label_column_names].values.astype(np.float32)
@@ -1478,7 +1478,7 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
       dataset = dataset.shuffle(buffer_size=6000).batch(128).repeat()
     else:
       dataset = dataset.batch(len(labels[data_index])).repeat(1)
-    print(data_index)
+    #print(data_index)
     print("dataset: ", dataset)
     iterator = dataset.make_initializable_iterator()
     next_example, next_label = iterator.get_next()
@@ -1873,13 +1873,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
+      default=500,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
       "--evaluate_after_steps", type=int,
-      default=200,
+      default=500,
       #default=300,
       help="Number of training steps after which to run evaluation. Should be a multiple of save_steps"
   )
@@ -1933,10 +1933,10 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      #default="train_eval",
+      default="train_eval",
       #default="train,eval",
       #default="eval,predict",
-      default="train,eval,predict",
+      #default="train,eval,predict",
       #default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"

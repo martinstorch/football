@@ -1140,8 +1140,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
       t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
       t_draw_mask = tf.stack([1.0 if i // 7 == np.mod(i, 7) else 0.0  for i in range(49)], name="t_draw_mask")
       
-      loss += tf.reduce_mean(4*l_tendency)  
-      loss += tf.reduce_mean(l_gdiff)  
+      loss += tf.reduce_mean(6*l_tendency)  
+      if point_scheme[0][0]!=5: # not Sky
+          pass
+      loss += tf.reduce_mean(2*l_gdiff)  
       loss += tf.reduce_mean(l_gfull)  
       
       # draws have only 7 points to contribute, wins and losses have 21 points each
@@ -1453,7 +1455,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
         X = tf.concat([all_predictions[0::2], all_predictions[1::2], hidden_layer[0::2], hidden_layer[1::2], f_date_round[0::2] ], axis=1)
         print(X)
         X = tf.stop_gradient(X)
-        ensemble_logits,_ = build_dense_layer(X, len(ens_prefix_list)*2, mode, regularizer = l2_regularizer(scale=1.0), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        ensemble_logits,_ = build_dense_layer(X, len(ens_prefix_list)*2, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
  
       predictions_ensemble = create_ensemble_predictions(ensemble_logits, predictions, t_is_home_bool, tc)
       predictions_ensemble = apply_prefix(predictions_ensemble, "ens/")
@@ -1520,6 +1522,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, save_ste
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
     learning_rate = 2e-3 
+    learning_rate = 1e-3 
+    learning_rate = 2e-4 
+    learning_rate = 8e-5 
+    learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
+    learning_rate = 2e-4 
     print("Learning rate = {}".format(learning_rate))
 
 #    decay_steps=200

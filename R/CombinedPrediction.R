@@ -33,8 +33,8 @@ human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
 result_file     <-"D:\\Models\\model_gen2_sky_1819//results_df.csv"
 predictions_file<-"D:\\Models\\model_gen2_sky_1819/new_predictions_df.csv"
-result_file     <-"D:\\Models\\simple36_sky_1819//results_df.csv"
-predictions_file<-"D:\\Models\\simple36_sky_1819/new_predictions_df.csv"
+result_file     <-"c:\\Models\\simple36_sky_1819_2//results_df.csv"
+predictions_file<-"c:\\Models\\simple36_sky_1819_2/new_predictions_df.csv"
 
 
 

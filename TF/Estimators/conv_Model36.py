@@ -523,18 +523,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   return tf.sigmoid(x, name=name)
       
       def binaryStochastic(x):
-#        if mode == tf.estimator.ModeKeys.TRAIN:
-#          #print("sigmoid sampling")
-#          return bernoulliSample(passThroughSigmoid(x))
-#        else:
-#          #print("sigmoid smooth")
+        if mode == tf.estimator.ModeKeys.TRAIN:
+          #print("sigmoid sampling")
+          return bernoulliSample(passThroughSigmoid(x))
+        else:
+          #print("sigmoid smooth")
           return tf.sigmoid(x)
 
       def tanhStochastic(x):
-#        if mode == tf.estimator.ModeKeys.TRAIN:
-#          #print("tanh sampling")
-#          return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
-#        else:
+        if mode == tf.estimator.ModeKeys.TRAIN:
+          #print("tanh sampling")
+          return tanhSample(passThroughSigmoid(x))
+          #return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
+        else:
           #print("tanh smooth")
           return tf.tanh(x)
 
@@ -612,9 +613,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   use_bias=True,
                   kernel_initializer=None,
                   bias_initializer=tf.zeros_initializer(),
-                  kernel_regularizer=l2_regularizer(scale=0.1),
+                  kernel_regularizer=l2_regularizer(scale=20.0),
                   bias_regularizer=None,
-                  activity_regularizer=None,
+                  activity_regularizer=l2_regularizer(scale=0.01),
                   kernel_constraint=None,
                   bias_constraint=None,
                   trainable=True,
@@ -630,23 +631,28 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           
       with tf.variable_scope("CNN_1"):
         match_history_t1 = conv_layer(match_history_t1, name="conv1")
-        match_history_t1 = conv_layer(match_history_t1, name="conv2")
+#        match_history_t1 = conv_layer(match_history_t1, name="conv2")
         match_history_t1 = avg_pool(match_history_t1, name="avgpool")
+        if mode == tf.estimator.ModeKeys.TRAIN:  
+            match_history_t1 = tf.nn.dropout(match_history_t1, keep_prob=0.5)
 
       with tf.variable_scope("CNN_2"):
         match_history_t2 = conv_layer(match_history_t2, name="conv1")
-        match_history_t2 = conv_layer(match_history_t2, name="conv2")
+#        match_history_t2 = conv_layer(match_history_t2, name="conv2")
         match_history_t2 = avg_pool(match_history_t2, name="avgpool")
+        if mode == tf.estimator.ModeKeys.TRAIN:  
+            match_history_t2 = tf.nn.dropout(match_history_t2, keep_prob=0.5)
 
       with tf.variable_scope("CNN_12"):
         match_history_t12 = conv_layer(match_history_t12, name="conv1")
-        match_history_t12 = conv_layer(match_history_t12, name="conv2")
+#        match_history_t12 = conv_layer(match_history_t12, name="conv2")
         match_history_t12 = avg_pool(match_history_t12, name="avgpool")
+        if mode == tf.estimator.ModeKeys.TRAIN:  
+            match_history_t12 = tf.nn.dropout(match_history_t12, keep_prob=0.5)
         
-      print(match_history_t1)
-      match_history_t1 = tf.reshape(match_history_t1, (-1, match_history_t1.shape[1]*match_history_t1.shape[2]))
-      match_history_t2 = tf.reshape(match_history_t2, (-1, match_history_t2.shape[1]*match_history_t2.shape[2]))
-      match_history_t12 = tf.reshape(match_history_t12, (-1, match_history_t12.shape[1]*match_history_t12.shape[2]))
+      match_history_t1 = 1.0+tf.reshape(match_history_t1, (-1, match_history_t1.shape[1]*match_history_t1.shape[2]))
+      match_history_t2 = 1.0+tf.reshape(match_history_t2, (-1, match_history_t2.shape[1]*match_history_t2.shape[2]))
+      match_history_t12 = 1.0+tf.reshape(match_history_t12, (-1, match_history_t12.shape[1]*match_history_t12.shape[2]))
       
       with tf.variable_scope("Combine"):
         X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
@@ -1140,9 +1146,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       # result importance = log(1/frequency) - mean adjusted to 1.0
       # 1:1 has low importance, 3:2 much higher, 5:0 overvalued but rare
-      result_importance = tf.constant([0.610699463302517, 0.636624134693228, 0.688478206502995, 0.861174384773783, 1.09447971749187, 1.45916830182096, 1.45916830182096, 0.565089593736748, 0.490552492978211, 0.620077094945206, 0.760233563222618, 0.992062709888034, 1.31889788143772, 1.49409788361176, 0.584692048161506, 0.540777816952666, 0.664928108155794, 0.870617157643794, 1.10781260749576, 1.4022220211579, 1.53541081027154, 0.690646584367668, 0.698403607367345, 0.828902824753833, 0.983969215334149, 1.45916830182096, 1.58597374606561, 1.90009939460063, 0.888152492546633, 0.865846586541708, 1.00917224994398, 1.33703505934424, 1.45916830182096, 1.65116070787927, 0.226593757678754, 1.12197933011558, 1.11478527326307, 1.30210547755345, 1.45916830182096, 1.74303657033312, 0.226593757678754, 0.226593757678754, 1.30210547755345, 1.4022220211579, 1.4289109217981, 1.65116070787927, 0.226593757678754, 0.226593757678754, 0.226593757678754], dtype=t_weight.dtype)
-      row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
-      t_weight = t_weight * row_weight
+#      result_importance = tf.constant([0.610699463302517, 0.636624134693228, 0.688478206502995, 0.861174384773783, 1.09447971749187, 1.45916830182096, 1.45916830182096, 0.565089593736748, 0.490552492978211, 0.620077094945206, 0.760233563222618, 0.992062709888034, 1.31889788143772, 1.49409788361176, 0.584692048161506, 0.540777816952666, 0.664928108155794, 0.870617157643794, 1.10781260749576, 1.4022220211579, 1.53541081027154, 0.690646584367668, 0.698403607367345, 0.828902824753833, 0.983969215334149, 1.45916830182096, 1.58597374606561, 1.90009939460063, 0.888152492546633, 0.865846586541708, 1.00917224994398, 1.33703505934424, 1.45916830182096, 1.65116070787927, 0.226593757678754, 1.12197933011558, 1.11478527326307, 1.30210547755345, 1.45916830182096, 1.74303657033312, 0.226593757678754, 0.226593757678754, 1.30210547755345, 1.4022220211579, 1.4289109217981, 1.65116070787927, 0.226593757678754, 0.226593757678754, 0.226593757678754], dtype=t_weight.dtype)
+#      row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
+#      t_weight = t_weight * row_weight
       
       l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
       poisson_column_weights = tf.ones(shape=[1, t_labels.shape[1]], dtype=t_weight.dtype)
@@ -1216,9 +1222,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_loss_mask = tf.cast(t_loss_mask, dtype=t_weight.dtype)
       t_draw_mask = tf.cast(t_draw_mask, dtype=t_weight.dtype)
       
-      loss += tf.reduce_mean(4*l_tendency)  
-      loss += tf.reduce_mean(l_gdiff)  
-      loss += tf.reduce_mean(l_gfull)  
+      loss += tf.reduce_mean(2*l_tendency)  
+      loss += tf.reduce_mean(0.5*l_gdiff)  
+      loss += tf.reduce_mean(0.5*l_gfull)  
       
       # draws have only 7 points to contribute, wins and losses have 21 points each
       t_draw_bias_mask = tf.stack([3.0 if i // 7 == np.mod(i, 7) else 1.0  for i in range(49)], name="t_draw_bias_mask")
@@ -1473,15 +1479,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #    print(alldata_placeholder)
 #    print(alllabels_placeholder)
     selected_batch = tf.cast(features['gameindex'], tf.int32)
-    print_op = tf.print(selected_batch, output_stream=sys.stdout)
-    with tf.control_dependencies([print_op]):
-        features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
-        features["newgame"] = tf.cast(features["newgame"], tf.float32)
+#    print_op = tf.print("selected batch: ", selected_batch[0:5], output_stream=sys.stdout)
+#    with tf.control_dependencies([print_op]):
+    features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
+    features["newgame"] = tf.cast(features["newgame"], tf.float32)
     #labels = tf.cast(labels, tf.float32)
     alldata0 = tf.concat([alldata_placeholder[0:1]*0.0, alldata_placeholder], axis=0)
     alllabels0 = tf.concat([alllabels_placeholder[0:1]*0.0, alllabels_placeholder], axis=0)
     def build_history_input(name):
       hist_idx = tf.cast(features[name], tf.int32)
+#      print_op = tf.print(name, hist_idx[0:5], output_stream=sys.stdout)
+#      with tf.control_dependencies([print_op]):
       hist_idx = hist_idx+1
       data = tf.gather(params=alldata0, indices=hist_idx)
       labels = tf.gather(params=alllabels0, indices=hist_idx)
@@ -1637,8 +1645,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     tf.summary.scalar("global_step/global_step", global_step)
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
-    learning_rate = 2e-3 
-    learning_rate = 1e-4 
+    #learning_rate = 2e-3 
+    #learning_rate = 1e-4 
+    #learning_rate = 1e-3
     print("Learning rate = {}".format(learning_rate))
 
 #    decay_steps=200
@@ -1662,7 +1671,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     # AdamOptimizer shall not include regularization in its momentum
     reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     reg_loss = tf.add_n(reg_variables)
-    print("reg_loss", reg_loss)
+    #print("reg_loss", reg_loss)
     tf.summary.scalar('losses/regularization_loss', reg_loss)
     
     reg_optimizer = tf.train.GradientDescentOptimizer(learning_rate)
@@ -1684,8 +1693,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #    variables = [v for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
 #    gradients = [g for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
     variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
-    print(variables)
-    print(gradients)
+    #print(variables)
+    #print(gradients)
     # set NaN gradients to zero
     gradients = [tf.where(tf.is_nan(g), tf.zeros_like(g), g) for g in gradients]
     if mode == tf.estimator.ModeKeys.EVAL:
@@ -1702,7 +1711,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     global_norm = tf.global_norm([tf.cast(g, dtype=tf.float32) for g in gradients])
     eval_metric_ops.update(collect_summary("Gradients", "global_norm", mode, tensor=global_norm))
 
-    print("gradient variables", variables)
+    #print("gradient variables", variables)
     train_op = optimizer.apply_gradients(zip(gradients, variables), 
                                          global_step=global_step, name="ApplyGradients") 
                                          #,decay_var_list=tf.get_collection(tf.GraphKeys.WEIGHTS))
@@ -1774,6 +1783,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                     save_checkpoints_steps=save_steps,
                                     save_summary_steps=100,
                                     keep_checkpoint_max=max_to_keep,
-                                    log_step_count_steps=20),
+                                    log_step_count_steps=50),
                               )
 
