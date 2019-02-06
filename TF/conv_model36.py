@@ -505,10 +505,10 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   print("features.gameindex.values", features.gameindex.values)
 
   tn = len(teamnames)
-  lc = len(label_column_names)
+  #lc = len(label_column_names)
   fc = len(feature_column_names)
 
-  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+lc+fc], dtype=np.float32)
+  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+fc], dtype=np.float32)
   match_input_layer[:, 0] = features["mh1len"] * 0.1
   match_input_layer[:, 1] = features["Where"] 
   match_input_layer[:, 2] = features["mh2len"] * 0.1
@@ -817,7 +817,7 @@ def plot_predictions_2(predictions, features, labels, team_onehot_encoder, prefi
   tn = len(team_onehot_encoder.classes_)
   df['Team1']=team_onehot_encoder.inverse_transform(features[:, 4:4+tn])
   df['Team2']=team_onehot_encoder.inverse_transform(features[:, 4+tn:4+2*tn])
-  df['Where']=['Home' if h==1 else 'Away' for h in features[:, 2]]
+  df['Where']=['Home' if h==1 else 'Away' for h in features[:, 1]]
   df["act"]  = [str(gs)+':'+str(gc) for gs,gc in zip(df["GS"],df["GC"]) ]
   df["pred"] = [str(gs)+':'+str(gc) for gs,gc in zip(df["pGS"],df["pGC"]) ]
   
@@ -1468,10 +1468,6 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
     label_placeholder=tf.placeholder(labels.dtype,shape=[None]+[x for x in labels.shape[1:]])
     feed_dict = {features_placeholder[k]:v[data_index] for k,v in features.items()}
     feed_dict[label_placeholder]=labels[data_index]
-    tf.placeholder(features['match_input_layer'].dtype, shape=features['match_input_layer'].shape, name="alldata")
-    #feed_dict[alldata_placeholder]=features['match_input_layer']
-    tf.placeholder(labels.dtype, shape=labels.shape, name="alllabels")
-    #feed_dict[alllabels_placeholder]=labels
     #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
     dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
     if mode==tf.estimator.ModeKeys.TRAIN:
@@ -1711,16 +1707,16 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     
     features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items()}
     print("features_placeholder: ", features_placeholder)
-    #receiver_tensors = {'predictions': tf.placeholder(dtype=tf.float32, shape=[None, 49], name='sp/p_pred_12')}
-    #theexporter = tf.estimator.LatestExporter("football", lambda: tf.estimator.export.ServingInputReceiver(features_placeholder, receiver_tensors), as_text=False, exports_to_keep=50)
-    eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10) # exporters=[theexporter], EvaluationSaverHook(model_dir, "test")
+    feature_spec = tf.feature_column.make_parse_example_spec(my_feature_columns)
+    export_input_fn = tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)
+    theexporter = tf.estimator.LatestExporter("football", export_input_fn , as_text=False, exports_to_keep=50)
+    eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10, exporters=[theexporter])#, EvaluationSaverHook(model_dir, "test")
     print(model.config)  
     print(model.params)  
     print(model.model_fn)  
     print(model.model_dir)  
     
-#    model.export_savedmodel(model_dir+"/export", lambda: tf.estimator.export.ServingInputReceiver(features_placeholder, receiver_tensors),
-#                            strip_default_attrs=True)
+    #model.export_savedmodel(model_dir+"/export", export_input_fn, strip_default_attrs=True)
     tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
   else:
     for i in range(train_steps//evaluate_after_steps):
@@ -1823,7 +1819,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
       with open(model_dir+'/results_df.csv', 'a') as f:
         results.to_csv(f, header=f.tell()==0)
   
-      if True:
+      if False:
         plot_point_summary(results)
     
 
@@ -1857,7 +1853,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--skip_plotting", type=bool,
       #default=True, 
-      default=False, 
+      default=True, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1873,13 +1869,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=500,
+      default=200,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
       "--evaluate_after_steps", type=int,
-      default=500,
+      default=200,
       #default=300,
       help="Number of training steps after which to run evaluation. Should be a multiple of save_steps"
   )
@@ -1887,11 +1883,6 @@ if __name__ == "__main__":
       "--max_to_keep", type=int,
       default=150,
       help="Number of checkpoint files to keep."
-  )
-  parser.add_argument(
-      "--swa", type=bool,
-      default=False,
-      help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
       "--train_data", type=str,
@@ -1916,7 +1907,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="C:/Models/simple_test",
+      default="D:/Models/simple_test",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1929,7 +1920,11 @@ if __name__ == "__main__":
       #default="TCS",
       help="Point system to optimize for"
   )
-
+  parser.add_argument(
+      "--swa", type=bool,
+      default=False,
+      help="Run in Stochastic Weight Averaging mode."
+  )
   parser.add_argument(
       "--modes",
       type=str,

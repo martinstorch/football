@@ -11,6 +11,7 @@ import pandas as pd
 pd.set_option('expand_frame_repr', False)
 import numpy as np
 
+model_dir = "D:/Models/simple_test"
 model_dir = "C:/Models/simple36_sky_1819_3"
 model_dir = "C:/Models/simple36_pistor_1819_2"
 tf.reset_default_graph()
@@ -19,13 +20,16 @@ all_checkpoints = ["34000", "34200", "34400", "34600", "34800", "35000", "35200"
 new_global_step = 35600
 all_checkpoints = ["26200", "24200", "27800", "28200", "31200"]
 all_checkpoints = ["14400", "12200", "27800", "28200", "31200"]
-new_global_step = 28000
+all_checkpoints = ["7011", "6811", "6610", "6009", "5207"]
+new_global_step = 6500
 
 file = model_dir+"/eval/events.out.tfevents.1548700176.DESKTOP-VPR2GCA"
 file = model_dir+"/eval_test/events.out.tfevents.1549392619.DESKTOP-VPR2GCA"
+file = model_dir+"/eval/events.out.tfevents.1549018157.14HW010662"
 kv = [(e.step, v.tag[8:], v.simple_value) for e in tf.train.summary_iterator(file) for v in e.summary.value if "summary" in v.tag and "z_point" in v.tag]
 df = pd.DataFrame(kv)  
 df = df.pivot(index=0, columns=1, values=2)
+#df = df.loc[df["sp/z_points"]<1.0]
 df.columns
 df.index
 df.describe()

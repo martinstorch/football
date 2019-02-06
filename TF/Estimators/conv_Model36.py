@@ -603,8 +603,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      with tf.variable_scope("RNN_12"):
 #        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
 #        rnn_histograms()
-      def conv_layer(X, name):
-        return tf.layers.conv1d(X,
+      def conv_layer(X, name, keep_prob=1.0):
+        X = tf.layers.conv1d(X,
                   filters=16, kernel_size=3, strides=1,
                   padding='valid',
                   data_format='channels_last',
@@ -622,6 +622,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   name=name,
                   reuse=None
               )  
+        if mode == tf.estimator.ModeKeys.TRAIN:  
+          X = tf.nn.dropout(X, keep_prob=keep_prob)
+        return X
+
       def avg_pool(X, name):
         return tf.layers.average_pooling1d(X, pool_size=2, strides=2,
               padding='valid',
@@ -630,29 +634,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             )
           
       with tf.variable_scope("CNN_1"):
-        match_history_t1 = conv_layer(match_history_t1, name="conv1")
-#        match_history_t1 = conv_layer(match_history_t1, name="conv2")
+        match_history_t1 = conv_layer(match_history_t1, name="conv1", keep_prob=0.5)
+        match_history_t1 = conv_layer(match_history_t1, name="conv2", keep_prob=0.5)
         match_history_t1 = avg_pool(match_history_t1, name="avgpool")
-        if mode == tf.estimator.ModeKeys.TRAIN:  
-            match_history_t1 = tf.nn.dropout(match_history_t1, keep_prob=0.5)
 
       with tf.variable_scope("CNN_2"):
-        match_history_t2 = conv_layer(match_history_t2, name="conv1")
-#        match_history_t2 = conv_layer(match_history_t2, name="conv2")
+        match_history_t2 = conv_layer(match_history_t2, name="conv1", keep_prob=0.5)
+        match_history_t2 = conv_layer(match_history_t2, name="conv2", keep_prob=0.5)
         match_history_t2 = avg_pool(match_history_t2, name="avgpool")
-        if mode == tf.estimator.ModeKeys.TRAIN:  
-            match_history_t2 = tf.nn.dropout(match_history_t2, keep_prob=0.5)
 
       with tf.variable_scope("CNN_12"):
-        match_history_t12 = conv_layer(match_history_t12, name="conv1")
-#        match_history_t12 = conv_layer(match_history_t12, name="conv2")
+        match_history_t12 = conv_layer(match_history_t12, name="conv1", keep_prob=0.5)
+        match_history_t12 = conv_layer(match_history_t12, name="conv2", keep_prob=0.5)
         match_history_t12 = avg_pool(match_history_t12, name="avgpool")
-        if mode == tf.estimator.ModeKeys.TRAIN:  
-            match_history_t12 = tf.nn.dropout(match_history_t12, keep_prob=0.5)
         
-      match_history_t1 = 1.0+tf.reshape(match_history_t1, (-1, match_history_t1.shape[1]*match_history_t1.shape[2]))
-      match_history_t2 = 1.0+tf.reshape(match_history_t2, (-1, match_history_t2.shape[1]*match_history_t2.shape[2]))
-      match_history_t12 = 1.0+tf.reshape(match_history_t12, (-1, match_history_t12.shape[1]*match_history_t12.shape[2]))
+      match_history_t1 = 0.0+tf.reshape(match_history_t1, (-1, match_history_t1.shape[1]*match_history_t1.shape[2]))
+      match_history_t2 = 0.0+tf.reshape(match_history_t2, (-1, match_history_t2.shape[1]*match_history_t2.shape[2]))
+      match_history_t12 = 0.0+tf.reshape(match_history_t12, (-1, match_history_t12.shape[1]*match_history_t12.shape[2]))
       
       with tf.variable_scope("Combine"):
         X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
@@ -1149,6 +1147,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      result_importance = tf.constant([0.610699463302517, 0.636624134693228, 0.688478206502995, 0.861174384773783, 1.09447971749187, 1.45916830182096, 1.45916830182096, 0.565089593736748, 0.490552492978211, 0.620077094945206, 0.760233563222618, 0.992062709888034, 1.31889788143772, 1.49409788361176, 0.584692048161506, 0.540777816952666, 0.664928108155794, 0.870617157643794, 1.10781260749576, 1.4022220211579, 1.53541081027154, 0.690646584367668, 0.698403607367345, 0.828902824753833, 0.983969215334149, 1.45916830182096, 1.58597374606561, 1.90009939460063, 0.888152492546633, 0.865846586541708, 1.00917224994398, 1.33703505934424, 1.45916830182096, 1.65116070787927, 0.226593757678754, 1.12197933011558, 1.11478527326307, 1.30210547755345, 1.45916830182096, 1.74303657033312, 0.226593757678754, 0.226593757678754, 1.30210547755345, 1.4022220211579, 1.4289109217981, 1.65116070787927, 0.226593757678754, 0.226593757678754, 0.226593757678754], dtype=t_weight.dtype)
 #      row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
 #      t_weight = t_weight * row_weight
+
+      # result importance = corrcoef 
+      # 1:1 has low importance as it is difficult to predict, 3:0 much higher
+      result_importance = tf.constant([0.048, 0.058, 0.140, 0.125, 0.1, 0.1, 0.1,
+                                       0.057, 0.046, 0.055, 0.102, 0.1, 0.1, 0.1,
+                                       0.139, 0.053, 0.012, 0.025, 0.1, 0.1, 0.1,
+                                       0.125, 0.103, 0.025, 0.001, 0.1, 0.1, 0.1,
+                                       0.1, 0.1, 0.1, 0.1, 0.001, 0.1, 0.1,
+                                       0.1, 0.1, 0.1, 0.1, 0.1, 0.001, 0.1,
+                                       0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.001,
+                                       ], dtype=t_weight.dtype)
+      result_importance = result_importance * 10.0 # scaling to mean about 1.0
+      row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
+      t_weight = t_weight * row_weight
       
       l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
       poisson_column_weights = tf.ones(shape=[1, t_labels.shape[1]], dtype=t_weight.dtype)
@@ -1473,8 +1485,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     #alldata_placeholder = tf.placeholder(params["data"].dtype, shape=params["data"].shape, name="alldata")
     #alllabels_placeholder = tf.placeholder(params["labels"].dtype, shape=params["labels"].shape, name="alllabels")
-    alllabels_placeholder = tf.get_default_graph().get_tensor_by_name("alllabels:0")
-    alldata_placeholder = tf.get_default_graph().get_tensor_by_name("alldata:0")
+#    alllabels_placeholder = tf.get_default_graph().get_tensor_by_name("alllabels:0")
+#    alldata_placeholder = tf.get_default_graph().get_tensor_by_name("alldata:0")
+
+    alldata_placeholder = tf.placeholder(thedata.dtype, shape=thedata.shape, name="alldata")
+    alllabels_placeholder = tf.placeholder(thelabels.dtype, shape=thelabels.shape, name="alllabels")
 
 #    print(alldata_placeholder)
 #    print(alllabels_placeholder)
@@ -1580,10 +1595,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      predictions_ensemble = apply_prefix(predictions_ensemble, "ens/")
 #      predictions.update(predictions_ensemble)
       
-      export_outputs = { "predictions": tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])}
+      #export_outputs = { "predictions": tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])}
           
-    if mode == tf.estimator.ModeKeys.PREDICT:
-      return tf.estimator.EstimatorSpec(
+      export_outputs = { p[:-1]: tf.estimator.export.ClassificationOutput(predictions[p+"p_pred_12"]) for p in prefix_list}
+      export_outputs[tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY]=tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])
+      if mode == tf.estimator.ModeKeys.PREDICT:
+        return tf.estimator.EstimatorSpec(
           mode=mode, 
           predictions    = predictions, 
           export_outputs = export_outputs)
@@ -1778,7 +1795,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
   return tf.estimator.Estimator(model_fn=model, model_dir=model_dir,
                                 params={'feature_columns': my_feature_columns,
-                                        "data":thedata, 'labels':thelabels},
+                                        #"data":thedata, 'labels':thelabels
+                                        },
                                 config = tf.estimator.RunConfig(
                                     save_checkpoints_steps=save_steps,
                                     save_summary_steps=100,
