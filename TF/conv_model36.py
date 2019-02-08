@@ -1503,6 +1503,266 @@ def print_match_dates(X, team_onehot_encoder):
   print(match_dates)
   return match_dates
 
+def static_probabilities(model_data):
+  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
+  with tf.Session() as sess:
+    sess=sess
+    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+    train_y = labels_array[train_idx]
+    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+    test_y = labels_array[test_idx]
+    plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
+    plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
+
+def train_model(model_data, train_steps):
+  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
+  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
+
+  DEBUG =False
+  if DEBUG:
+    debug_hook = tf_debug.LocalCLIDebugHook(ui_type='readline', dump_root='C:/tmp/Football/debug_dump')
+    debug_hook.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
+    hooks = [debug_hook]
+  else:
+    hooks = []
+
+  model.train(
+        input_fn=train_input_fn,
+        steps=train_steps,
+        hooks=hooks+[train_iterator_hook])
+
+  
+def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
+  export_dir = model_dir 
+  if use_swa:
+    export_dir = export_dir + "/swa"
+  checkpoint_paths = tf.train.get_checkpoint_state(export_dir).all_model_checkpoint_paths
+  global_steps = [int(os.path.basename(str(cp)).split('-')[1]) for cp in checkpoint_paths]
+  cp_df_all = pd.DataFrame({"global_step":global_steps, "checkpoint":checkpoint_paths})
+  cp_df_final = pd.DataFrame()
+  for cp in checkpoints.split(","):
+    fromto = cp.split(":")
+    fromto = [ft.strip() for ft in fromto]
+    fromto = [int(ft) if ft!="" else None for ft in fromto]
+    if len(fromto)==1:
+      # no separator
+      r = fromto[0]
+      if r is None:
+        cp_df = cp_df_all
+      elif r < 0:
+        # slice
+        cp_df = cp_df_all.iloc[slice(r, None)]
+      else:
+        cp_df = cp_df_all.loc[cp_df_all.global_step==r]
+    elif len(fromto)==2:
+      # range
+      ffrom = fromto[0]
+      tto = fromto[1]
+      if ffrom is None:
+        ffrom=0
+      else:
+        ffrom=int(ffrom)
+      if tto is None:
+        tto = 100000000
+      else:
+        tto=int(tto)+1
+      cp_df = cp_df_all.loc[cp_df_all.global_step.between(ffrom, tto, inclusive=True)]
+    else:
+      raise("wrong number of colon characters in "+fromto)  
+    cp_df_final = cp_df_final.append(cp_df)
+  if len(cp_df_final)==0:
+    print("No checkpoints selected in {} using filter \"{}\"".format(export_dir, checkpoints))
+  return cp_df_final.sort_values("global_step")
+
+def evaluate_checkpoints(model_data, cps):
+  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
+  #tf.reset_default_graph()
+  est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
+  if len(cps)==0:
+    return
+  model_dir = os.path.dirname(cps.iloc[0].checkpoint)
+  train_writer = tf.summary.FileWriter( model_dir+'/eval_train')
+  test_writer = tf.summary.FileWriter( model_dir+'/eval_test')
+
+  eval_metric_ops = est_spec.eval_metric_ops
+  for key, value in eval_metric_ops.items():
+    tf.summary.scalar(key, value[1])
+  
+  summary_op=tf.summary.merge_all()
+  init_l = tf.local_variables_initializer() # take care of summary metrics initialization
+  loss = est_spec.loss
+  
+  data_index = test_idx
+  feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+  feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
+  feed_dict[ "alllabels:0"]=labels_array
+
+  data_index = train_idx
+  feed_dict_train = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+  feed_dict_train[ "alldata:0"]=features_arrays['match_input_layer']
+  feed_dict_train[ "alllabels:0"]=labels_array
+
+  saver = tf.train.Saver()
+  with tf.Session() as sess:
+    for cp, global_step in zip(cps.checkpoint, cps.global_step):
+      print(cp)
+      saver.restore(sess, cp)
+      _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
+      summary = sess.run(summary_op, feed_dict=feed_dict)
+      test_writer.add_summary(summary, global_step)
+      print("test", global_step, outputs)
+      _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
+      summary = sess.run(summary_op, feed_dict=feed_dict_train)
+      train_writer.add_summary(summary, global_step)
+      print("train", global_step, outputs)
+  train_writer.close()
+  test_writer.close()        
+
+def predict_checkpoints(model_data, cps, team_onehot_encoder):
+  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
+  #tf.reset_default_graph()
+  est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="infer", config = model.config)
+  if len(cps)==0:
+    return
+  model_dir = os.path.dirname(cps.iloc[0].checkpoint)
+
+  data_index = train_idx+test_idx+pred_idx
+  data_set = ["train"]*len(train_idx)+["test"]*len(test_idx)+["pred"]*len(pred_idx)
+  feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+  feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
+  feed_dict[ "alllabels:0"]=labels_array
+  
+  features_batch = features_arrays['match_input_layer'][data_index]
+  labels_batch = labels_array[data_index]
+  
+  pred = est_spec.predictions
+  #print(pred)  
+  saver = tf.train.Saver()
+  with tf.Session() as sess:
+    for cp, global_step in zip(cps.checkpoint, cps.global_step):
+      saver.restore(sess, cp)
+      predictions = sess.run(pred, feed_dict=feed_dict)
+#      print({k:v.shape for k,v in predictions.items()})      
+#      print(predictions["sp/p_pred_12"][0])
+      results = [enrich_predictions(predictions, features_batch, labels_batch, team_onehot_encoder, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
+      results = pd.concat(results, sort=False)
+      results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
+#      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
+#        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+      new_results = results.loc[results.dataset=="pred"]  
+      with open(model_dir+'/new_predictions_df.csv', 'a') as f:
+        new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+
+def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefix, dataset, global_step):
+
+#  print("features.shape", features.shape)
+#  print("len(predictions)", len(predictions))
+#  print("len(predictions[sp/p_pred_12])", len(predictions["sp/p_pred_12"]))
+#  print("len(predictions[sp/p_pred_12])", len(predictions["sp/p_pred_12"]))
+  if predictions is None:
+    return []
+  if len(predictions["sp/p_pred_12"])==0:
+    return []
+  
+  #features = features[:len(predictions)] # cut off features if not enough predictions are present
+  #labels = labels[:len(predictions)] # cut off labels if not enough predictions are present
+  
+  df = pd.DataFrame()  
+  df["GS"] = labels[:,0].astype(np.int)
+  df["GC"] = labels[:,1].astype(np.int)
+#  print(len(df))
+#  print(len(dataset))
+#  print(len(predictions[prefix+"pred"][:,0]))
+#  print(predictions[prefix+"pred"][:,0])
+  if prefix=="cp1/":
+    df["GS"] = labels[:,2].astype(np.int)
+    df["GC"] = labels[:,3].astype(np.int)
+    
+  df['pGS'] = predictions[prefix+"pred"][:,0]
+  df['pGC'] = predictions[prefix+"pred"][:,1]
+#  df['pGS'] = [p[prefix+"pred"][0] for p in predictions]
+#  df['pGC'] = [p[prefix+"pred"][1] for p in predictions]
+
+  if prefix!="ens/":
+#    est1 = pd.Series([p[prefix+"ev_goals_1"] for p in predictions], name="est1")
+#    est2 = pd.Series([p[prefix+"ev_goals_2"] for p in predictions], name="est2")
+    est1 = pd.Series(predictions[prefix+"ev_goals_1"], name="est1")
+    est2 = pd.Series(predictions[prefix+"ev_goals_2"], name="est2")
+    df['est1'] = est1
+    df['est2'] = est2
+    df['Strategy'] = ''
+  else:
+    strategy_list = themodel.ens_prefix_list # ["p1", "p2","p3","p4","p5","p7","sp","sm","p1pt", "p2pt", "p4pt", "sppt", "smpt"]
+    strategy_list = [s+" home" for s in strategy_list] + [s+" away" for s in strategy_list]
+    strategy_index = predictions[prefix+"selected_strategy"]
+    df['Strategy'] = [strategy_list[ind] for ind in strategy_index]
+    print(Counter(df['Strategy']))
+    
+  #print(team_onehot_encoder.classes_)
+  tn = len(team_onehot_encoder.classes_)
+  df['Team1']=team_onehot_encoder.inverse_transform(features[:, 4:4+tn])
+  df['Team2']=team_onehot_encoder.inverse_transform(features[:, 4+tn:4+2*tn])
+  df['Where']=['Home' if h==1 else 'Away' for h in features[:, 1]]
+  df["act"]  = [str(gs)+':'+str(gc) for gs,gc in zip(df["GS"],df["GC"]) ]
+  df["pred"] = [str(gs)+':'+str(gc) for gs,gc in zip(df["pGS"],df["pGC"]) ]
+  
+  if prefix!="ens/":
+    df["win"]=0.0
+    df["loss"]=0.0
+    df["draw"]=0.0
+    df["winPt"]=0.0
+    df["lossPt"]=0.0
+    df["drawPt"]=0.0
+    for i_gs in range(7):
+      for i_gc in range(7):
+        i = i_gs*7+i_gc
+        if i_gs>i_gc:
+          df["win"]+=predictions[prefix+"p_pred_12"][:,i] 
+          df["winPt"]=pd.concat([df["winPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
+        if i_gs<i_gc:
+          df["loss"]+=predictions[prefix+"p_pred_12"][:,i]
+          df["lossPt"]=pd.concat([df["lossPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
+        if i_gs==i_gc:
+          df["draw"]+=predictions[prefix+"p_pred_12"][:,i] 
+          df["drawPt"]=pd.concat([df["drawPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
+    df["win"]*=100.0
+    df["loss"]*=100.0
+    df["draw"]*=100.0
+  df["dataset"]=dataset
+  df["global_step"]=global_step
+
+  #tensor = tf.constant(df[[ "pGS", "pGC", "GS", "GC"]].as_matrix(), dtype = tf.int64)
+  #is_home = tf.equal(features[:,2] , 1)
+  with tf.Session(graph=CALC_GRAPH) as sess:
+    feed_dict={pl_pGS: df[["pGS"]].values,
+               pl_pGC: df[["pGC"]].values,
+               pl_GS: df[["GS"]].values,
+               pl_GC: df[["GC"]].values,
+               pl_is_home: features[:,2:3],
+               }
+    df['Pt'] = sess.run(tf.cast(calc_points_tensor, tf.int8), feed_dict=feed_dict)
+    
+    df['Prefix'] = prefix[:-1]
+  
+  scores = df.groupby(["dataset", "Prefix", "global_step"]).Pt.mean()
+  scores = scores.rename("score")
+  scores_wide = pd.pivot_table(scores.to_frame(), index=["Prefix", "global_step"],
+                     columns=['dataset'], aggfunc=np.mean)
+  scores_wide = scores_wide.droplevel(level=0, axis=1)
+  print(scores_wide)
+  df = df.join(scores, on = ["dataset", "Prefix", "global_step"])
+  df = df.join(scores_wide, on = ["Prefix", "global_step"], rsuffix="score")
+    
+  def preparePrintData(prefix, df):
+    if prefix!="ens/":
+      return df[["dataset", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "global_step", "score", "pred", "test", "train"]]
+    else:
+      return df[["dataset", "Team1", "Team2", "act", "pred", "Pt", "Prefix", "Strategy"]]
+  
+  #print(preparePrintData(prefix, df).tail(20))
+  return df
+
   
 def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, outputname, modes, pred_iter, pred_hook):
   
@@ -1537,8 +1797,9 @@ def evaluate_metrics_and_predict_new(model, eval_iter, eval_hook, model_dir, out
   
   return eval_results, predictions
 
-def train_and_eval(model_dir, train_steps, train_data, test_data, 
-                   predict_new, save_steps, skip_download, max_to_keep, evaluate_after_steps, skip_plotting, target_system, modes, use_swa):
+def dispatch_main(model_dir, train_steps, train_data, test_data, 
+                   checkpoints, save_steps, skip_download, max_to_keep, 
+                   evaluate_after_steps, skip_plotting, target_system, modes, use_swa):
   tf.logging.set_verbosity(tf.logging.INFO)
   
   """Train and evaluate the model."""
@@ -1578,7 +1839,7 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
   train_idx = all_data.index[all_data['Train']].tolist()
   test_idx  = all_data.index[all_data['Test']].tolist()
   pred_idx  = all_data.index[all_data['Predict']].tolist()
-  # skip first rounds if test data is placed first
+  # skip first rounds if test data is placed in front
   if test_idx:
     if np.min(test_idx)==0 and np.min(train_idx)>45:
       test_idx = [t for t in test_idx if t>45]
@@ -1596,91 +1857,42 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     print("Test index {}-{}".format(np.min(test_idx), np.max(test_idx)))
   print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
   
-  
-#  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-#  train_y = labels_array[train_idx]
-#  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-#  test_y = labels_array[test_idx]
-#  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
-#  pred_y = labels_array[pred_idx]
-  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
-  pred_y = labels_array[pred_idx]
 
   tf.reset_default_graph()
-  print({k: v.shape for k, v in features_arrays.items()})
+  #print({k: v.shape for k, v in features_arrays.items()})
   my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items() if k != 'match_input_layer']
-  print(my_feature_columns)  
+  #print(my_feature_columns)  
+  
+  features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
+  features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
+  features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
+
   model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa)
-
-  class PrinterHook (tf.train.SessionRunHook):
-    def after_create_session(self, session, coord):
-      t = tf.get_default_graph().get_tensor_by_name("Model/condprob/H2/W/read:0")
-      w = session.run(t)
-      print(w)
-      np.savetxt("d:/models/X3.txt", w)
-
-
-  if predict_new:
-    pred_input_fn, pred_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.PREDICT, data_index=pred_idx)
-    new_predictions = model.predict(
-      input_fn=pred_input_fn
-      , hooks=[ pred_iterator_hook, tf.train.LoggingTensorHook(["Model/cp2/cutpoints/read:0"], at_end=True), PrinterHook()]
-    )
-    new_predictions = list(new_predictions)
-#    print(new_predictions[0].keys())
-#    print({k:v.shape for k,v in new_predictions[0].items()})
-    new_predictions = decode_predictions(new_predictions)
-
+  
+  model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
+  if modes == "static":
+    static_probabilities(model_data)    
+  elif "upgrade" in modes: # change to True if model structure has been changed
+    utils.upgrade_estimator_model(model_dir, model, train_X=None, train_y=None)
+  elif modes == "train": 
+    train_model(model_data, train_steps)
+  elif modes == "eval": 
+    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
+    evaluate_checkpoints(model_data, cps)    
+  elif modes == "predict": 
+    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
+    predict_checkpoints(model_data, cps, team_onehot_encoder)    
+  
+  
+  return    
     
-    print(new_predictions[1]["test_p_pred_12_h2"][0:12, 0:12])
-    print(new_predictions[1]["test_p_pred_12_h2"][12:24, 0:12])
-    print(new_predictions[1]["p_pred_12_h2"])
-    print(new_predictions[2]["test_p_pred_12_h2"][0:12, 0:12])
-    print(new_predictions[2]["test_p_pred_12_h2"][12:24, 0:12])
-    print(new_predictions[2]["p_pred_12_h2"])
-    return
-  
-    with open(model_dir+'/newprediction.dmp', 'wb') as fp:
-      pickle.dump(new_predictions, fp)
+  pred_X = {k: v[pred_idx] for k, v in features_arrays.items()}
+  pred_y = labels_array[pred_idx]
+  train_X = {k: v[train_idx] for k, v in features_arrays.items()}
+  train_y = labels_array[train_idx]
+  test_X = {k: v[test_idx] for k, v in features_arrays.items()}
+  test_y = labels_array[test_idx]
 
-    df, _ = prepare_label_fit(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, label_column_names, skip_plotting=True)                             
-    df.to_csv(model_dir+"/prediction_outputs_poisson.csv")  
-    
-#    results = [plot_predictions_2(new_predictions, pred_X, pred_y, team_onehot_encoder, prefix, True, skip_plotting=True) 
-#      #for prefix in ["ens/", "p1/", "p2/", "p4/", "p6/", "sp/", "sm/"]]
-#      for prefix in ["ens/"] + themodel.prefix_list ] #["ens/", "p1/", "p1pt/", "p3/", "p2/", "p2pt/", "p5/", "p4/", "p4pt/", "p6/", "p7/", "sp/", "sppt/", "sm/", "smpt/", "smhb/"]]
-
-    results = [plot_predictions_2(new_predictions, decode_dict(pred_X), decode_array(pred_y), team_onehot_encoder, prefix, True, skip_plotting=(skip_plotting | (prefix not in themodel.plot_list))) 
-      for prefix in ["ens/"] + themodel.prefix_list ]
-      # for prefix in ["ens/", "sk/", "smpi/"]]
-
-    results = pd.concat(results)
-    results = results[["Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt"]]
-    results.to_csv("new_predictions_df.csv")
-    print(results)
-    return 
-  
-  with tf.Session() as sess:
-    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-    train_y = labels_array[train_idx]
-    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-    test_y = labels_array[test_idx]
-    sess = sess # dummy to avoid syntax warning
-    if False:
-      plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
-      plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
-
-  if "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, train_X, train_y)
-  
-  DEBUG =False
-  if DEBUG:
-    debug_hook = tf_debug.LocalCLIDebugHook(ui_type='readline', dump_root='C:/tmp/Football/debug_dump')
-    debug_hook.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
-    hooks = [debug_hook]
-  else:
-    hooks = []
-  
   train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
   testeval_input_fn, testeval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=test_idx )
   traineval_input_fn, traineval_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.EVAL, data_index=train_idx)
@@ -1694,21 +1906,10 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
 #    labels = np.concatenate([labels, pred_y], axis=0)
 #
 #  testpred_input_fn, testeval_iterator_hook = get_input_fn(test_X, test_y, mode=tf.estimator.ModeKeys.EVAL)
-  class EvaluationSaverHook (tf.train.SummarySaverHook):
-    def __init__(self, model_dir, outputname):
-      super().__init__(save_steps=1, output_dir=model_dir+"/evaluation_"+outputname,
-                       scaffold=None, summary_op=tf.no_op)
-    def begin(self):
-      self._summary_op = tf.summary.merge_all() # create the merge all operation once the graph is created
-      super().begin()
-
 
   if "train_eval" in modes:
     train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=train_steps, hooks=[train_iterator_hook])
     
-    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
-    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
-    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
     
     print("features_placeholder: ", features_placeholder)
     feature_spec = tf.feature_column.make_parse_example_spec(my_feature_columns)
@@ -1719,99 +1920,14 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     
     print("export_input_fn: ", export_input_fn )
     theexporter = tf.estimator.LatestExporter("football", export_input_fn , as_text=True, exports_to_keep=50)
-    eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10, exporters=[theexporter])#, EvaluationSaverHook(model_dir, "test")
+    eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10, exporters=[theexporter])
     print(model.config)  
     print(model.params)  
     print(model.model_fn)  
     print(model.model_dir)  
     
     #model.export_savedmodel(model_dir+"/export", export_input_fn, strip_default_attrs=True)
-    tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
-  elif "serving" in modes:
-#    model.train(
-#        input_fn=train_input_fn,
-#        steps=1000,
-#        hooks=hooks+[train_iterator_hook])
-    
-    export_dir = model_dir #+ "/export/football"
-    subdirs = [x for x in Path(export_dir).iterdir()
-                if x.is_dir() and 'temp' not in str(x)]
-    subdirs = tf.train.get_checkpoint_state(model_dir).all_model_checkpoint_paths
-
-#    tf.reset_default_graph()
-#    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
-#    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
-#    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
-#    
-#    data_index = pred_idx
-#    est_spec = model.model_fn(features=features_placeholder, labels=labels_array[data_index], mode="infer", config = model.config)
-#                                
-#    pred = est_spec.predictions
-#    
-#    feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
-#    feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
-#    feed_dict[ "alllabels:0"]=labels_array
-#
-#    saver = tf.train.Saver()
-#    with tf.Session() as sess:
-#      for cp in subdirs:
-#        print(cp)
-#        saver.restore(sess, str(cp))#+"/variables/variables")
-#        outputs = sess.run(pred, feed_dict=feed_dict)
-#        print({k:v.shape for k,v in outputs.items()})      
-#        print(outputs["cp1/p_pred_12"][0])
-#    print("Ready!!")  
-#
-    tf.reset_default_graph()
-    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
-    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
-    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
-    
-    est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
-    
-    train_writer = tf.summary.FileWriter( model_dir+'/eval_train')
-    test_writer = tf.summary.FileWriter( model_dir+'/eval_test')
-
-    eval_metric_ops = est_spec.eval_metric_ops
-    for key, value in eval_metric_ops.items():
-      tf.summary.scalar(key, value[1])
-    
-    summary_op=tf.summary.merge_all()
-    init_l = tf.local_variables_initializer() # take care of summary metrics initialization
-    loss = est_spec.loss
-    print(loss)
-    
-    data_index = test_idx
-    feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
-    feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
-    feed_dict[ "alllabels:0"]=labels_array
-
-    data_index = train_idx
-    feed_dict_train = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
-    feed_dict_train[ "alldata:0"]=features_arrays['match_input_layer']
-    feed_dict_train[ "alllabels:0"]=labels_array
-
-    saver = tf.train.Saver()
-    with tf.Session() as sess:
-      for cp in subdirs:
-        print(cp)
-        saver.restore(sess, str(cp))#+"/variables/variables")
-        #outputs = sess.run([loss]+list(eval_metric_ops.values()), feed_dict=feed_dict)
-        #global_step = tf.get_default_graph().get_tensor_by_name("global_step:0")
-        global_step = int(os.path.basename(str(cp)).split('-')[1])
-        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
-        summary = sess.run(summary_op, feed_dict=feed_dict)
-        test_writer.add_summary(summary, global_step)
-        print("test", global_step, outputs)
-        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
-        summary = sess.run(summary_op, feed_dict=feed_dict_train)
-        train_writer.add_summary(summary, global_step)
-        print("train", global_step, outputs)
-        #print({k:v.shape for k,v in outputs.items()})      
-        #print(outputs["summary/sp/z_points"])
-    train_writer.close()
-    test_writer.close()        
-
+    tf.estimator.train_evaluate(model, train_spec, eval_spec)
   else:
     for i in range(train_steps//evaluate_after_steps):
       if "train" in modes: 
@@ -1927,13 +2043,11 @@ def main(_):
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
 
-  train_and_eval(FLAGS.model_dir, FLAGS.train_steps,
-                 FLAGS.train_data, FLAGS.test_data, FLAGS.predict_new,
+  dispatch_main(FLAGS.model_dir, FLAGS.train_steps,
+                 FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                  FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
                  FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa)
   
-#  rolling_train_and_eval(FLAGS.model_dir, FLAGS.train_data, FLAGS.test_data, FLAGS.predict_new, FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, FLAGS.evaluate_after_steps, FLAGS.skip_predictions)
-#  eval_rolling_prediction(FLAGS.model_dir, FLAGS.train_data, FLAGS.test_data, FLAGS.skip_download, FLAGS.skip_predictions)
   
 
 if __name__ == "__main__":
@@ -1977,6 +2091,14 @@ if __name__ == "__main__":
       "--max_to_keep", type=int,
       default=150,
       help="Number of checkpoint files to keep."
+  )
+  parser.add_argument(
+      "--checkpoints", type=str,
+      #default="12000:",
+      #default="13200:13800", 
+      default="-10",  # slice(-2, None)
+      #default="",
+      help="Range of checkpoints for evaluation / prediction. Format: "
   )
   parser.add_argument(
       "--train_data", type=str,
@@ -2023,11 +2145,11 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="train_eval",
-      default="serving",
+      #default="eval",
       #default="train,eval",
       #default="eval,predict",
       #default="train,eval,predict",
-      #default="predict",
+      default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"
   )
