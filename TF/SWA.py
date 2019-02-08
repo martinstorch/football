@@ -141,10 +141,10 @@ for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.154
       if "global" in v.tag:
         print(v.tag, v.simple_value)
 
-for e in tf.train.summary_iterator(model_dir+"/evaluation_test/events.out.tfevents.1548406489.14HW010662"):
+for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1549618562.14HW010662"):
   print(e.step, e.wall_time)  
   for v in e.summary.value:
-      if "z_points" in v.tag:
+      if True or "z_points" in v.tag:
         print(v.tag, v.simple_value)
 for e in tf.train.summary_iterator(model_dir+"/eval/events.out.tfevents.1548319287.14HW010662"):
   print(e.step, e.wall_time, e.file_version, e.log_message.level, e.session_log.status   )  

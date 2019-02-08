@@ -56,6 +56,7 @@ import random
 import itertools
 from tensorflow.python.framework import ops
 from tensorflow.python import debug as tf_debug
+from tensorflow.contrib import predictor
 
 #@ops.RegisterGradient("BernoulliSample_ST")
 #def bernoulliSample_ST(op, grad):
@@ -1705,11 +1706,19 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
   if "train_eval" in modes:
     train_spec = tf.estimator.TrainSpec(input_fn=train_input_fn, max_steps=train_steps, hooks=[train_iterator_hook])
     
-    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items()}
+    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
+    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
+    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
+    
     print("features_placeholder: ", features_placeholder)
     feature_spec = tf.feature_column.make_parse_example_spec(my_feature_columns)
+    print("feature_spec: ", feature_spec)
     export_input_fn = tf.estimator.export.build_parsing_serving_input_receiver_fn(feature_spec)
-    theexporter = tf.estimator.LatestExporter("football", export_input_fn , as_text=False, exports_to_keep=50)
+    
+    export_input_fn = tf.estimator.export.build_raw_serving_input_receiver_fn(features_placeholder)
+    
+    print("export_input_fn: ", export_input_fn )
+    theexporter = tf.estimator.LatestExporter("football", export_input_fn , as_text=True, exports_to_keep=50)
     eval_spec = tf.estimator.EvalSpec(input_fn=testeval_input_fn, steps=None, hooks=[testeval_iterator_hook], throttle_secs=30, start_delay_secs=10, exporters=[theexporter])#, EvaluationSaverHook(model_dir, "test")
     print(model.config)  
     print(model.params)  
@@ -1718,6 +1727,91 @@ def train_and_eval(model_dir, train_steps, train_data, test_data,
     
     #model.export_savedmodel(model_dir+"/export", export_input_fn, strip_default_attrs=True)
     tf.estimator.train_and_evaluate(model, train_spec, eval_spec)
+  elif "serving" in modes:
+#    model.train(
+#        input_fn=train_input_fn,
+#        steps=1000,
+#        hooks=hooks+[train_iterator_hook])
+    
+    export_dir = model_dir #+ "/export/football"
+    subdirs = [x for x in Path(export_dir).iterdir()
+                if x.is_dir() and 'temp' not in str(x)]
+    subdirs = tf.train.get_checkpoint_state(model_dir).all_model_checkpoint_paths
+
+#    tf.reset_default_graph()
+#    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
+#    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
+#    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
+#    
+#    data_index = pred_idx
+#    est_spec = model.model_fn(features=features_placeholder, labels=labels_array[data_index], mode="infer", config = model.config)
+#                                
+#    pred = est_spec.predictions
+#    
+#    feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+#    feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
+#    feed_dict[ "alllabels:0"]=labels_array
+#
+#    saver = tf.train.Saver()
+#    with tf.Session() as sess:
+#      for cp in subdirs:
+#        print(cp)
+#        saver.restore(sess, str(cp))#+"/variables/variables")
+#        outputs = sess.run(pred, feed_dict=feed_dict)
+#        print({k:v.shape for k,v in outputs.items()})      
+#        print(outputs["cp1/p_pred_12"][0])
+#    print("Ready!!")  
+#
+    tf.reset_default_graph()
+    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
+    features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
+    features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
+    
+    est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
+    
+    train_writer = tf.summary.FileWriter( model_dir+'/eval_train')
+    test_writer = tf.summary.FileWriter( model_dir+'/eval_test')
+
+    eval_metric_ops = est_spec.eval_metric_ops
+    for key, value in eval_metric_ops.items():
+      tf.summary.scalar(key, value[1])
+    
+    summary_op=tf.summary.merge_all()
+    init_l = tf.local_variables_initializer() # take care of summary metrics initialization
+    loss = est_spec.loss
+    print(loss)
+    
+    data_index = test_idx
+    feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+    feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
+    feed_dict[ "alllabels:0"]=labels_array
+
+    data_index = train_idx
+    feed_dict_train = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
+    feed_dict_train[ "alldata:0"]=features_arrays['match_input_layer']
+    feed_dict_train[ "alllabels:0"]=labels_array
+
+    saver = tf.train.Saver()
+    with tf.Session() as sess:
+      for cp in subdirs:
+        print(cp)
+        saver.restore(sess, str(cp))#+"/variables/variables")
+        #outputs = sess.run([loss]+list(eval_metric_ops.values()), feed_dict=feed_dict)
+        #global_step = tf.get_default_graph().get_tensor_by_name("global_step:0")
+        global_step = int(os.path.basename(str(cp)).split('-')[1])
+        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
+        summary = sess.run(summary_op, feed_dict=feed_dict)
+        test_writer.add_summary(summary, global_step)
+        print("test", global_step, outputs)
+        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
+        summary = sess.run(summary_op, feed_dict=feed_dict_train)
+        train_writer.add_summary(summary, global_step)
+        print("train", global_step, outputs)
+        #print({k:v.shape for k,v in outputs.items()})      
+        #print(outputs["summary/sp/z_points"])
+    train_writer.close()
+    test_writer.close()        
+
   else:
     for i in range(train_steps//evaluate_after_steps):
       if "train" in modes: 
@@ -1928,7 +2022,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train_eval",
+      #default="train_eval",
+      default="serving",
       #default="train,eval",
       #default="eval,predict",
       #default="train,eval,predict",

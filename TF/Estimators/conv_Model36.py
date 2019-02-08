@@ -1160,6 +1160,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                        ], dtype=t_weight.dtype)
       result_importance = result_importance * 10.0 # scaling to mean about 1.0
       row_weight = tf.gather(result_importance, gs*7+gc, name="select_importance")
+      
+      # draws are weighed only with 20%
+      row_weight = tf.where(gs==gc, row_weight*0.0+0.2, row_weight*0.0+1.0)
       t_weight = t_weight * row_weight
       
       l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
@@ -1298,7 +1301,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
       reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
       #reg_variables = tf.get_collection(tf.GraphKeys.WEIGHTS)
-      print(reg_variables)
+      #print(reg_variables)
       l_regularization = tf.zeros(shape=(), dtype=t_weight.dtype)
       if (reg_variables):
         #reg_term = tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, reg_variables)
@@ -1326,7 +1329,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      loss -= tf.reduce_mean(10*t_ensemble_softpoints)
       
       loss = tf.identity(loss, "loss")
-      tf.summary.scalar("loss", loss)
+      #tf.summary.scalar("loss", loss)
       
       eval_metric_ops = reg_eval_metric_ops
       eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson", mode, tensor=l_loglike_poisson))
@@ -1498,6 +1501,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #    with tf.control_dependencies([print_op]):
     features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
     features["newgame"] = tf.cast(features["newgame"], tf.float32)
+    labels = tf.squeeze(tf.gather(alllabels_placeholder, selected_batch), axis=1)
+    labels = tf.cast(labels, tf.float32)
     #labels = tf.cast(labels, tf.float32)
     alldata0 = tf.concat([alldata_placeholder[0:1]*0.0, alldata_placeholder], axis=0)
     alllabels0 = tf.concat([alllabels_placeholder[0:1]*0.0, alllabels_placeholder], axis=0)
@@ -1596,9 +1601,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      predictions.update(predictions_ensemble)
       
       #export_outputs = { "predictions": tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])}
-          
-      export_outputs = { p[:-1]: tf.estimator.export.ClassificationOutput(predictions[p+"p_pred_12"]) for p in prefix_list}
-      export_outputs[tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY]=tf.estimator.export.ClassificationOutput(predictions["sp/p_pred_12"])
+      export_outputs = { p[:-1]: tf.estimator.export.PredictOutput(predictions[p+"p_pred_12"]) for p in prefix_list}
+      export_outputs[tf.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY]=tf.estimator.export.PredictOutput(predictions["sp/p_pred_12"])
       if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(
           mode=mode, 
@@ -1672,7 +1676,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #                          global_step=tf.mod(global_step-1, decay_steps),
 #                          decay_steps=decay_steps,
 #                          alpha=0.03)
-    tf.summary.scalar('learning_rate', learning_rate)
+    tf.summary.scalar('global_step/learning_rate', learning_rate)
     
     optimizer = tf.train.AdamOptimizer(learning_rate)
 #    optimizer_class = extend_with_decoupled_weight_decay(tf.train.AdamOptimizer)
@@ -1689,7 +1693,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     reg_loss = tf.add_n(reg_variables)
     #print("reg_loss", reg_loss)
-    tf.summary.scalar('losses/regularization_loss', reg_loss)
+    #tf.summary.scalar('losses/regularization_loss', reg_loss)
     
     reg_optimizer = tf.train.GradientDescentOptimizer(learning_rate)
     reg_gradients, reg_variables = zip(*reg_optimizer.compute_gradients(reg_loss))
