@@ -3,6 +3,7 @@ python rnn_model36.py --modes=eval --checkpoint=1000:
 python rnn_model36.py --modes=train --swa=True --train_steps=400
 python rnn_model36.py --modes=eval --swa=True
 python rnn_model36.py --modes=predict --swa=True --checkpoint=-1 --skip_plotting=True
+python rnn_model36.py --modes=predict --checkpoint=1600: --skip_plotting=True
 
 
 
