@@ -14,20 +14,29 @@ import numpy as np
 model_dir = "D:/Models/simple_test"
 model_dir = "C:/Models/simple36_sky_1819_3"
 model_dir = "C:/Models/simple36_pistor_1819_2"
-tf.reset_default_graph()
 
-all_checkpoints = ["34000", "34200", "34400", "34600", "34800", "35000", "35200", "35400"]
-new_global_step = 35600
-all_checkpoints = ["26200", "24200", "27800", "28200", "31200"]
-all_checkpoints = ["14400", "12200", "27800", "28200", "31200"]
-all_checkpoints = ["7011", "6811", "6610", "6009", "5207"]
-new_global_step = 6500
+eval_dir = "D:/Models/rnn1/eval_test"
+model_dir = os.path.abspath(os.path.join(eval_dir, os.pardir))
 
-file = model_dir+"/eval/events.out.tfevents.1548700176.DESKTOP-VPR2GCA"
-file = model_dir+"/eval_test/events.out.tfevents.1549392619.DESKTOP-VPR2GCA"
-file = model_dir+"/eval/events.out.tfevents.1549018157.14HW010662"
-kv = [(e.step, v.tag[8:], v.simple_value) for e in tf.train.summary_iterator(file) for v in e.summary.value if "summary" in v.tag and "z_point" in v.tag]
-df = pd.DataFrame(kv)  
+event_files = [os.path.join(eval_dir, f) for f in os.listdir(eval_dir) if f.startswith('events.out.tfevents.')]
+
+#all_checkpoints = ["34000", "34200", "34400", "34600", "34800", "35000", "35200", "35400"]
+#new_global_step = 35600
+#all_checkpoints = ["26200", "24200", "27800", "28200", "31200"]
+#all_checkpoints = ["14400", "12200", "27800", "28200", "31200"]
+#all_checkpoints = ["7011", "6811", "6610", "6009", "5207"]
+#new_global_step = 6500
+#
+#file = model_dir+"/eval/events.out.tfevents.1548700176.DESKTOP-VPR2GCA"
+#file = model_dir+"/eval_test/events.out.tfevents.1549392619.DESKTOP-VPR2GCA"
+#file = model_dir+"/eval/events.out.tfevents.1549018157.14HW010662"
+
+all_scores = []
+for file in event_files:
+  kv = [(e.step, v.tag[8:], v.simple_value) for e in tf.train.summary_iterator(file) for v in e.summary.value if "summary" in v.tag and "z_point" in v.tag]
+  all_scores.extend(kv)
+  
+df = pd.DataFrame(all_scores).drop_duplicates()  
 df = df.pivot(index=0, columns=1, values=2)
 #df = df.loc[df["sp/z_points"]<1.0]
 df.columns
@@ -40,8 +49,14 @@ x = df.sort_values(["sp/z_points", "cp/z_points"]).tail(10)
 print(x)
 print(x.index)
 
-all_checkpoints = [str(s) for s in list(x.index)]
+
+all_checkpoints = [str(s) for s in sorted(list(x.index))]
 new_global_step = np.max(list(x.index))
+print(all_checkpoints)
+print(new_global_step)
+
+all_checkpoints = all_checkpoints[-4:]
+
 
 checkpoint = model_dir + "/model.ckpt-"+str(new_global_step)
 # Add ops to save and restore all the variables.
@@ -54,13 +69,9 @@ graph = tf.get_default_graph()
 model_vars = tf.trainable_variables()
 print(model_vars)
 
-update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-print(update_ops)    
 # Add SWA algorithm
 
 tf.reset_default_graph()
-
-
 averages = [] # [[]]*len(model_vars) 
 weights = [] 
 with tf.Session(graph=graph) as sess: 
@@ -107,57 +118,33 @@ pd.DataFrame({"name":[v.name.replace("rnn/multi_rnn_cell/cell_","") for v in mod
               "absmean":[np.mean(np.absolute(w)) for w in weights], 
               }) 
 
-from tensorflow.python.tools import inspect_checkpoint 
-tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
+#from tensorflow.python.tools import inspect_checkpoint 
+#tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
     
-#  
-#    with tf.name_scope('SWA'):
-#        #swa = StochasticWeightAveraging()
-#        #swa_op = swa.apply(var_list=model_vars)
-#        # Make backup variables
-#        with tf.variable_scope('BackupVariables', reuse=True):
-#          with tf.variable_scope(cp):
-#            backup_vars = [tf.get_variable(var.op.name, dtype=var.value().dtype, trainable=False,
-#                                           initializer=var.initialized_value())
-#                           for var in model_vars]
-#            #print(backup_vars)
-#            sess.run(tf.variables_initializer(backup_vars))
-#            vars_dict[cp]=backup_vars
-#            averages = [a+[b] for a,b in zip(averages, backup_vars)]
-#    
-#  average_nodes = [tf.add_n(a)/len(a) for a in averages]
-#  print(average_nodes)
-#  swa_to_weights = tf.group(*(tf.assign(var, avg) for var, avg in zip(model_vars, average_nodes)))
-#  #tf.global_variables_initializer()
-#  sess.run(swa_to_weights)
-#  print(testnode)
-#  print(sess.run(testnode))
-#  saver.save(sess, model_dir+'/swa_model', global_step=0) 
 
-
-for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"):
-  print(e.step, e.wall_time)  
-  for v in e.summary.value:
-      if "global" in v.tag:
-        print(v.tag, v.simple_value)
-
-for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1549618562.14HW010662"):
-  print(e.step, e.wall_time)  
-  for v in e.summary.value:
-      if True or "z_points" in v.tag:
-        print(v.tag, v.simple_value)
-for e in tf.train.summary_iterator(model_dir+"/eval/events.out.tfevents.1548319287.14HW010662"):
-  print(e.step, e.wall_time, e.file_version, e.log_message.level, e.session_log.status   )  
-  for v in e.summary.value:
-      if "summary" in v.tag:
-        print(e.step, v.tag, v.simple_value)
-
-
-file = model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"
-file = model_dir+"/eval/events.out.tfevents.1548445101.DESKTOP-VPR2GCA"
-file = model_dir+"/eval/events.out.tfevents.1548449896.DESKTOP-VPR2GCA"
-
-
-print(df.mean())
-print(df.std())
+#for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"):
+#  print(e.step, e.wall_time)  
+#  for v in e.summary.value:
+#      if "global" in v.tag:
+#        print(v.tag, v.simple_value)
+#
+#for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1549618562.14HW010662"):
+#  print(e.step, e.wall_time)  
+#  for v in e.summary.value:
+#      if True or "z_points" in v.tag:
+#        print(v.tag, v.simple_value)
+#for e in tf.train.summary_iterator(model_dir+"/eval/events.out.tfevents.1548319287.14HW010662"):
+#  print(e.step, e.wall_time, e.file_version, e.log_message.level, e.session_log.status   )  
+#  for v in e.summary.value:
+#      if "summary" in v.tag:
+#        print(e.step, v.tag, v.simple_value)
+#
+#
+#file = model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"
+#file = model_dir+"/eval/events.out.tfevents.1548445101.DESKTOP-VPR2GCA"
+#file = model_dir+"/eval/events.out.tfevents.1548449896.DESKTOP-VPR2GCA"
+#
+#
+#print(df.mean())
+#print(df.std())
 
