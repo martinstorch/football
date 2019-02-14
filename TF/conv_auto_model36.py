@@ -1739,7 +1739,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto2",
+      default="D:/Models/conv1_auto3",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1773,7 +1773,7 @@ if __name__ == "__main__":
       #default="12000:",
       #default="13200:13800", 
       #default="-10",  # slice(-2, None)
-      default="8610:",
+      default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

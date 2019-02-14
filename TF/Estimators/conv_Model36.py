@@ -522,7 +522,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   return tf.sigmoid(x, name=name)
       
       def binaryStochastic(x):
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if False and mode == tf.estimator.ModeKeys.TRAIN:
           #print("sigmoid sampling")
           return bernoulliSample(passThroughSigmoid(x))
         else:
@@ -530,7 +530,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           return tf.sigmoid(x)
 
       def tanhStochastic(x):
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if False and mode == tf.estimator.ModeKeys.TRAIN:
           #print("tanh sampling")
           return tanhSample(passThroughSigmoid(x))
           #return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
@@ -676,13 +676,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("condprob"):
-        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=3.2), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
+        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=9.2), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         sp_logits,_ = build_dense_layer(X, 49, mode, 
                                       #regularizer = None, 
-                                      regularizer = l2_regularizer(scale=3.0), 
+                                      regularizer = l2_regularizer(scale=90.0), 
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       with tf.variable_scope("Poisson"):
@@ -1496,6 +1496,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #    print(alldata_placeholder)
 #    print(alllabels_placeholder)
     selected_batch = tf.cast(features['gameindex'], tf.int32)
+#    paired_batch = tf.floordiv(selected_batch, 2)+1-tf.floormod(selected_batch, 2)
+#    selected_batch = tf.concat([selected_batch, paired_batch], axis=0) # add home to away and vice versa
+    
 #    print_op = tf.print("selected batch: ", selected_batch[0:5], output_stream=sys.stdout)
 #    with tf.control_dependencies([print_op]):
     features["newgame"] = tf.squeeze(tf.gather(alldata_placeholder, selected_batch), axis=1)
@@ -1514,7 +1517,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       labels = tf.gather(params=alllabels0, indices=hist_idx)
       features[name] = tf.concat([data, labels], axis=2)
       features[name] = tf.cast(features[name], tf.float32)
-    
+
     build_history_input("match_history_t1")
     build_history_input("match_history_t2")
     build_history_input("match_history_t12")
@@ -1688,8 +1691,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     #print("WEIGHTS: ", tf.get_collection(tf.GraphKeys.WEIGHTS))
     #print("REGULARIZATION_LOSSES", tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
     gradients, variables = zip(*optimizer.compute_gradients(loss))
-    #print(gradients)
-    #print("gradient variables: ", variables)
+#    print(gradients)
+#    print("gradient variables: ", variables)
 
     # handle regularization weight-decay apart from other weights
     # AdamOptimizer shall not include regularization in its momentum
@@ -1700,6 +1703,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     reg_optimizer = tf.train.GradientDescentOptimizer(learning_rate)
     reg_gradients, reg_variables = zip(*reg_optimizer.compute_gradients(reg_loss))
+    
+#    print(reg_gradients)
+#    print("reg gradient variables: ", reg_variables)
+
+    exclude_list = ["CNN", "RNN", "Layer0", "Layer1", "Layer2", "Poisson"]
+    def skip_gradients(gradients, variables, exclude_list): 
+      gradvars = [(g,v) for g,v in zip(gradients, variables) if g is not None and not any(s in v.name for s in exclude_list)]      
+      gradients, variables = zip(*gradvars)
+      print(variables)
+      print(gradients)
+      return gradients, variables
+      
+    reg_gradients, reg_variables = skip_gradients(reg_gradients, reg_variables, exclude_list)
+    gradients, variables = skip_gradients(gradients, variables, exclude_list)
     
 #    gradients = list(gradients) # tuple to list
 #    for i,v in enumerate(variables):
@@ -1716,7 +1733,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     # handle model upgrades gently
 #    variables = [v for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
 #    gradients = [g for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
-    variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
+###    variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
     #print(variables)
     #print(gradients)
     # set NaN gradients to zero
