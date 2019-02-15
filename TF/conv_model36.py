@@ -97,10 +97,11 @@ def download_data(model_dir, season, skip_download):
           file_name)  # pylint: disable=line-too-long
       print("Data is downloaded to %s" % file_name)
     data = pd.read_csv(
-      tf.gfile.Open(file_name),
+      #tf.gfile.Open(file_name, mode='rb'),
+      open(file_name, encoding="utf_8"),
       skipinitialspace=True,
       engine="python",
-      skiprows=0)
+      skiprows=0, encoding="utf_8")
     data["Season"]= season
     return data
 
@@ -1707,12 +1708,12 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=400,
+      default=100000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
+      default=1000,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
@@ -1732,7 +1733,7 @@ if __name__ == "__main__":
       #default=["1112", "1213", "1314"], #
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
-      default=["1415", "1516", "1617", "1718", "1819"], #
+      default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
       #default=["1415", "1516", "1617"], #
       #default=["1415", "1516", "1617", "1718"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
@@ -1743,14 +1744,14 @@ if __name__ == "__main__":
       #default=["1415"],
       #default=["1516"],
       #default=["1617"],
-      default=["1112", "1213", "1314"],
+      default=["0405", "0506", "0607", "0708", ],
       #default=["1415", "1516", "1617", "1718"], #
       help="Path to the test data."
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1",
+      default="C:/Models/conv1_long",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1772,9 +1773,9 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      #default="train",
+      default="train",
       #default="eval",
-      default="predict",
+      #default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"

@@ -1674,7 +1674,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
     #learning_rate = 2e-3 
-    #learning_rate = 1e-4 
+    #learning_rate = 2e-4 
     #learning_rate = 1e-3
     print("Learning rate = {}".format(learning_rate))
 
@@ -1720,17 +1720,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     # handle model upgrades gently
 #    variables = [v for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
 #    gradients = [g for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
-    variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
+    #variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
     #print(variables)
     #print(gradients)
     # set NaN gradients to zero
     gradients = [tf.where(tf.is_nan(g), tf.zeros_like(g), g) for g in gradients]
+    #reg_gradients = [tf.where(tf.is_nan(g), tf.zeros_like(g), g) for g in reg_gradients]
     if mode == tf.estimator.ModeKeys.EVAL:
       for g,v in zip(gradients, variables):
           tf.summary.histogram("Gradients/"+v.name[:-2], g)
 
     #gradients, _ = tf.clip_by_global_norm(gradients, 1000.0, use_norm=global_norm)
     gradients = [tf.clip_by_norm(g, 100.0, name=g.name[:-2]) for g in gradients]
+    reg_gradients , reg_variables = zip(*[(tf.clip_by_norm(g, 100.0, name=g.name[:-2]), v) for g,v in zip(reg_gradients, reg_variables) if g is not None])
     #print(gradients)
     if mode == tf.estimator.ModeKeys.EVAL:
       for g,v in zip(gradients, variables):
@@ -1738,6 +1740,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
     global_norm = tf.global_norm([tf.cast(g, dtype=tf.float32) for g in gradients])
     eval_metric_ops.update(collect_summary("Gradients", "global_norm", mode, tensor=global_norm))
+    reg_global_norm = tf.global_norm([tf.cast(g, dtype=tf.float32) for g in reg_gradients])
+    eval_metric_ops.update(collect_summary("Gradients", "reg_global_norm", mode, tensor=reg_global_norm))
 
     #print("gradient variables", variables)
     train_op = optimizer.apply_gradients(zip(gradients, variables), 

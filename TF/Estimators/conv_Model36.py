@@ -498,7 +498,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         output_size = num_label_columns
 
         match_history_t1_seqlen = 10*features_newgame[:,0]
-        match_history_t2_seqlen = 10*features_newgame[:,1]
+        match_history_t2_seqlen = 10*features_newgame[:,2]
         match_history_t12_seqlen = 10*features_newgame[:,3]
         
         # batch normalization
@@ -522,7 +522,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   return tf.sigmoid(x, name=name)
       
       def binaryStochastic(x):
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if False and mode == tf.estimator.ModeKeys.TRAIN:
           #print("sigmoid sampling")
           return bernoulliSample(passThroughSigmoid(x))
         else:
@@ -530,7 +530,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           return tf.sigmoid(x)
 
       def tanhStochastic(x):
-        if mode == tf.estimator.ModeKeys.TRAIN:
+        if False and mode == tf.estimator.ModeKeys.TRAIN:
           #print("tanh sampling")
           return tanhSample(passThroughSigmoid(x))
           #return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
@@ -1670,7 +1670,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     #optimizer = tf.train.GradientDescentOptimizer(1e-4)
     learning_rate = 3e-3 # 1e-3 -> 1e-2 on 4.1.2018 and back 1e-4, 3e-4
     #learning_rate = 2e-3 
-    #learning_rate = 1e-4 
+    learning_rate = 2e-4 
     #learning_rate = 1e-3
     print("Learning rate = {}".format(learning_rate))
 
@@ -1716,7 +1716,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     # handle model upgrades gently
 #    variables = [v for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
 #    gradients = [g for g,v in zip(gradients, variables) if g is not None and "RNN_" not in v.name]
-    variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
+    #variables, gradients = zip(*[(v,g if "RNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
     #print(variables)
     #print(gradients)
     # set NaN gradients to zero
@@ -1788,7 +1788,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                                "pgpt" : eval_metric_ops["summary/pgpt/z_points"][0][1],
                                                "pg2" : eval_metric_ops["summary/pg2/z_points"][0][1],
                                                "sp" : eval_metric_ops["summary/sp/z_points"][0][1]}, 
-      every_n_iter=20)
+      every_n_iter=100)
     
     return tf.estimator.EstimatorSpec(mode=mode #, predictions=predictions 
                                       , loss= loss+reg_loss, train_op=train
