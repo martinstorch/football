@@ -1296,6 +1296,8 @@ def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN,
     next_example, next_label = iterator.get_next()
     # Set runhook to initialize iterator
     print("feed_dict", feed_dict.keys())
+    print("next_example", next_example)
+    print("next_label", next_label)
     iterator_initializer_hook.iterator_initializer_func = \
         lambda sess: sess.run(
             iterator.initializer,
@@ -1432,7 +1434,7 @@ def evaluate_checkpoints(model_data, cps):
   test_writer.close()        
 
 
-def predict_checkpoints(model_data, cps, team_onehot_encoder):
+def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
   model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
   #tf.reset_default_graph()
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="infer", config = model.config)
@@ -1460,7 +1462,8 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder):
 #      print(predictions["sp/p_pred_12"][0])
       results = [enrich_predictions(predictions, features_batch, labels_batch, team_onehot_encoder, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
       results = pd.concat(results, sort=False)
-      plot_checkpoints(results, predictions)
+      if not skip_plotting:
+        plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
 #      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
@@ -1665,7 +1668,7 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
     evaluate_checkpoints(model_data, cps)    
   elif modes == "predict": 
     cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
-    predict_checkpoints(model_data, cps, team_onehot_encoder)    
+    predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting)    
   
   
   return    
@@ -1773,8 +1776,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train",
-      #default="eval",
+      #default="train",
+      default="eval",
       #default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
@@ -1784,8 +1787,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="12000:",
       #default="13200:13800", 
-      #default="-1",  # slice(-2, None)
-      default="3400:",
+      default="-10",  # slice(-2, None)
+      #default="3400:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
