@@ -735,9 +735,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       with tf.variable_scope("Layer1"):
         X1,Z1 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=3.0), keep_prob=0.85, batch_norm=False, activation=binaryStochastic, eval_metric_ops=eval_metric_ops)
       with tf.variable_scope("Layer2"):
-        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0, regularizer = l2_regularizer(scale=3.0), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
+        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0*2.0, regularizer = l2_regularizer(scale=3.0), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
 
-      X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+      X = X2 # shortcut connection bypassing two non-linear activation functions
       #X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
       
 #      with tf.variable_scope("Layer3"):
@@ -1181,10 +1181,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     metrics.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
     return metrics
 
-  def create_poisson_correlation_metrics(outputs, t_labels, mode):
+  def create_poisson_correlation_metrics(outputs, t_labels, mode, mask = None, section="poisson"):
     metrics={}
     for i,col in enumerate(label_column_names):
-      metrics.update(collect_summary("poisson", col.replace(":", "_"), mode, tensor=corrcoef(outputs[:,i], t_labels[:,i])))
+      x = tf.exp(outputs[:,i])
+      y = t_labels[:,i]
+      if mask is not None:
+        # mean imputation
+        x = tf.where(mask[:,i]==0.0, tf.zeros_like(x)+tf.reduce_mean(x), x)
+        y = tf.where(mask[:,i]==0.0, tf.zeros_like(y)+tf.reduce_mean(y), y)
+      metrics.update(collect_summary(section, col.replace(":", "_"), mode, tensor=corrcoef(x, y)))
     return metrics
   
   def create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, t_labels, mode ):
@@ -1206,7 +1212,25 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def sequence_len_mask(l):
         return tf.expand_dims(1.0-tf.sequence_mask(maxseqlen-l, maxlen=maxseqlen, dtype=t_labels.dtype), axis=2)
 
-      eval_ae_loss_ops={}
+      #eval_ae_loss_ops={}
+      m1 = sequence_len_mask(match_history_t1_seqlen)
+      m2 = sequence_len_mask(match_history_t2_seqlen)
+      m12 = sequence_len_mask(match_history_t12_seqlen)
+      m_total = tf.reduce_sum(m1+m2+m12, axis=1)
+      m_total = tf.reduce_mean(m_total/30) # normalization constant
+
+      all_outputs = tf.concat([tf.reshape(decode_t1, [-1,ncol]),
+                               tf.reshape(decode_t2, [-1,ncol]),
+                               tf.reshape(decode_t12, [-1,ncol])], axis=0) 
+      all_labels = tf.concat([tf.reshape(features["match_history_t1"][:,:,-ncol:], [-1,ncol]),
+                              tf.reshape(features["match_history_t2"][:,:,-ncol:], [-1,ncol]),
+                              tf.reshape(features["match_history_t12"][:,:,-ncol:], [-1,ncol])], axis=0)
+      
+      all_masks = tf.concat([tf.reshape(m1, [-1,ncol]),
+                               tf.reshape(m2, [-1,ncol]),
+                               tf.reshape(m12, [-1,ncol])], axis=0) 
+      eval_ae_loss_ops = create_poisson_correlation_metrics(outputs=all_outputs, t_labels=all_labels, mode=mode, mask = all_masks, section="autoencoder")
+      
       l_ae_loglike_poisson = \
           sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:], log_input=decode_t1) + \
           sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,-ncol:], log_input=decode_t2) + \
@@ -1825,23 +1849,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     reg_gradients, reg_variables = skip_gradients(reg_gradients, reg_variables, exclude_list)
     gradients, variables = skip_gradients(gradients, variables, exclude_list)
     
-#    gradients = list(gradients) # tuple to list
-#    for i,v in enumerate(variables):
-#      for j,rv in enumerate(reg_variables):
-#        if v==rv and reg_gradients[j] is not None:
-#          print(v, gradients[i], reg_gradients[j])
-#          if gradients[i] is None:
-#            gradients[i] = reg_gradients[j]
-#            #print("Replacing gradient with regularization: ", v)
-#          else:
-#            gradients[i] = gradients[i] + reg_gradients[j]
-#            #print("Merged gradient from regularization: ", v)
-    
     # handle model upgrades gently
     if True:
-      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else g*0.01) for g,v in zip(gradients, variables) if g is not None])
-    #print(variables)
-    #print(gradients)
+      print("Auto-Encoder: using gradient reduction")
+      print("Small gradients", [(v,g) for g,v in zip(gradients, variables) if g is not None and "CNN_" in v.name] )
+      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else g*0.0001) for g,v in zip(gradients, variables) if g is not None])
+      reg_variables, reg_gradients = zip(*[(v,g if "CNN_" not in v.name else g*0.00001) for g,v in zip(reg_gradients, reg_variables) if g is not None])
+
+    print(variables)
+    print(gradients)
     # set NaN gradients to zero
     gradients = [tf.where(tf.is_nan(g), tf.zeros_like(g), g) for g in gradients]
     if mode == tf.estimator.ModeKeys.EVAL:
