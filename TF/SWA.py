@@ -15,7 +15,7 @@ model_dir = "D:/Models/simple_test"
 model_dir = "C:/Models/simple36_sky_1819_3"
 model_dir = "C:/Models/simple36_pistor_1819_2"
 
-eval_dir = "D:/Models/rnn1/eval_test"
+eval_dir = "D:/Models/conv1_auto3_sky/eval_test"
 model_dir = os.path.abspath(os.path.join(eval_dir, os.pardir))
 
 event_files = [os.path.join(eval_dir, f) for f in os.listdir(eval_dir) if f.startswith('events.out.tfevents.')]
@@ -39,6 +39,7 @@ for file in event_files:
 df = pd.DataFrame(all_scores).drop_duplicates()  
 df = df.pivot(index=0, columns=1, values=2)
 #df = df.loc[df["sp/z_points"]<1.0]
+#df = df.loc[df.index<9000]
 df.columns
 df.index
 df.describe()
@@ -49,7 +50,8 @@ x = df.sort_values(["sp/z_points", "cp/z_points"]).tail(10)
 print(x)
 print(x.index)
 
-
+#all_checkpoints = ['8841','9041']
+#new_global_step = 9041
 all_checkpoints = [str(s) for s in sorted(list(x.index))]
 new_global_step = np.max(list(x.index))
 print(all_checkpoints)

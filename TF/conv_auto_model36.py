@@ -1374,10 +1374,11 @@ def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
     print("No checkpoints selected in {} using filter \"{}\"".format(export_dir, checkpoints))
   return cp_df_final.sort_values("global_step")
 
-def evaluate_checkpoints(model_data, cps):
+def evaluate_checkpoints(model_data, checkpoints, use_swa):
   model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
   #tf.reset_default_graph()
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
+  cps = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
   if len(cps)==0:
     return
   model_dir = os.path.dirname(cps.iloc[0].checkpoint)
@@ -1403,18 +1404,26 @@ def evaluate_checkpoints(model_data, cps):
   feed_dict_train[ "alllabels:0"]=labels_array
 
   saver = tf.train.Saver()
+  cps_done = []
   with tf.Session() as sess:
-    for cp, global_step in zip(cps.checkpoint, cps.global_step):
-      print(cp)
-      saver.restore(sess, cp)
-      _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
-      summary = sess.run(summary_op, feed_dict=feed_dict)
-      test_writer.add_summary(summary, global_step)
-      print("test", global_step, outputs)
-      _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
-      summary = sess.run(summary_op, feed_dict=feed_dict_train)
-      train_writer.add_summary(summary, global_step)
-      print("train", global_step, outputs)
+    while len(cps)>0:
+      for cp, global_step in zip(cps.checkpoint, cps.global_step):
+        print(cp)
+        saver.restore(sess, cp)
+        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
+        summary = sess.run(summary_op, feed_dict=feed_dict)
+        test_writer.add_summary(summary, global_step)
+        print("test", global_step, outputs)
+        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
+        summary = sess.run(summary_op, feed_dict=feed_dict_train)
+        train_writer.add_summary(summary, global_step)
+        print("train", global_step, outputs)
+      cps_done.extend(cps.global_step)
+      print("cps_done", cps_done)
+      cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
+      print("cps2", cps2)
+      cps = cps2.loc[~cps2.global_step.isin(cps_done)]
+      print("cps", cps)
   train_writer.close()
   test_writer.close()        
 
@@ -1649,8 +1658,7 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   elif modes == "train_eval": 
     train_eval_model(model_data, train_steps)
   elif modes == "eval": 
-    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
-    evaluate_checkpoints(model_data, cps)    
+    evaluate_checkpoints(model_data, checkpoints, use_swa)    
   elif modes == "predict": 
     cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
     predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting)    
@@ -1685,7 +1693,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--skip_plotting", type=bool,
       #default=True, 
-      default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1739,7 +1747,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto3",
+      default="D:/Models/conv1_auto5_sky",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1747,8 +1755,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
-      #default="Sky",
+      #default="Pistor",
+      default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1761,9 +1769,9 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train",
+      #default="train",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
@@ -1773,7 +1781,7 @@ if __name__ == "__main__":
       #default="12000:",
       #default="13200:13800", 
       #default="-10",  # slice(-2, None)
-      default="1000:",
+      default="15200:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
