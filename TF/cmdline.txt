@@ -1,9 +1,24 @@
-python rnn_model36.py --modes=train --train_steps=4000
-python rnn_model36.py --modes=eval --checkpoint=1000:
+python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=train --train_steps=20000 --save_steps=500
+python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=eval --checkpoint=41000:
+python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=predict --checkpoint=41000: --skip_plotting=True
+
+python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=train_eval --train_steps=10000 --save_steps=2000
+
+
+python rnn_model36.py --model_dir c:\models\rnn_sky --target_system=Sky --modes=train --train_steps=30000 
+python rnn_model36.py --model_dir c:\models\rnn_sky --target_system=Sky --modes=eval --checkpoint=1000:
+python rnn_model36.py --model_dir c:\models\rnn_sky --target_system=Sky --modes=predict --checkpoint=10000: --skip_plotting=True
+
+
+
 python rnn_model36.py --modes=train --swa=True --train_steps=400
 python rnn_model36.py --modes=eval --swa=True
 python rnn_model36.py --modes=predict --swa=True --checkpoint=-1 --skip_plotting=True
 python rnn_model36.py --modes=predict --checkpoint=1600: --skip_plotting=True
 
 
+python conv_auto_model36.py --modes=train --train_steps=40000 --save_steps=1000
+python conv_auto_model36.py --modes=eval --checkpoint=1000:
+
+FOR %G IN (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) DO python conv_auto_model36.py --modes=eval --checkpoints=1000:
 

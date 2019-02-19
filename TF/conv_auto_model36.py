@@ -1406,20 +1406,23 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
   saver = tf.train.Saver()
   cps_done = []
   with tf.Session() as sess:
-    while len(cps)>0:
-      for cp, global_step in zip(cps.checkpoint, cps.global_step):
-        print(cp)
-        saver.restore(sess, cp)
-        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
-        summary = sess.run(summary_op, feed_dict=feed_dict)
-        test_writer.add_summary(summary, global_step)
-        print("test", global_step, outputs)
-        _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
-        summary = sess.run(summary_op, feed_dict=feed_dict_train)
-        train_writer.add_summary(summary, global_step)
-        print("train", global_step, outputs)
-      cps_done.extend(cps.global_step)
-      print("cps_done", cps_done)
+    while True:
+      if len(cps)>0:
+        for cp, global_step in zip(cps.checkpoint, cps.global_step):
+          print(cp)
+          saver.restore(sess, cp)
+          _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
+          summary = sess.run(summary_op, feed_dict=feed_dict)
+          test_writer.add_summary(summary, global_step)
+          print("test", global_step, outputs)
+          _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
+          summary = sess.run(summary_op, feed_dict=feed_dict_train)
+          train_writer.add_summary(summary, global_step)
+          print("train", global_step, outputs)
+        cps_done.extend(cps.global_step)
+        print("cps_done", cps_done)
+      else:
+        time.sleep(5)
       cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
       print("cps2", cps2)
       cps = cps2.loc[~cps2.global_step.isin(cps_done)]
@@ -1551,7 +1554,7 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
                pl_pGC: df[["pGC"]].values,
                pl_GS: df[["GS"]].values,
                pl_GC: df[["GC"]].values,
-               pl_is_home: features[:,2:3],
+               pl_is_home: features[:,1:2],
                }
     df['Pt'] = sess.run(tf.cast(calc_points_tensor, tf.int8), feed_dict=feed_dict)
     
@@ -1645,7 +1648,7 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
   features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
   features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
-
+  print(label_column_names)
   model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms)
   
   model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
@@ -1730,6 +1733,7 @@ if __name__ == "__main__":
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
       default=["1415", "1516", "1617", "1718", "1819"], #
+      #default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
       #default=["1415", "1516", "1617"], #
       #default=["1415", "1516", "1617", "1718"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
@@ -1742,12 +1746,13 @@ if __name__ == "__main__":
       #default=["1617"],
       default=["1112", "1213", "1314"],
       #default=["1415", "1516", "1617", "1718"], #
+      #default=["0405", "0506", "0607", "0708"], #
       help="Path to the test data."
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto5_sky",
+      default="D:/Models/conv1_auto6_sky",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1769,9 +1774,9 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      #default="train",
+      default="train",
       #default="eval",
-      default="predict",
+      #default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
@@ -1780,8 +1785,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="12000:",
       #default="13200:13800", 
-      #default="-10",  # slice(-2, None)
-      default="15200:",
+      default="-1",  # slice(-2, None)
+      #default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

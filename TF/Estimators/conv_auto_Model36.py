@@ -662,21 +662,18 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       def auto_encoder(X):
         with tf.variable_scope("enc"):
-          with tf.GradientTape(persistent=True) as g:
-            g.watch(X)
-            X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
-            X = conv_layer(X, name="conv2", output_channels=16, keep_prob=1.0)
-            X = avg_pool(X, name="avgpool")
-            #print(X)
-            shape_after_pooling = tf.shape(X)
-            w,c = X.shape[1], X.shape[2]
-            X = tf.reshape(X, (-1, w*c))
-            #print(X)
-            if mode == tf.estimator.ModeKeys.TRAIN:  
-              X = tf.nn.dropout(X, keep_prob=1.0)
-            hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=tf.nn.sigmoid, eval_metric_ops=eval_metric_ops)
-            hidden_list = tf.unstack(hidden, axis=-1) # to get individual gradients
-            #print("hidden", hidden)
+          X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
+          X = conv_layer(X, name="conv2", output_channels=16, keep_prob=1.0)
+          X = avg_pool(X, name="avgpool")
+          #print(X)
+          shape_after_pooling = tf.shape(X)
+          w,c = X.shape[1], X.shape[2]
+          X = tf.reshape(X, (-1, w*c))
+          #print(X)
+          if mode == tf.estimator.ModeKeys.TRAIN:  
+            X = tf.nn.dropout(X, keep_prob=1.0)
+          hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
+          #print("hidden", hidden)
         
         with tf.variable_scope("dec"):
           ####X = build_dense_layer(hidden, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=True, activation=tf.nn.relu, eval_metric_ops=eval_metric_ops)
@@ -684,20 +681,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print(X)
           X = tf.reshape(X, shape_after_pooling )
           #print(X)
-          X = deconv_layer(X, "deconv1", 8, output_channels=32, keep_prob=1.0, activation=tf.nn.sigmoid, stride=2)        
+          X = deconv_layer(X, "deconv1", 8, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
           #print(X)
           X = deconv_layer(X, "deconv2", 10, output_channels=44, keep_prob=1.0, activation=None)        
           #print(X)
           decoded = X
-        return hidden, decoded, (g, hidden_list)
+        return tf.stop_gradient(hidden), decoded
       
       with tf.variable_scope("CNN_1"):
-        match_history_t1, decode_t1, gt1 = auto_encoder(match_history_t1)
+        match_history_t1, decode_t1 = auto_encoder(match_history_t1)
       with tf.variable_scope("CNN_2"):
-        match_history_t2, decode_t2, gt2 = auto_encoder(match_history_t2)
+        match_history_t2, decode_t2 = auto_encoder(match_history_t2)
       with tf.variable_scope("CNN_12"):
-        match_history_t12, decode_t12, gt12 = auto_encoder(match_history_t12)
-      gt = (gt1, gt2, gt12)  
+        match_history_t12, decode_t12 = auto_encoder(match_history_t12)
+        
 #      with tf.variable_scope("CNN_1"):
 #        match_history_t1 = conv_layer(match_history_t1, name="conv1", output_channels=32, keep_prob=0.9)
 #        match_history_t1 = conv_layer(match_history_t1, name="conv2", output_channels=16, keep_prob=0.9)
@@ -730,18 +727,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      match_history_t12 = tf.stop_gradient(match_history_t12)
       
       with tf.variable_scope("Combine"):
-        X = tf.concat([features_newgame, 
-                       tf.stop_gradient(match_history_t1), 
-                       tf.stop_gradient(match_history_t2), 
-                       tf.stop_gradient(match_history_t12)], axis=1)
+        X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
         
       with tf.variable_scope("Layer0"):
-          X0,Z0 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=10.0), keep_prob=1.0, batch_norm=True, activation=None, eval_metric_ops=eval_metric_ops)
+          X0,Z0 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=1.0), keep_prob=1.0, batch_norm=True, activation=None, eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer1"):
-        X1,Z1 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=3.0), keep_prob=0.85, batch_norm=False, activation=binaryStochastic, eval_metric_ops=eval_metric_ops)
+        X1,Z1 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=0.3), keep_prob=0.85, batch_norm=False, activation=binaryStochastic, eval_metric_ops=eval_metric_ops)
       with tf.variable_scope("Layer2"):
-        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0*2.0, regularizer = l2_regularizer(scale=3.0), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
+        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0*2.0, regularizer = l2_regularizer(scale=0.3), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
 
       X = X2 # shortcut connection bypassing two non-linear activation functions
       #X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
@@ -757,23 +751,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("condprob"):
-        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=9.2), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
+        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.009), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         sp_logits,_ = build_dense_layer(X, 49, mode, 
                                       #regularizer = None, 
-                                      regularizer = l2_regularizer(scale=90.0), 
+                                      regularizer = l2_regularizer(scale=0.009), 
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=3.0), 
+                                regularizer = l2_regularizer(scale=0.003), 
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
 
-      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, (decode_t1, match_history_t1), (decode_t2, match_history_t2), (decode_t12 , match_history_t12), gt
+      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12 
         
   def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False):
     with tf.variable_scope("Prediction"):
@@ -961,7 +955,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         pred = tf.reshape(tf.stack([pred_gtotal // 7, tf.mod(pred_gtotal, 7)], axis=1), (-1,2))
         pred = tf.cast(pred, tf.int32)
         
-        if False:
+        if True:
           # try fixed scheme based on probabilities
           pred = create_fixed_scheme_prediction(outputs, p_pred_12, t_is_home_bool, mode)
 
@@ -1001,20 +995,37 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_both = p_pred_tendency[:,3]
         #hg = tf.where(t_is_home_bool, T1_GFT, T2_GFT)
         #ag = tf.where(t_is_home_bool, T2_GFT, T1_GFT)
-        diffp = tf.where(t_is_home_bool, p_pred_loss - p_pred_win, p_pred_win - p_pred_loss)
+
+        with tf.variable_scope("diff_p"):
+          diffp = p_pred_loss - p_pred_win
+          diffp = tf.where(t_is_home_bool, diffp, -diffp)
+          diffp = tf.layers.batch_normalization(tf.expand_dims(diffp, axis=1), axis=1, scale=True, center=True, momentum=0.99, epsilon=0.0001, training=(mode == tf.estimator.ModeKeys.TRAIN))
+          diffp = tf.squeeze(diffp, axis=1)
+          tf.summary.histogram("diffp", diffp)
         
-        diffp = tf.layers.batch_normalization(tf.expand_dims(diffp, axis=1) , axis=1, momentum=0.99, center=True, scale=False, epsilon=0.0001, training=(mode == tf.estimator.ModeKeys.TRAIN))
-        diffp = tf.squeeze(diffp, axis=1)
-        
+        with tf.variable_scope("p_both"):
+          p_pred_both = tf.layers.batch_normalization(tf.expand_dims(p_pred_both, axis=1) , axis=1, momentum=0.99, center=True, scale=True, epsilon=0.0001, training=(mode == tf.estimator.ModeKeys.TRAIN))
+          p_pred_both = tf.squeeze(p_pred_both, axis=1)
+          tf.summary.histogram("p_pred_both", p_pred_both)
+
         pred = tf.stack([0*p_pred_loss, 0*p_pred_win ], axis=1)
         if point_scheme[0][0]==5: # Sky
           pred = tf.cast(pred, tf.int32)+tf.constant([[0,3]])
-          pred = tf.where(diffp< 0.708641107, pred*0+tf.constant([[0,2]]), pred)
-          pred = tf.where(diffp< 0.329863088, tf.where(p_pred_both<0.525, pred*0+tf.constant([[0,1]]), pred*0+tf.constant([[1,2]])), pred) # hg<1.1
-          pred = tf.where(diffp< 0.001331164, tf.where(p_pred_both<0.525, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
-          pred = tf.where(diffp<-0.489031706, pred*0+tf.constant([[2,0]]), pred)
-          pred = tf.where(diffp<-0.601062863, pred*0+tf.constant([[3,0]]), pred)
-          pred = tf.where(diffp<-0.789108038, pred*0+tf.constant([[4,0]]), pred)
+#          pred = tf.where(diffp< 0.708641107, pred*0+tf.constant([[0,2]]), pred)
+#          pred = tf.where(diffp< 0.329863088, tf.where(p_pred_both<0.525, pred*0+tf.constant([[0,1]]), pred*0+tf.constant([[1,2]])), pred) # hg<1.1
+#          pred = tf.where(diffp< 0.001331164, tf.where(p_pred_both<0.525, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
+#          pred = tf.where(diffp<-0.489031706, pred*0+tf.constant([[2,0]]), pred)
+#          pred = tf.where(diffp<-0.601062863, pred*0+tf.constant([[3,0]]), pred)
+#          pred = tf.where(diffp<-0.789108038, pred*0+tf.constant([[4,0]]), pred)
+
+          pred = tf.where(diffp< 2.0, pred*0+tf.constant([[0,2]]), pred)
+          pred = tf.where(diffp< 1.0, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,1]]), pred*0+tf.constant([[1,2]])), pred) # hg<1.1
+          pred = tf.where(diffp< 0.001, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,0]]), pred*0+tf.constant([[1,1]])), pred) # ag<1.1
+          pred = tf.where(diffp< -0.001, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
+          pred = tf.where(diffp<-1.0, pred*0+tf.constant([[2,0]]), pred)
+          pred = tf.where(diffp<-2.0, pred*0+tf.constant([[3,0]]), pred)
+          pred = tf.where(diffp<-2.5, pred*0+tf.constant([[4,0]]), pred)
+
           pred = tf.where(t_is_home_bool, pred, pred[:,::-1])
         else:
           pred = tf.cast(pred, tf.int32)+tf.constant([[0,2]])
@@ -1171,7 +1182,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           p_pred_12 = tf.nn.softmax(logits)
           predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = predictions)
           
-          if False:
+          if True:
             # try fixed scheme based on probabilities
             pred = create_fixed_scheme_prediction(outputs, p_pred_12, t_is_home_bool, mode)
             predictions.update({"pred":pred})
@@ -1225,21 +1236,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       metrics.update(collect_summary(section, col.replace(":", "_"), mode, tensor=corrcoef(x, y)))
     return metrics
   
-  def create_autoencoder_losses(loss, gt, hidden_t1, hidden_t2, hidden_t12, decode_t1, decode_t2, decode_t12, features, t_labels, mode ):
+  def create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, t_labels, mode ):
       ncol = int(t_labels.shape[1])
-      gt1, gt2, gt12 = gt
       maxseqlen = int(features["match_history_t1"].shape[1])
       match_history_t1_seqlen =  10*features['newgame'][:,0]
       match_history_t2_seqlen =  10*features['newgame'][:,2]
       match_history_t12_seqlen = 10*features['newgame'][:,3]
 
       poisson_column_weights = tf.ones(shape=[1, 1, ncol], dtype=t_labels.dtype)
-      poisson_column_weights = tf.concat([
-          poisson_column_weights[:,:,0:4] *3,
-          poisson_column_weights[:,:,4:16],
-          poisson_column_weights[:,:,16:20] *3,
-          poisson_column_weights[:,:,20:],
-          ], axis=2)
+#      poisson_column_weights = tf.concat([
+#          poisson_column_weights[:,:,0:4] *3,
+#          poisson_column_weights[:,:,4:16],
+#          poisson_column_weights[:,:,16:21] *3,
+#          poisson_column_weights[:,:,21:],
+#          ], axis=2)
       
       # do not include null sequence positions into the loss
       def sequence_len_mask(l):
@@ -1265,37 +1275,14 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_ae_loss_ops = create_poisson_correlation_metrics(outputs=all_outputs, t_labels=all_labels, mode=mode, mask = all_masks, section="autoencoder")
       
       l_ae_loglike_poisson = \
-          m1 * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:], log_input=decode_t1) + \
-          m2 * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,-ncol:], log_input=decode_t2) + \
-          m12 * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,-ncol:], log_input=decode_t12)
+          sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:], log_input=decode_t1) + \
+          sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,-ncol:], log_input=decode_t2) + \
+          sequence_len_mask(match_history_t12_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,-ncol:], log_input=decode_t12)
       l_ae_loglike_poisson = tf.reduce_sum(l_ae_loglike_poisson, axis=1)
-      l_ae_loglike_poisson *= poisson_column_weights 
+      l_ae_loglike_poisson *= poisson_column_weights
       l_ae_loglike_poisson /= m_total
       loss += tf.reduce_mean(l_ae_loglike_poisson)
       eval_ae_loss_ops.update(collect_summary("losses", "l_ae_loglike_poisson", mode, tensor=l_ae_loglike_poisson))
-      
-#      h = hidden_t1
-#      
-#      g,h = gt1
-#      print("h", h)
-#      x = features["match_history_t1"]
-#      print("x", x)
-##      print("tf.gradients(h, h)", tf.gradients(h, h))
-##      print("tf.gradients(h, stop(h))", tf.gradients(h, tf.stop_gradient(h)))
-##      print("tf.gradients(h, x)", tf.gradients(h, x))
-##      print("tf.gradients(h[:,0], x)", tf.gradients(h[:,0], x))
-##      jacobian = tf.stack([tf.gradients(h[:, i], x) for i in range(h.shape[1])], axis=-1, name="jacobian")
-#      #print("tf.gradients(h, x)", g.gradient(h, x))
-#      print("tf.gradients(h[:,0], x)", g.gradient(h[0], x))
-#      jacobian = tf.stack([g.gradient(hi, x) for hi in h], axis=-1, name="jacobian")
-#      #jacobian = tf.stack([g.gradient(h[:, i], x) for i in range(h.shape[1])], axis=-1, name="jacobian")
-#      print("jacobian", jacobian)
-#      l_contractive_penalty = tf.square(jacobian, name="l_contractive_penalty")
-#      l_contractive_penalty = tf.reduce_sum(l_contractive_penalty, axis=[1,2,3])
-#      print("l_contractive_penalty", l_contractive_penalty )
-#      loss += tf.reduce_mean(l_contractive_penalty , name="l_mean_contractive_penalty")
-#      eval_ae_loss_ops.update(collect_summary("losses", "l_contractive_penalty", mode, tensor=l_contractive_penalty))
-      
       return eval_ae_loss_ops, loss 
 
   def create_losses_RNN(outputs, sp_logits, cond_probs, t_labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops):
@@ -1325,8 +1312,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       match_date = features["newgame"][:,4]
       sequence_length = features['newgame'][:,0]
+      #t_weight = tf.exp(0.5*match_date) * (sequence_length + 0.05) # sequence_length ranges from 0 to 1 - depending on the number of prior matches of team 1
       t_weight = 1.0 + 0.0 * tf.exp(0.5*match_date) * (sequence_length + 0.05) # sequence_length ranges from 0 to 1 - depending on the number of prior matches of team 1
-      
+
       # result importance = log(1/frequency) - mean adjusted to 1.0
       # 1:1 has low importance, 3:2 much higher, 5:0 overvalued but rare
 #      result_importance = tf.constant([0.610699463302517, 0.636624134693228, 0.688478206502995, 0.861174384773783, 1.09447971749187, 1.45916830182096, 1.45916830182096, 0.565089593736748, 0.490552492978211, 0.620077094945206, 0.760233563222618, 0.992062709888034, 1.31889788143772, 1.49409788361176, 0.584692048161506, 0.540777816952666, 0.664928108155794, 0.870617157643794, 1.10781260749576, 1.4022220211579, 1.53541081027154, 0.690646584367668, 0.698403607367345, 0.828902824753833, 0.983969215334149, 1.45916830182096, 1.58597374606561, 1.90009939460063, 0.888152492546633, 0.865846586541708, 1.00917224994398, 1.33703505934424, 1.45916830182096, 1.65116070787927, 0.226593757678754, 1.12197933011558, 1.11478527326307, 1.30210547755345, 1.45916830182096, 1.74303657033312, 0.226593757678754, 0.226593757678754, 1.30210547755345, 1.4022220211579, 1.4289109217981, 1.65116070787927, 0.226593757678754, 0.226593757678754, 0.226593757678754], dtype=t_weight.dtype)
@@ -1351,7 +1339,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_weight = t_weight * row_weight
       t_weight_total = tf.reduce_mean(t_weight)
       t_weight = t_weight / t_weight_total
-      
+
       l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
       poisson_column_weights = tf.ones(shape=[1, t_labels.shape[1]], dtype=t_weight.dtype)
       poisson_column_weights = tf.concat([
@@ -1716,12 +1704,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #labels   = decode_home_away_matches(labels)
 
       graph_outputs = buildGraph(features, labels, mode, params)
-      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12, gt  = graph_outputs
-      decode_t1, hidden_t1 = decode_t1
-      decode_t2, hidden_t2 = decode_t2
-      decode_t12, hidden_t12 = decode_t12
-      
-      t_is_home_bool = tf.equal(features["newgame"][:,2] , 1)
+      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12  = graph_outputs
+      t_is_home_bool = tf.equal(features["newgame"][:,1] , 1)
 #      t_is_train_bool = tf.equal(features["Train"] , True)
 
       def apply_prefix(predictions, prefix):
@@ -1729,7 +1713,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       
       with tf.variable_scope("sp"):
-        predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, apply_point_scheme=False)
+          predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, apply_point_scheme=False)
       #predictions = create_predictions(outputs, sp_logits, t_is_home_bool, tc)
       predictions = apply_prefix(predictions, "sp/")
 
@@ -1747,17 +1731,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions["cp/labels"] = label_features_h2
             
       with tf.variable_scope("cp"):
-        cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode)
+          cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode)
       predictions.update(apply_prefix(cp_predictions, "cp/"))
       cp1_predictions = create_predictions(outputs, h1_logits, t_is_home_bool, tc, False)
       predictions.update(apply_prefix(cp1_predictions, "cp1/"))
 
       avg_logits = sp_logits + h2_logits # averaging of sp and cp strategies in logit space
       with tf.variable_scope("av"):
-        av_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, False)
-        avg_pred = create_fixed_scheme_prediction_new(av_predictions["p_pred_12"], t_is_home_bool, mode)
-        av_predictions.update({"pred":avg_pred})
-      predictions.update(apply_prefix(av_predictions, "av/"))
+#        avg_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, False)
+#        avg_pred = create_fixed_scheme_prediction_new(avg_predictions["p_pred_12"], t_is_home_bool, mode)
+#        avg_predictions.update({"pred":avg_pred})
+#        predictions.update(apply_prefix(avg_predictions, "av/"))
+        avg_predictions = create_hierarchical_predictions(outputs, avg_logits, t_is_home_bool, tc, mode)
+        predictions.update(apply_prefix(avg_predictions, "av/"))
 
       T1_GFT = tf.exp(outputs[:,0])
       T2_GFT = tf.exp(outputs[:,1])
@@ -1853,7 +1839,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
     eval_loss_ops, loss = create_losses_RNN(outputs, sp_logits, cond_probs, labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
     eval_metric_ops.update(eval_loss_ops)
-    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, gt, hidden_t1, hidden_t2, hidden_t12, decode_t1, decode_t2, decode_t12, features, labels, mode)  
+    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
     eval_metric_ops.update(eval_ae_loss_ops)
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "z_points" in k })
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "is_tendency" in k })
@@ -1922,22 +1908,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     if True:
       print("Auto-Encoder: using gradient reduction")
       print("Small gradients", [(v,g) for g,v in zip(gradients, variables) if g is not None and "CNN_" in v.name] )
-      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else 0.0001*g*0.0001) for g,v in zip(gradients, variables) if g is not None])
-      reg_variables, reg_gradients = zip(*[(v,g if "CNN_" not in v.name else 0.0001*g*0.00001) for g,v in zip(reg_gradients, reg_variables) if g is not None])
+      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else 0.01*g*0.0001) for g,v in zip(gradients, variables) if g is not None])
+      reg_variables, reg_gradients = zip(*[(v,g if "CNN_" not in v.name else 0.01*g*0.00001) for g,v in zip(reg_gradients, reg_variables) if g is not None])
 
     print(variables)
     print(gradients)
     # set NaN gradients to zero
     gradients = [tf.where(tf.is_nan(g), tf.zeros_like(g), g) for g in gradients]
-#      for g,v in zip(gradients, variables):
-#          tf.summary.histogram("Gradients/"+v.name[:-2], g)
 
     #gradients, _ = tf.clip_by_global_norm(gradients, 1000.0, use_norm=global_norm)
     gradients = [tf.clip_by_norm(g, 100.0, name=g.name[:-2]) for g in gradients]
     #print(gradients)
-#      for g,v in zip(gradients, variables):
-#          tf.summary.histogram("Gradients/"+v.name[:-2]+"_clipped", g)
-    
     
     if True:
       for g,v in zip(gradients, variables):

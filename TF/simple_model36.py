@@ -2033,7 +2033,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=160000,
+      default=200000,
       help="Number of training steps."
   )
   parser.add_argument(
@@ -2097,10 +2097,10 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train_eval",
+      #default="train_eval",
       #default="train,eval",
       #default="eval,predict",
-      #default="train,eval,predict",
+      default="train,eval,predict",
       #default="predict",
       #default="upgrade,train,eval,predict",
       help="What to do"
