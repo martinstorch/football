@@ -1125,7 +1125,7 @@ def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_
   df = pd.DataFrame()
   df['Team1']=team_onehot_encoder.inverse_transform(features[:, 4:4+tn])
   df['Team2']=team_onehot_encoder.inverse_transform(features[:, 4+tn:4+2*tn])
-  df['Where']=['Home' if h==1 else 'Away' for h in features[:, 2]]
+  df['Where']=['Home' if h==1 else 'Away' for h in features[:, 1]]
 
 #  df = pd.DataFrame().from_csv("file:///C:/tmp/Football/models_multi_2017/train_outputs_poisson.csv")
 #  tn=36
@@ -1440,6 +1440,7 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
   model_dir = os.path.dirname(cps.iloc[0].checkpoint)
 
   data_index = train_idx+test_idx+pred_idx
+  print("len(data_index)", len(data_index))
   data_set = ["train"]*len(train_idx)+["test"]*len(test_idx)+["pred"]*len(pred_idx)
   feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
   feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
@@ -1455,7 +1456,7 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
     for cp, global_step in zip(cps.checkpoint, cps.global_step):
       saver.restore(sess, cp)
       predictions = sess.run(pred, feed_dict=feed_dict)
-#      print({k:v.shape for k,v in predictions.items()})      
+      #print({k:v.shape for k,v in predictions.items()})      
 #      print(predictions["sp/p_pred_12"][0])
       results = [enrich_predictions(predictions, features_batch, labels_batch, team_onehot_encoder, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
       results = pd.concat(results, sort=False)
@@ -1576,6 +1577,7 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
       return df[["dataset", "Team1", "Team2", "act", "pred", "Pt", "Prefix", "Strategy"]]
   
   #print(preparePrintData(prefix, df).tail(20))
+  #print(df.Where.describe())
   return df
 
   
@@ -1649,7 +1651,11 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
   features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
   print(label_column_names)
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms)
+  ws = tf.estimator.WarmStartSettings(
+    ckpt_to_initialize_from=model_dir+"/model.ckpt-7232",
+    vars_to_warm_start=".*CNN.*"
+    )
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms, ws)
   
   model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
   if modes == "static":
@@ -1665,7 +1671,6 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   elif modes == "predict": 
     cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
     predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting)    
-  
   
   return    
     
