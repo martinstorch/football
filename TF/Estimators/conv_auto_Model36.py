@@ -612,7 +612,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   use_bias=True,
                   kernel_initializer=None,
                   bias_initializer=tf.zeros_initializer(),
-                  kernel_regularizer=l2_regularizer(scale=0.01),
+                  kernel_regularizer=l2_regularizer(scale=0.1),
                   bias_regularizer=None,
                   #activity_regularizer=l2_regularizer(scale=0.01),
                   kernel_constraint=None,
@@ -671,7 +671,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           X = tf.reshape(X, (-1, w*c))
           #print(X)
           if mode == tf.estimator.ModeKeys.TRAIN:  
-            X = tf.nn.dropout(X, keep_prob=1.0)
+            X = tf.nn.dropout(X, keep_prob=0.98)
           hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
           #print("hidden", hidden)
         
@@ -730,12 +730,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
         
       with tf.variable_scope("Layer0"):
-          X0,Z0 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=10.0), keep_prob=1.0, batch_norm=True, activation=None, eval_metric_ops=eval_metric_ops)
+          X0,Z0 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=15.0), keep_prob=1.0, batch_norm=True, activation=None, eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer1"):
         X1,Z1 = build_dense_layer(X, 128, mode, regularizer = l2_regularizer(scale=3.3), keep_prob=0.85, batch_norm=False, activation=binaryStochastic, eval_metric_ops=eval_metric_ops)
       with tf.variable_scope("Layer2"):
-        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0*3.0, regularizer = l2_regularizer(scale=3.3), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
+        X2,Z2 = build_dense_layer(X1, 128, mode, add_term = X0*4.0, regularizer = l2_regularizer(scale=3.3), keep_prob=0.85, batch_norm=True, activation=binaryStochastic, eval_metric_ops=eval_metric_ops, batch_scale=False)
 
       X = X2 # shortcut connection bypassing two non-linear activation functions
       #X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
@@ -751,18 +751,18 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("condprob"):
-        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.09), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
+        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.002), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         sp_logits,_ = build_dense_layer(X, 49, mode, 
                                       #regularizer = None, 
-                                      regularizer = l2_regularizer(scale=2.0), 
+                                      regularizer = l2_regularizer(scale=0.002), 
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=2.0), 
+                                regularizer = l2_regularizer(scale=0.002), 
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
@@ -1020,8 +1020,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
           pred = tf.where(diffp< 2.0, pred*0+tf.constant([[0,2]]), pred)
           pred = tf.where(diffp< 1.0, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,1]]), pred*0+tf.constant([[1,2]])), pred) # hg<1.1
-          pred = tf.where(diffp< 0.001+0.15, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,0]]), pred*0+tf.constant([[1,1]])), pred) # ag<1.1
-          pred = tf.where(diffp< -0.001+0.15, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
+          pred = tf.where(diffp< 0.001+0.25, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,0]]), pred*0+tf.constant([[1,1]])), pred) # ag<1.1
+          pred = tf.where(diffp< -0.001+0.25, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
           pred = tf.where(diffp<-1.0, pred*0+tf.constant([[2,0]]), pred)
           pred = tf.where(diffp<-2.0, pred*0+tf.constant([[3,0]]), pred)
           pred = tf.where(diffp<-2.5, pred*0+tf.constant([[4,0]]), pred)
@@ -1099,8 +1099,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             pred = tf.where(diffp< 2.5, pred*0+tf.constant([[0,3]]), pred)
             pred = tf.where(diffp< 2.0, pred*0+tf.constant([[0,2]]), pred)
             pred = tf.where(diffp< 1.0, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,1]]), pred*0+tf.constant([[1,2]])), pred) # hg<1.1
-            pred = tf.where(diffp<  0.01+0.15, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,0]]), pred*0+tf.constant([[1,1]])), pred)# tf.logical_and(ag<1.3, hg<1.3)
-            pred = tf.where(diffp< -0.01+0.15, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
+            pred = tf.where(diffp<  0.01+0.25, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[0,0]]), pred*0+tf.constant([[1,1]])), pred)# tf.logical_and(ag<1.3, hg<1.3)
+            pred = tf.where(diffp< -0.01+0.25, tf.where(p_pred_both<-0.1, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
             pred = tf.where(diffp<-1.0, pred*0+tf.constant([[2,0]]), pred)
             pred = tf.where(diffp<-1.7, pred*0+tf.constant([[3,0]]), pred)
             pred = tf.where(diffp<-2.3, pred*0+tf.constant([[4,0]]), pred)
@@ -1345,13 +1345,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       poisson_column_weights = tf.concat([
           poisson_column_weights[:,0:4] *3,
           poisson_column_weights[:,4:16],
-          poisson_column_weights[:,16:20] *3,
-          poisson_column_weights[:,20:],
+          poisson_column_weights[:,16:21] *3,
+          poisson_column_weights[:,21:],
           ], axis=1)
       l_loglike_poisson *= poisson_column_weights
     
-      l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
-      
       l_softmax_1h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs_1h*7+gc_1h, logits=h1_logits)
       l_softmax_2h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs*7+gc, logits=h2_logits)
       p_full    = tf.one_hot(gs*7+gc, 49, dtype=t_weight.dtype)
@@ -1899,6 +1897,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
     #exclude_list = ["CNN", "RNN", "Layer0", "Layer1", "Layer2", "Poisson"]
     exclude_list = []
+    exclude_list = ["CNN"]
     def skip_gradients(gradients, variables, exclude_list): 
       gradvars = [(g,v) for g,v in zip(gradients, variables) if g is not None and not any(s in v.name for s in exclude_list)]      
       gradients, variables = zip(*gradvars)

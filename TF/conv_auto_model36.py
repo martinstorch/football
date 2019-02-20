@@ -1334,8 +1334,9 @@ def train_eval_model(model_data, train_steps):
   
 def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
   export_dir = model_dir 
-  if use_swa:
-    export_dir = export_dir + "/swa"
+#  if use_swa:
+#    export_dir = export_dir + "/swa"
+  print(export_dir)
   checkpoint_paths = tf.train.get_checkpoint_state(export_dir).all_model_checkpoint_paths
   global_steps = [int(os.path.basename(str(cp)).split('-')[1]) for cp in checkpoint_paths]
   cp_df_all = pd.DataFrame({"global_step":global_steps, "checkpoint":checkpoint_paths})
@@ -1652,9 +1653,10 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
   print(label_column_names)
   ws = tf.estimator.WarmStartSettings(
-    ckpt_to_initialize_from=model_dir+"/model.ckpt-7232",
+    ckpt_to_initialize_from=model_dir+"/warmstart/model.ckpt-7232",
     vars_to_warm_start=".*CNN.*"
     )
+  ws = None
   model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms, ws)
   
   model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
@@ -1700,8 +1702,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1789,8 +1791,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--checkpoints", type=str,
       #default="12000:",
-      #default="13200:13800", 
-      default="-1",  # slice(-2, None)
+      default="60000:92000", 
+      #default="-2",  # slice(-2, None)
       #default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "

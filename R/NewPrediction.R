@@ -27,6 +27,10 @@ cut_off_level_high<-2.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
 predictions_file<-"D:\\Models\\rnn1_sky/new_predictions_df.csv"
+predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df.csv"
+predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset15.csv"
+predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset25.csv"
+predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset35.csv"
 
 
 season<-"2018/19"

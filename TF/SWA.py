@@ -11,11 +11,11 @@ import pandas as pd
 pd.set_option('expand_frame_repr', False)
 import numpy as np
 
-model_dir = "D:/Models/simple_test"
-model_dir = "C:/Models/simple36_sky_1819_3"
-model_dir = "C:/Models/simple36_pistor_1819_2"
+#model_dir = "D:/Models/simple_test"
+#model_dir = "C:/Models/simple36_sky_1819_3"
+#model_dir = "C:/Models/simple36_pistor_1819_2"
 
-eval_dir = "D:/Models/conv1_auto3_sky/eval_test"
+eval_dir = "D:/Models/conv1_auto6_sky/eval_test"
 model_dir = os.path.abspath(os.path.join(eval_dir, os.pardir))
 
 event_files = [os.path.join(eval_dir, f) for f in os.listdir(eval_dir) if f.startswith('events.out.tfevents.')]
@@ -35,8 +35,11 @@ all_scores = []
 for file in event_files:
   kv = [(e.step, v.tag[8:], v.simple_value) for e in tf.train.summary_iterator(file) for v in e.summary.value if "summary" in v.tag and "z_point" in v.tag]
   all_scores.extend(kv)
-  
-df = pd.DataFrame(all_scores).drop_duplicates()  
+
+
+df = pd.DataFrame(all_scores).drop_duplicates()
+#df = df.loc[df[0]>60000]
+df = df.groupby([0,1]).mean().reset_index()  # remove duplicates in index
 df = df.pivot(index=0, columns=1, values=2)
 #df = df.loc[df["sp/z_points"]<1.0]
 #df = df.loc[df.index<9000]
@@ -50,14 +53,14 @@ x = df.sort_values(["sp/z_points", "cp/z_points"]).tail(10)
 print(x)
 print(x.index)
 
-#all_checkpoints = ['8841','9041']
-#new_global_step = 9041
+#all_checkpoints = ['23108','23309']
+#new_global_step = 34555
 all_checkpoints = [str(s) for s in sorted(list(x.index))]
 new_global_step = np.max(list(x.index))
 print(all_checkpoints)
 print(new_global_step)
 
-all_checkpoints = all_checkpoints[-4:]
+#all_checkpoints = all_checkpoints[-4:]
 
 
 checkpoint = model_dir + "/model.ckpt-"+str(new_global_step)
@@ -118,7 +121,7 @@ pd.DataFrame({"name":[v.name.replace("rnn/multi_rnn_cell/cell_","") for v in mod
               "min":[np.min(r) for r in ratio], 
               "max":[np.max(r) for r in ratio], 
               "absmean":[np.mean(np.absolute(w)) for w in weights], 
-              }) 
+              }).sort_values("mean") 
 
 #from tensorflow.python.tools import inspect_checkpoint 
 #tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
@@ -150,3 +153,37 @@ pd.DataFrame({"name":[v.name.replace("rnn/multi_rnn_cell/cell_","") for v in mod
 #print(df.mean())
 #print(df.std())
 
+# Reassign "CNN" variables to new checkpoint
+  
+model_vars = tf.trainable_variables()
+print(model_vars)
+scope = ["CNN"]
+
+vars_in_scope = [v for v in model_vars if any(s in v.name for s in scope)]      
+print(vars_in_scope)
+
+source = 7232
+target = 34555
+
+tf.reset_default_graph()
+with tf.Session(graph=graph) as sess: 
+  
+  placeholder=[tf.placeholder(dtype=v.dtype, shape=v.shape) for v in vars_in_scope] 
+  print("placeholder: ", placeholder) 
+
+  checkpoint = model_dir + "/model.ckpt-"+str(source)
+  saver.restore(sess, checkpoint) 
+  values = sess.run(vars_in_scope) 
+
+  checkpoint = model_dir + "/model.ckpt-"+str(target)
+  saver.restore(sess, checkpoint) 
+
+  feed_dict = {plh:v for plh,v in zip(placeholder, values)} 
+  assign_new = tf.group(*(tf.assign(var, value) for var, value in zip(vars_in_scope, placeholder))) 
+
+  sess.run(assign_new, feed_dict=feed_dict) 
+  new_values = sess.run(model_vars) 
+  print("saving model ...") 
+  saver.save(sess, checkpoint) 
+  print("done") 
+  
