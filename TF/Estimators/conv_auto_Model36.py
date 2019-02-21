@@ -895,8 +895,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
         predictions.update({"pred":pred})
         return predictions
-  
-  def create_hierarchical_predictions(outputs, logits, t_is_home_bool, tc, mode, p_pred_12 = None, apply_point_scheme=True):
+
+  def get_gdiff(p_pred_12) :
+        t_gdiff_mask = []
+        for j in range(13):
+          gdiff = j-6
+          t1 = tf.stack([1.0 if (i // 7 - np.mod(i, 7))==gdiff else 0.0 for i in range(49) ], name="t_gdiff_mask_"+str(gdiff))
+          t_gdiff_mask.append(t1)
+        t_gdiff_mask = tf.stack(t_gdiff_mask, axis=1)
+        t_gdiff_mask = tf.cast(t_gdiff_mask, p_pred_12.dtype)
+        p_pred_gdiff = tf.matmul(p_pred_12, t_gdiff_mask)
+        return p_pred_gdiff
+        
+
+  def create_hierarchical_predictions(outputs, logits, t_is_home_bool, tc, mode, prefix, p_pred_12 = None, apply_point_scheme=True):
     with tf.variable_scope("Prediction_softpoints"):
         tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
 
@@ -936,14 +948,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #          p_pred_gdiff.append(t1)
 #        p_pred_gdiff = tf.stack(p_pred_gdiff, axis=1, name="p_pred_gdiff")
 
-        t_gdiff_mask = []
-        for j in range(13):
-          gdiff = j-6
-          t1 = tf.stack([1.0 if (i // 7 - np.mod(i, 7))==gdiff else 0.0 for i in range(49) ], name="t_gdiff_mask_"+str(gdiff))
-          t_gdiff_mask.append(t1)
-        t_gdiff_mask = tf.stack(t_gdiff_mask, axis=1)
-        t_gdiff_mask = tf.cast(t_gdiff_mask, p_pred_12.dtype)
-        p_pred_gdiff = tf.matmul(p_pred_12, t_gdiff_mask)
+#        t_gdiff_mask = []
+#        for j in range(13):
+#          gdiff = j-6
+#          t1 = tf.stack([1.0 if (i // 7 - np.mod(i, 7))==gdiff else 0.0 for i in range(49) ], name="t_gdiff_mask_"+str(gdiff))
+#          t_gdiff_mask.append(t1)
+#        t_gdiff_mask = tf.stack(t_gdiff_mask, axis=1)
+#        t_gdiff_mask = tf.cast(t_gdiff_mask, p_pred_12.dtype)
+#        p_pred_gdiff = tf.matmul(p_pred_12, t_gdiff_mask)
+#        
+        p_pred_gdiff = get_gdiff(p_pred_12)
         
         p_pred_gtotal = []
         for j in range(13):
@@ -973,9 +987,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         pred = tf.reshape(tf.stack([pred_gtotal // 7, tf.mod(pred_gtotal, 7)], axis=1), (-1,2))
         pred = tf.cast(pred, tf.int32)
         
-        if True:
+        if False:
           # try fixed scheme based on probabilities
-          pred = create_fixed_scheme_prediction(outputs, p_pred_12, t_is_home_bool, mode)
+          pred = create_quantile_scheme_prediction(outputs, p_pred_12, t_is_home_bool, mode, prefix)
 
         predictions.update({
           "logits":logits,
@@ -990,7 +1004,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         })
         return predictions
   
-  def create_fixed_scheme_prediction(outputs, p_pred_12, t_is_home_bool, mode):
+  def create_quantile_scheme_prediction(outputs, logits, t_is_home_bool, tc, mode, prefix, p_pred_12=None):
+        if p_pred_12 is None:
+          p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
+        
         t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
         t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
         t_draw_mask = tf.stack([1.0 if i // 7 == np.mod(i, 7) else 0.0  for i in range(49)], name="t_draw_mask")
@@ -1008,22 +1025,28 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
         p_pred_tendency = tf.matmul(p_pred_12, t_tendency_mask)
         p_pred_win = p_pred_tendency[:,0]
-        #p_pred_draw = p_pred_tendency[:,1]
+        p_pred_draw = p_pred_tendency[:,1]
         p_pred_loss = p_pred_tendency[:,2]
         p_pred_both = p_pred_tendency[:,3]
+        
+        p_pred_gdiff = get_gdiff(p_pred_12)
+        
         #hg = tf.where(t_is_home_bool, T1_GFT, T2_GFT)
         #ag = tf.where(t_is_home_bool, T2_GFT, T1_GFT)
+        predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = None)
 
+        target_distr0 = target_distr[prefix] # pick the correct distribution for the prefix
+        
         with tf.variable_scope("diff_p"):
           diffp = p_pred_loss - p_pred_win
           diffp = tf.where(t_is_home_bool, diffp, -diffp)
           
-          q_loss3 = 100-target_distr[2][2] # 0:3 -> 0:2
-          q_loss2 = 100-target_distr[2][2]-target_distr[2][1] # 0:2 -> 0:1
-          q_loss1 = 100-target_distr[2][2]-target_distr[2][1]-target_distr[2][0] # 0:1 -> 0:0
-          q_win3 = target_distr[0][0] # 3:0 -> 2:0 
-          q_win2 = target_distr[0][0]+target_distr[0][1] # 2:0 -> 1:0
-          q_win1 = target_distr[0][0]+target_distr[0][1]+target_distr[0][2] # 1:0 -> 0:0
+          q_loss3 = 100-target_distr0[2][2] # 0:3 -> 0:2
+          q_loss2 = 100-target_distr0[2][2]-target_distr0[2][1] # 0:2 -> 0:1
+          q_loss1 = 100-target_distr0[2][2]-target_distr0[2][1]-target_distr0[2][0] # 0:1 -> 0:0
+          q_win3 = target_distr0[0][0] # 3:0 -> 2:0 
+          q_win2 = target_distr0[0][0]+target_distr0[0][1] # 2:0 -> 1:0
+          q_win1 = target_distr0[0][0]+target_distr0[0][1]+target_distr0[0][2] # 1:0 -> 0:0
           print("quantiles: ", [q_loss3, q_loss2, q_loss1, q_win1, q_win2, q_win3])
           cutpoint_loss3 = tf.contrib.distributions.percentile(diffp, q_loss3, name="cutpoint_loss3")
           cutpoint_loss2 = tf.contrib.distributions.percentile(diffp, q_loss2, name="cutpoint_loss2")
@@ -1043,9 +1066,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
         with tf.variable_scope("p_both"):
           
-          q_00 = target_distr[3][0] # 1:1 -> 0:0 
-          q_10 = target_distr[3][1] # 2:1 -> 1:0 
-          q_20 = target_distr[3][2] # 3:1 -> 2:0 
+          q_00 = target_distr0[3][0] # 1:1 -> 0:0 
+          q_10 = target_distr0[3][1] # 2:1 -> 1:0 
+          q_20 = target_distr0[3][2] # 3:1 -> 2:0 
           
           cutpoint_00 = tf.contrib.distributions.percentile(p_pred_both, q_00, name="cutpoint_00")
           cutpoint_10 = tf.contrib.distributions.percentile(p_pred_both, q_10, name="cutpoint_10")
@@ -1111,7 +1134,18 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #          pred = tf.where(diffp<-0.01979582, tf.where(p_pred_both<0.525, pred*0+tf.constant([[1,0]]), pred*0+tf.constant([[2,1]])), pred) # ag<1.1
 #          pred = tf.where(diffp<-0.48798187, pred*0+tf.constant([[2,0]]), pred)
           pred = tf.where(t_is_home_bool, pred, pred[:,::-1])
-        return pred
+
+        predictions.update({
+          "pred":pred,
+          "p_pred_win":p_pred_win, 
+          "p_pred_loss":p_pred_loss, 
+          "p_pred_draw":p_pred_draw, 
+          "diffp":diffp, 
+          "p_pred_tendency":p_pred_tendency, 
+          "p_pred_gdiff":p_pred_gdiff, 
+          "p_pred_both":p_pred_both, 
+        })
+        return predictions
 
   def create_fixed_scheme_prediction_new(p_pred_12, t_is_home_bool, mode):
         t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
@@ -1253,7 +1287,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             X,_ = build_dense_layer(X, output_size=49, mode=mode, regularizer = None, keep_prob=1.0, batch_norm=False, activation=None)
           
           logits=X
-          predictions = create_hierarchical_predictions(outputs, logits, t_is_home_bool, tc, mode)
+          predictions = create_hierarchical_predictions(outputs, logits, t_is_home_bool, tc, mode, prefix)
           #predictions = create_predictions(logits, logits, t_is_home_bool, tc, True)
 
           p_pred_12 = tf.nn.softmax(logits)
@@ -1788,8 +1822,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       
       with tf.variable_scope("sp"):
-          predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, apply_point_scheme=False)
-      #predictions = create_predictions(outputs, sp_logits, t_is_home_bool, tc)
+          #predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp", apply_point_scheme=False)
+          predictions = create_quantile_scheme_prediction(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp")
+      
+        #predictions = create_predictions(outputs, sp_logits, t_is_home_bool, tc)
       predictions = apply_prefix(predictions, "sp/")
 
       h1_logits, h2_logits, p_pred_h1, label_features_h1, p_pred_h2, label_features_h2, t_mask, test_p_pred_12_h2, p_pred_12_h2 = cond_probs
@@ -1806,7 +1842,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions["cp/labels"] = label_features_h2
             
       with tf.variable_scope("cp"):
-          cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode)
+          #cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
+          cp_predictions = create_quantile_scheme_prediction(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
       predictions.update(apply_prefix(cp_predictions, "cp/"))
       cp1_predictions = create_predictions(outputs, h1_logits, t_is_home_bool, tc, False)
       predictions.update(apply_prefix(cp1_predictions, "cp1/"))
@@ -1817,7 +1854,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        avg_pred = create_fixed_scheme_prediction_new(avg_predictions["p_pred_12"], t_is_home_bool, mode)
 #        avg_predictions.update({"pred":avg_pred})
 #        predictions.update(apply_prefix(avg_predictions, "av/"))
-        avg_predictions = create_hierarchical_predictions(outputs, avg_logits, t_is_home_bool, tc, mode)
+        # avg_predictions = create_hierarchical_predictions(outputs, avg_logits, t_is_home_bool, tc, mode, prefix="av")
+        avg_predictions = create_quantile_scheme_prediction(outputs, avg_logits, t_is_home_bool, tc, mode, prefix="av")
         predictions.update(apply_prefix(avg_predictions, "av/"))
 
       T1_GFT = tf.exp(outputs[:,0])
@@ -1842,10 +1880,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       for k,v in segmentation_strategies.items():
         with tf.variable_scope(k):
-          if k=="cp":
+          if v=="cp2":
             segm_pred = create_fixed_scheme_prediction_new(predictions[k+"/p_pred_12"], t_is_home_bool, mode)
           else:
-            segm_pred = create_fixed_scheme_prediction(outputs, predictions[k+"/p_pred_12"], t_is_home_bool, mode)
+            segm_pred = create_quantile_scheme_prediction(outputs, predictions[k+"/p_pred_12"], t_is_home_bool, tc, mode, prefix=v)
+            segm_pred = segm_pred["pred"] 
           segm_predictions = {k2:v2 for k2,v2 in cp_predictions.items() } # copy
           segm_predictions.update({"pred":segm_pred})
           predictions.update(apply_prefix(segm_predictions, v+"/"))
@@ -1977,7 +2016,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
     #exclude_list = ["CNN", "RNN", "Layer0", "Layer1", "Layer2", "Poisson"]
     exclude_list = []
-    exclude_list = ["CNN"]
+    #exclude_list = ["CNN"]
     def skip_gradients(gradients, variables, exclude_list): 
       gradvars = [(g,v) for g,v in zip(gradients, variables) if g is not None and not any(s in v.name for s in exclude_list)]      
       gradients, variables = zip(*gradvars)
