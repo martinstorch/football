@@ -1582,7 +1582,7 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
   return df
 
   
-def dispatch_main(model_dir, train_steps, train_data, test_data, 
+def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data, 
                    checkpoints, save_steps, skip_download, max_to_keep, 
                    evaluate_after_steps, skip_plotting, target_system, modes, use_swa, histograms):
   tf.logging.set_verbosity(tf.logging.INFO)
@@ -1652,12 +1652,7 @@ def dispatch_main(model_dir, train_steps, train_data, test_data,
   features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
   features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
   print(label_column_names)
-  ws = tf.estimator.WarmStartSettings(
-    ckpt_to_initialize_from=model_dir+"/warmstart/model.ckpt-7232",
-    vars_to_warm_start=".*CNN.*"
-    )
-  ws = None
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms, ws)
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms, target_distr)
   
   model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
   if modes == "static":
@@ -1684,8 +1679,8 @@ def main(_):
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/Mapping_Layer/WM", target_file_name="mapping.csv", all_tensor_names=False, all_tensors=False)
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
-
-  dispatch_main(FLAGS.model_dir, FLAGS.train_steps,
+  target_distr=[(5, 20, 35), 10, (20, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
+  dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                  FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                  FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
                  FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
@@ -1739,8 +1734,8 @@ if __name__ == "__main__":
       #default=["1112", "1213", "1314"], #
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
-      default=["1415", "1516", "1617", "1718", "1819"], #
-      #default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
+      #default=["1415", "1516", "1617", "1718", "1819"], #
+      default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
       #default=["1415", "1516", "1617"], #
       #default=["1415", "1516", "1617", "1718"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
@@ -1751,15 +1746,15 @@ if __name__ == "__main__":
       #default=["1415"],
       #default=["1516"],
       #default=["1617"],
-      default=["1112", "1213", "1314"],
+      #default=["1112", "1213", "1314"],
       #default=["1415", "1516", "1617", "1718"], #
-      #default=["0405", "0506", "0607", "0708"], #
+      default=["0405", "0506", "0607", "0708"], #
       help="Path to the test data."
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto6_sky",
+      default="D:/Models/conv1_auto_pistor",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1767,8 +1762,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
-      default="Sky",
+      default="Pistor",
+      #default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1791,8 +1786,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--checkpoints", type=str,
       #default="12000:",
-      default="60000:92000", 
-      #default="-2",  # slice(-2, None)
+      #default="60000:92000", 
+      default="-1",  # slice(-2, None)
       #default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "

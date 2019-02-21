@@ -15,7 +15,7 @@ import numpy as np
 #model_dir = "C:/Models/simple36_sky_1819_3"
 #model_dir = "C:/Models/simple36_pistor_1819_2"
 
-eval_dir = "D:/Models/conv1_auto6_sky/eval_test"
+eval_dir = "D:/Models/conv1_auto_pistor/eval_test"
 model_dir = os.path.abspath(os.path.join(eval_dir, os.pardir))
 
 event_files = [os.path.join(eval_dir, f) for f in os.listdir(eval_dir) if f.startswith('events.out.tfevents.')]
@@ -38,7 +38,7 @@ for file in event_files:
 
 
 df = pd.DataFrame(all_scores).drop_duplicates()
-#df = df.loc[df[0]>60000]
+#df = df.loc[df[0]>15000]
 df = df.groupby([0,1]).mean().reset_index()  # remove duplicates in index
 df = df.pivot(index=0, columns=1, values=2)
 #df = df.loc[df["sp/z_points"]<1.0]

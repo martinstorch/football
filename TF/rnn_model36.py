@@ -1784,8 +1784,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="12000:",
       #default="13200:13800", 
-      default="-1",  # slice(-2, None)
-      #default="3400:",
+      #default="-1",  # slice(-2, None)
+      default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

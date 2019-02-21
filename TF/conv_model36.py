@@ -1736,9 +1736,9 @@ if __name__ == "__main__":
       #default=["1112", "1213", "1314"], #
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
-      default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
+      #default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
       #default=["1415", "1516", "1617"], #
-      #default=["1415", "1516", "1617", "1718"], #
+      default=["1415", "1516", "1617", "1718", "1819"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
       help="Path to the training data."
   )
@@ -1747,14 +1747,15 @@ if __name__ == "__main__":
       #default=["1415"],
       #default=["1516"],
       #default=["1617"],
-      default=["0405", "0506", "0607", "0708", ],
+      #default=["0405", "0506", "0607", "0708", ],
       #default=["1415", "1516", "1617", "1718"], #
+      default=["1112", "1213", "1314"], #
       help="Path to the test data."
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="C:/Models/conv1_long",
+      default="D:/Models/conv1",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1777,8 +1778,8 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="train",
-      default="eval",
-      #default="predict",
+      #default="eval",
+      default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
@@ -1787,8 +1788,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="12000:",
       #default="13200:13800", 
-      default="-10",  # slice(-2, None)
-      #default="3400:",
+      #default="-10",  # slice(-2, None)
+      default="1400:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
