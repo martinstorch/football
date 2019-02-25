@@ -1679,7 +1679,15 @@ def main(_):
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/Mapping_Layer/WM", target_file_name="mapping.csv", all_tensor_names=False, all_tensors=False)
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
 #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
-  target_distr=[(5, 20, 35), 10, (20, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
+  target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
+  
+  target_distr={"cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
+                "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
+#                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                }
+  
   dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                  FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                  FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
@@ -1709,12 +1717,12 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=20000,
+      default=200000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
+      default=2000,
       #default=300,
       help="Number of training steps between checkpoint files."
   )
@@ -1726,7 +1734,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--max_to_keep", type=int,
-      default=150,
+      default=500,
       help="Number of checkpoint files to keep."
   )
   parser.add_argument(
@@ -1754,7 +1762,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto_pistor",
+      default="C:/Models/conv1_auto_sky2",
       #default="D:/Models/simple36_pistor_1819_2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1762,8 +1770,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
-      #default="Sky",
+      #default="Pistor",
+      default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
