@@ -18,7 +18,7 @@ cut_off_level_low<-0.7
 cut_off_level_high<-1.4
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
-predictions_file<-"D:\\Models\\rnn1/new_predictions_df.csv"
+predictions_file<-"D:\\Models\\conv1_auto_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"

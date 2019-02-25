@@ -481,6 +481,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops = {}
       with tf.variable_scope("Input_Layer"):
         features_newgame = features['newgame']
+        # teams to zero
+        features_newgame = tf.concat([features_newgame[:,0:4], 0.0*features_newgame[:,4:4+2*teams_count], features_newgame[:,4+2*teams_count:]], axis=1)
+        
         match_history_t1 = features['match_history_t1']
         match_history_t2 = features['match_history_t2'] 
         match_history_t12 = features['match_history_t12']
