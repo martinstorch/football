@@ -440,7 +440,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   
   #batches1 = [features[features["Team1"]==t].copy() for t in teamnames]
   #batches2 = [features[features["Team2"]==t].copy() for t in teamnames]
-  steps = 10
+  steps = 30
   
   batches1 = [features[features["Team1_index"]==t].index for t in range(len(teamnames))]
   batches2 = [features[features["Team2_index"]==t].index for t in range(len(teamnames))]
@@ -1730,8 +1730,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=2000,
-      #default=300,
+      #default=2000,
+      default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1770,16 +1770,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="C:/Models/conv1_auto_sky2",
-      #default="D:/Models/simple36_pistor_1819_2",
+      #default="d:/Models/conv1_auto_sky3",
+      default="D:/Models/conv1_auto_pistor2",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
-      default="Sky",
+      default="Pistor",
+      #default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1792,7 +1792,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      #default="train",
+      #default="static",
+      default="train",
       #default="eval",
       default="predict",
       #default="train_eval",
@@ -1801,9 +1802,9 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      default="262131",
+      #default="262131",
       #default="60000:92000", 
-      #default="-1",  # slice(-2, None)
+      default="-1",  # slice(-2, None)
       #default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "

@@ -123,8 +123,9 @@ pd.DataFrame({"name":[v.name.replace("rnn/multi_rnn_cell/cell_","") for v in mod
               "absmean":[np.mean(np.absolute(w)) for w in weights], 
               }).sort_values("mean") 
 
-#from tensorflow.python.tools import inspect_checkpoint 
-#tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
+checkpoint = 'D:/Models/conv1_auto_pistor\model.ckpt-27677'  
+from tensorflow.python.tools import inspect_checkpoint 
+tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
     
 
 #for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"):

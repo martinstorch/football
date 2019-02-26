@@ -14,6 +14,7 @@ from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops.losses import losses
 from tensorflow.contrib.layers import l2_regularizer
+from tensorflow.contrib.metrics import f1_score
 from tensorflow.contrib import rnn
 from tensorflow.python import debug as tf_debug
 from tensorflow.contrib.opt.python.training.weight_decay_optimizers import extend_with_decoupled_weight_decay
@@ -70,9 +71,10 @@ def collect_summary(scope, name, mode, tensor=None, metric= tf.metrics.mean, red
 def makeStaticPrediction(features, labels):
   with tf.variable_scope("Static_Prediction"):
     tc_1d1_goals_f, tc_home_points_i, _ , calc_poisson_prob, _ , _, _ = constant_tensors()
-    features = features["newgame"]
-    labels = labels[features[:,2]==1] # Home only
-    features = features[features[:,2]==1] # Home only
+
+    features = features["match_input_layer"]
+    labels = labels[features[:,1]==1] # Home only
+    features = features[features[:,1]==1] # Home only
     labels = labels.round(0).astype('int32') # integer goal values only
     
     def count_probs(t1goals, t2goals):
@@ -315,6 +317,9 @@ def tanhSample(x):
             return 2*tf.ceil(x - tf.random_uniform(tf.shape(x)), name=name)-1
 
 
+def kl_divergence(p, p_hat):
+        epsilon = 1e-8
+        return tf.reduce_sum(p * tf.log(p+epsilon) - p * tf.log(p_hat+epsilon) + (1 - p) * tf.log(1 - p + epsilon) - (1 - p) * tf.log(1 - p_hat + epsilon), name="KL_divergence")
 
 
 def create_estimator(model_dir, label_column_names, my_feature_columns, thedata, thelabels, save_steps, evaluate_after_steps, max_to_keep, teams_count, use_swa, histograms, target_distr):    
@@ -481,12 +486,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops = {}
       with tf.variable_scope("Input_Layer"):
         features_newgame = features['newgame']
+        
         match_history_t1 = features['match_history_t1']
         match_history_t2 = features['match_history_t2'] 
         match_history_t12 = features['match_history_t12']
         
         f_date_round = features_newgame[:,4+2*teams_count : 4+2*teams_count+2]
-        suppress_team_names = False
+        suppress_team_names = True
         if suppress_team_names:
           features_newgame = tf.concat([features_newgame[:,0:4], features_newgame[:,4+2*teams_count:]], axis=1)
           match_history_t1 = tf.concat([match_history_t1[:,:,0:2], match_history_t1[:,:,2+2*teams_count:]], axis=2)
@@ -624,6 +630,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         eval_metric_ops.update(variable_summaries(X, "conv_outputs", mode))
         #X = tf.layers.batch_normalization(X, momentum=0.99, center=True, scale=True, training=(mode == tf.estimator.ModeKeys.TRAIN))
         X = tf.nn.tanh(X)
+        rho_hat = tf.reduce_mean((X+1)*0.5, axis=0)
+        rho = 0.35
+        KL_loss = kl_divergence(rho, rho_hat)
+        ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, KL_loss)
         if mode == tf.estimator.ModeKeys.TRAIN:  
           X = tf.nn.dropout(X, keep_prob=keep_prob)
         return X
@@ -663,7 +673,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def auto_encoder(X):
         with tf.variable_scope("enc"):
           X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
-          X = conv_layer(X, name="conv2", output_channels=16, keep_prob=1.0)
+          X = conv_layer(X, name="conv2", output_channels=24, keep_prob=1.0)
           X = avg_pool(X, name="avgpool")
           #print(X)
           shape_after_pooling = tf.shape(X)
@@ -681,9 +691,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print(X)
           X = tf.reshape(X, shape_after_pooling )
           #print(X)
-          X = deconv_layer(X, "deconv1", 8, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
+          X = deconv_layer(X, "deconv1", 28, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
           #print(X)
-          X = deconv_layer(X, "deconv2", 10, output_channels=44, keep_prob=1.0, activation=None)        
+          X = deconv_layer(X, "deconv2", 30, output_channels=44, keep_prob=1.0, activation=None)        
           #print(X)
           decoded = X
         return tf.stop_gradient(hidden), decoded
@@ -877,6 +887,40 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     })
     return predictions
       
+  def calc_probabilities(p_pred_12, predictions):
+        t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
+        t_draw_mask = tf.stack([1.0 if i // 7 == np.mod(i, 7) else 0.0  for i in range(49)], name="t_draw_mask")
+        t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
+        t_win2_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7)+1 else 0.0  for i in range(49)], name="t_win2_mask")
+        t_loss2_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7)-1 else 0.0  for i in range(49)], name="t_loss2_mask")
+        t_win3_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7)+2 else 0.0  for i in range(49)], name="t_win3_mask")
+        t_loss3_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7)-2 else 0.0  for i in range(49)], name="t_loss3_mask")
+        t_zero_mask = tf.stack([1.0 if (i // 7) == 0 or np.mod(i, 7) == 0 else 0.0  for i in range(49)], name="t_zero_mask")
+
+        t_all_mask = tf.stack([t_win_mask, t_draw_mask, t_loss_mask, t_win2_mask, t_loss2_mask, t_win3_mask, t_loss3_mask, t_zero_mask], axis=1, name="t_all_mask")
+        t_all_mask = tf.cast(t_all_mask, p_pred_12.dtype)
+        
+        p_pred_all = tf.matmul(p_pred_12, t_all_mask)
+        p_pred_win = p_pred_all[:,0]
+        p_pred_draw = p_pred_all[:,1]
+        p_pred_loss = p_pred_all[:,2]
+        p_pred_win2 = p_pred_all[:,3]
+        p_pred_loss2 = p_pred_all[:,4]
+        p_pred_win3 = p_pred_all[:,5]
+        p_pred_loss3 = p_pred_all[:,6]
+        p_pred_zero = p_pred_all[:,7]
+        predictions.update({
+          "p_pred_win":p_pred_win, 
+          "p_pred_draw":p_pred_draw, 
+          "p_pred_loss":p_pred_loss, 
+          "p_pred_win2":p_pred_win2, 
+          "p_pred_loss2":p_pred_loss2, 
+          "p_pred_win3":p_pred_win3, 
+          "p_pred_loss3":p_pred_loss3, 
+          "p_pred_zero":p_pred_zero, 
+        })
+        return predictions
+
   def create_predictions_from_ev_goals(ev_goals_1, ev_goals_2, t_is_home_bool, tc):
     with tf.variable_scope("Prediction"):
         tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
@@ -888,6 +932,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_12 *= normalization_factor # normalize to 1
 
         predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = None)
+        predictions = calc_probabilities(p_pred_12, predictions)
         ev_points =  predictions["ev_points"]
         a = tf.argmax(ev_points, axis=1)
         pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
@@ -907,7 +952,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_gdiff = tf.matmul(p_pred_12, t_gdiff_mask)
         return p_pred_gdiff
         
-
   def create_hierarchical_predictions(outputs, logits, t_is_home_bool, tc, mode, prefix, p_pred_12 = None, apply_point_scheme=True):
     with tf.variable_scope("Prediction_softpoints"):
         tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
@@ -915,26 +959,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         if p_pred_12 is None:
           p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
         
-        t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
-        t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
-        t_draw_mask = tf.stack([1.0 if i // 7 == np.mod(i, 7) else 0.0  for i in range(49)], name="t_draw_mask")
-        t_tendency_mask = tf.stack([t_win_mask, t_draw_mask, t_loss_mask], axis=1, name="t_tendency_mask")
-        t_win_mask = tf.cast(t_win_mask, outputs.dtype)
-        t_loss_mask = tf.cast(t_loss_mask, outputs.dtype)
-        t_draw_mask = tf.cast(t_draw_mask, outputs.dtype)
-        t_tendency_mask = tf.cast(t_tendency_mask, outputs.dtype)
-        
-#        p_pred_win = tf.reduce_sum(tf.stack([p_pred_12[:,i] for i in range(49) if i // 7 > np.mod(i, 7)], axis=1, name="p_win"), axis=1, name="p_win_sum")
-#        p_pred_loss = tf.reduce_sum(tf.stack([p_pred_12[:,i] for i in range(49) if i // 7 < np.mod(i, 7)], axis=1, name="p_loss"), axis=1, name="p_loss_sum")
-#        p_pred_draw = tf.reduce_sum(tf.stack([p_pred_12[:,i] for i in range(49) if i // 7 == np.mod(i, 7)], axis=1, name="p_draw"), axis=1, name="p_draw_sum")
-#        p_pred_tendency = tf.stack([p_pred_win, p_pred_draw, p_pred_loss], axis=1, name="p_pred_tendency")
-#        
-        p_pred_tendency = tf.matmul(p_pred_12, t_tendency_mask)
-        p_pred_win = p_pred_tendency[:,0]
-        p_pred_draw = p_pred_tendency[:,1]
-        p_pred_loss = p_pred_tendency[:,2]
         predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = None)
-        
+        predictions = calc_probabilities(p_pred_12, predictions)
         
         t_pred_tendency_weight = tf.gather(tf.stack([tf.constant(point_scheme[3][::-1]),
                                           tf.constant(point_scheme[3])], axis=0),
@@ -958,7 +984,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        p_pred_gdiff = tf.matmul(p_pred_12, t_gdiff_mask)
 #        
         p_pred_gdiff = get_gdiff(p_pred_12)
-        
+        p_pred_tendency = tf.stack([predictions["p_pred_win"], predictions["p_pred_draw"], predictions["p_pred_loss"]], axis=1)
         p_pred_gtotal = []
         for j in range(13):
           gdiff = j-6
@@ -994,9 +1020,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions.update({
           "logits":logits,
           "pred":pred,
-          "p_pred_win":p_pred_win, 
-          "p_pred_loss":p_pred_loss, 
-          "p_pred_draw":p_pred_draw, 
           "p_pred_gdiff":p_pred_gdiff, 
           "pred_tendency":pred_tendency, 
           "pred_gdiff":pred_gdiff, 
@@ -1008,37 +1031,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         if p_pred_12 is None:
           p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
         
-        t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
-        t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
-        t_draw_mask = tf.stack([1.0 if i // 7 == np.mod(i, 7) else 0.0  for i in range(49)], name="t_draw_mask")
-        t_both_teams_score_mask = tf.stack([1.0 if (i // 7) > 0 and np.mod(i, 7) > 0 else 0.0  for i in range(49)], name="t_both_teams_score_mask")
-        t_tendency_mask = tf.stack([t_win_mask, t_draw_mask, t_loss_mask, t_both_teams_score_mask], axis=1, name="t_tendency_mask")
-
-        t_win_mask = tf.cast(t_win_mask, outputs.dtype)
-        t_loss_mask = tf.cast(t_loss_mask, outputs.dtype)
-        t_draw_mask = tf.cast(t_draw_mask, outputs.dtype)
-        t_tendency_mask = tf.cast(t_tendency_mask, outputs.dtype)
-        t_both_teams_score_mask = tf.cast(t_both_teams_score_mask, outputs.dtype)
-        
-        #T1_GFT = tf.exp(outputs[:,0])
-        #T2_GFT = tf.exp(outputs[:,1])
-        
-        p_pred_tendency = tf.matmul(p_pred_12, t_tendency_mask)
-        p_pred_win = p_pred_tendency[:,0]
-        p_pred_draw = p_pred_tendency[:,1]
-        p_pred_loss = p_pred_tendency[:,2]
-        p_pred_both = p_pred_tendency[:,3]
-        
         p_pred_gdiff = get_gdiff(p_pred_12)
         
-        #hg = tf.where(t_is_home_bool, T1_GFT, T2_GFT)
-        #ag = tf.where(t_is_home_bool, T2_GFT, T1_GFT)
         predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = None)
+        predictions = calc_probabilities(p_pred_12, predictions)
 
         target_distr0 = target_distr[prefix] # pick the correct distribution for the prefix
         
         with tf.variable_scope("diff_p"):
-          diffp = p_pred_loss - p_pred_win
+          diffp = predictions["p_pred_loss"] - predictions["p_pred_win"]
           diffp = tf.where(t_is_home_bool, diffp, -diffp)
           
           q_loss3 = 100-target_distr0[2][2] # 0:3 -> 0:2
@@ -1070,6 +1071,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           q_10 = target_distr0[3][1] # 2:1 -> 1:0 
           q_20 = target_distr0[3][2] # 3:1 -> 2:0 
           
+          p_pred_both = 1.0-predictions["p_pred_zero"]
           cutpoint_00 = tf.contrib.distributions.percentile(p_pred_both, q_00, name="cutpoint_00")
           cutpoint_10 = tf.contrib.distributions.percentile(p_pred_both, q_10, name="cutpoint_10")
           cutpoint_20 = tf.contrib.distributions.percentile(p_pred_both, q_20, name="cutpoint_20")
@@ -1087,7 +1089,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           tf.summary.scalar(v.name[:-2], v)
           tf.summary.scalar(v.name[:-2]+"_avg", ema.average(v))
         
-        pred = tf.stack([0*p_pred_loss, 0*p_pred_win ], axis=1)
+        pred = tf.stack([0*p_pred_both, 0*p_pred_both ], axis=1)
         if point_scheme[0][0]==5: # Sky
           pred = tf.cast(pred, tf.int32)+tf.constant([[0,3]])
 #          pred = tf.where(diffp< 0.708641107, pred*0+tf.constant([[0,2]]), pred)
@@ -1137,11 +1139,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
         predictions.update({
           "pred":pred,
-          "p_pred_win":p_pred_win, 
-          "p_pred_loss":p_pred_loss, 
-          "p_pred_draw":p_pred_draw, 
           "diffp":diffp, 
-          "p_pred_tendency":p_pred_tendency, 
+          #"p_pred_tendency":p_pred_tendency, 
           "p_pred_gdiff":p_pred_gdiff, 
           "p_pred_both":p_pred_both, 
         })
@@ -1292,6 +1291,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
           p_pred_12 = tf.nn.softmax(logits)
           predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = predictions)
+          predictions = calc_probabilities(p_pred_12, predictions)
           
           if True:
             # try fixed scheme based on probabilities
@@ -1371,7 +1371,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       m2 = sequence_len_mask(match_history_t2_seqlen)
       m12 = sequence_len_mask(match_history_t12_seqlen)
       m_total = tf.reduce_sum(m1+m2+m12, axis=1)
-      m_total = tf.reduce_mean(m_total/30) # normalization constant
+      m_total = tf.reduce_mean(m_total/tf.reduce_sum(m1+m2+m12)) # normalization constant
 
       all_outputs = tf.concat([tf.reshape(decode_t1, [-1,ncol]),
                                tf.reshape(decode_t2, [-1,ncol]),
@@ -1384,6 +1384,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                tf.reshape(m2, [-1,ncol]),
                                tf.reshape(m12, [-1,ncol])], axis=0) 
       eval_ae_loss_ops = create_poisson_correlation_metrics(outputs=all_outputs, t_labels=all_labels, mode=mode, mask = all_masks, section="autoencoder")
+      
       
       l_ae_loglike_poisson = \
           sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:], log_input=decode_t1) + \
@@ -1635,6 +1636,93 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
     return eval_metric_ops, loss
 
+  def create_f1_metrics(prefix, predictions, labels, labels2, t_is_home_bool, mode):      
+    
+    if mode == tf.estimator.ModeKeys.TRAIN:
+      return {}  
+    
+    pGS = predictions[prefix+"pred"][:,0]
+    pGC = predictions[prefix+"pred"][:,1]
+
+    is_draw = tf.equal(labels, labels2)
+    p_pred_draw = predictions[prefix+"p_pred_draw"]
+    pred_draw = tf.equal(pGS, pGC)
+
+    is_zero = tf.equal(labels, 0) | tf.equal(labels2, 0)
+    p_pred_zero = predictions[prefix+"p_pred_zero"]
+    pred_zero = tf.equal(pGS, 0) | tf.equal(pGC, 0)
+    
+    is_win = tf.greater(labels, labels2) 
+    is_loss = tf.less(labels, labels2) 
+    is_win, is_loss = tf.where(t_is_home_bool, is_win, is_loss), tf.where(t_is_home_bool, is_loss, is_win)
+    p_pred_win = tf.where(t_is_home_bool, predictions[prefix+"p_pred_win"], predictions[prefix+"p_pred_loss"])
+    p_pred_loss = tf.where(t_is_home_bool, predictions[prefix+"p_pred_loss"], predictions[prefix+"p_pred_win"])
+    pred_win = tf.greater(pGS, pGC) 
+    pred_loss = tf.less(pGS, pGC) 
+    pred_win, pred_loss = tf.where(t_is_home_bool, pred_win, pred_loss), tf.where(t_is_home_bool, pred_loss, pred_win)
+
+    is_win2 = tf.greater(labels, labels2+1) 
+    is_loss2 = tf.less(labels, labels2-1) 
+    is_win2, is_loss2 = tf.where(t_is_home_bool, is_win2, is_loss2), tf.where(t_is_home_bool, is_loss2, is_win2)
+    p_pred_win2 = tf.where(t_is_home_bool, predictions[prefix+"p_pred_win2"], predictions[prefix+"p_pred_loss2"])
+    p_pred_loss2 = tf.where(t_is_home_bool, predictions[prefix+"p_pred_loss2"], predictions[prefix+"p_pred_win2"])
+    pred_win2 = tf.greater(pGS, pGC+1) 
+    pred_loss2 = tf.less(pGS, pGC-1) 
+    pred_win2, pred_loss2 = tf.where(t_is_home_bool, pred_win2, pred_loss2), tf.where(t_is_home_bool, pred_loss2, pred_win2)
+
+    is_win3 = tf.greater(labels, labels2+2) 
+    is_loss3 = tf.less(labels, labels2-2) 
+    is_win3, is_loss3 = tf.where(t_is_home_bool, is_win3, is_loss3), tf.where(t_is_home_bool, is_loss3, is_win3)
+    p_pred_win3 = tf.where(t_is_home_bool, predictions[prefix+"p_pred_win3"], predictions[prefix+"p_pred_loss3"])
+    p_pred_loss3 = tf.where(t_is_home_bool, predictions[prefix+"p_pred_loss3"], predictions[prefix+"p_pred_win3"])
+    pred_win3 = tf.greater(pGS, pGC+2) 
+    pred_loss3 = tf.less(pGS, pGC-2) 
+    pred_win3, pred_loss3 = tf.where(t_is_home_bool, pred_win3, pred_loss3), tf.where(t_is_home_bool, pred_loss3, pred_win3)
+
+    dtype = predictions[prefix+"p_pred_12"].dtype
+    with tf.variable_scope(prefix+"F1"):
+      eval_metric_ops = {}
+      eval_metric_ops[prefix+"f1_draw_opt_diff"]=(f1_score(is_draw, 1.0-p_pred_win-p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_draw_opt"]=(f1_score(is_draw, p_pred_draw), None)
+      eval_metric_ops[prefix+"f1_draw_act"]=(f1_score(is_draw, tf.cast(pred_draw, dtype), num_thresholds=200), None)
+
+      eval_metric_ops[prefix+"f1_zero_opt_diff"]=(f1_score(is_zero, 1.0-p_pred_win-p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_zero_opt"]=(f1_score(is_zero, p_pred_zero), None)
+      eval_metric_ops[prefix+"f1_zero_act"]=(f1_score(is_zero, tf.cast(pred_zero, dtype), num_thresholds=200), None)
+
+      eval_metric_ops[prefix+"f1_win_opt_diff"]=(f1_score(is_win, p_pred_win-p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_win_opt"]=(f1_score(is_win, p_pred_win), None)
+      eval_metric_ops[prefix+"f1_win_act"]=(f1_score(is_win, tf.cast(pred_win, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_win2_opt_diff"]=(f1_score(is_win2, p_pred_win-p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_win2_opt"]=(f1_score(is_win2, p_pred_win2), None)
+      eval_metric_ops[prefix+"f1_win2_act"]=(f1_score(is_win2, tf.cast(pred_win2, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_win3_opt_diff"]=(f1_score(is_win3, p_pred_win-p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_win3_opt"]=(f1_score(is_win3, p_pred_win3), None)
+      eval_metric_ops[prefix+"f1_win3_act"]=(f1_score(is_win3, tf.cast(pred_win3, dtype), num_thresholds=200), None)
+
+      eval_metric_ops[prefix+"f1_loss_opt_diff"]=(f1_score(is_loss, p_pred_loss-p_pred_win), None)
+      eval_metric_ops[prefix+"f1_loss_opt"]=(f1_score(is_loss, p_pred_loss), None)
+      eval_metric_ops[prefix+"f1_loss_act"]=(f1_score(is_loss, tf.cast(pred_loss, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_loss_opt2_diff"]=(f1_score(is_loss2, p_pred_loss-p_pred_win), None)
+      eval_metric_ops[prefix+"f1_loss2_opt"]=(f1_score(is_loss2, p_pred_loss2), None)
+      eval_metric_ops[prefix+"f1_loss2_act"]=(f1_score(is_loss2, tf.cast(pred_loss2, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_loss_op3_diff"]=(f1_score(is_loss3, p_pred_loss-p_pred_win), None)
+      eval_metric_ops[prefix+"f1_loss3_opt"]=(f1_score(is_loss3, p_pred_loss3), None)
+      eval_metric_ops[prefix+"f1_loss3_act"]=(f1_score(is_loss3, tf.cast(pred_loss3, dtype), num_thresholds=200), None)
+      
+      prefix = prefix[:-1]
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw", mode, tensor=p_pred_draw))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_zero", mode, tensor=p_pred_zero))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_win", mode, tensor=p_pred_win))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_win2", mode, tensor=p_pred_win2))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_win3", mode, tensor=p_pred_win3))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss", mode, tensor=p_pred_loss))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss2", mode, tensor=p_pred_loss2))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss3", mode, tensor=p_pred_loss3))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_win_loss_diff", mode, tensor=p_pred_win-p_pred_loss))
+      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw_diff", mode, tensor=1.0-p_pred_win-p_pred_loss))
+    return eval_metric_ops
+
   def create_result_metrics(prefix, predictions, labels, labels2, t_is_home_bool, achievable_points_mask, tc, mode):      
     tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
     pGS = predictions[prefix+"pred"][:,0]
@@ -1676,6 +1764,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops.update(collect_summary(prefix, "pt_softpoints", mode, tensor=pt_softpoints))
       eval_metric_ops.update(collect_summary(prefix, "metric_ev_goals_diff_L1", mode, tensor=l_diff_ev_goals_L1))
       eval_metric_ops.update(collect_summary(prefix, "metric_cor_diff", mode, tensor=corrcoef(ev_goals_1-ev_goals_2, labels_float-labels_float2)))
+    
+    eval_metric_ops.update(create_f1_metrics(prefix+"/", predictions, labels, labels2, t_is_home_bool, mode))
     return eval_metric_ops
 
   def create_ensemble_result_metrics(predictions, labels, labels2, achievable_points_mask, tc, mode):      
