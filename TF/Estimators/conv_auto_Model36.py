@@ -618,7 +618,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                   use_bias=True,
                   kernel_initializer=None,
                   bias_initializer=tf.zeros_initializer(),
-                  kernel_regularizer=l2_regularizer(scale=0.1),
+                  kernel_regularizer=l2_regularizer(scale=0.001),
                   bias_regularizer=None,
                   #activity_regularizer=l2_regularizer(scale=0.01),
                   kernel_constraint=None,
@@ -1640,14 +1640,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     if mode == tf.estimator.ModeKeys.TRAIN:
       return {}  
+
+    dtype = predictions[prefix+"p_pred_12"].dtype
     
     pGS = predictions[prefix+"pred"][:,0]
     pGC = predictions[prefix+"pred"][:,1]
 
     is_draw = tf.equal(labels, labels2)
     p_pred_draw = predictions[prefix+"p_pred_draw"]
-    pred_draw = tf.equal(pGS, pGC)
-
+    #pred_draw = tf.equal(pGS, pGC)
+    pred_draw = tf.cast(tf.equal(pGS,pGC), dtype)
     is_zero = tf.equal(labels, 0) | tf.equal(labels2, 0)
     p_pred_zero = predictions[prefix+"p_pred_zero"]
     pred_zero = tf.equal(pGS, 0) | tf.equal(pGC, 0)
@@ -1678,49 +1680,69 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     pred_win3 = tf.greater(pGS, pGC+2) 
     pred_loss3 = tf.less(pGS, pGC-2) 
     pred_win3, pred_loss3 = tf.where(t_is_home_bool, pred_win3, pred_loss3), tf.where(t_is_home_bool, pred_loss3, pred_win3)
-
-    dtype = predictions[prefix+"p_pred_12"].dtype
+    
+    def f1_tensor(actual, predicted):
+        actual = tf.cast(actual, tf.float32)
+        predicted = tf.cast(predicted, tf.float32)
+        TP = tf.count_nonzero(predicted * actual)
+        #TN = tf.count_nonzero((predicted - 1) * (actual - 1))
+        FP = tf.count_nonzero(predicted * (actual - 1))
+        FN = tf.count_nonzero((predicted - 1) * actual)
+        precision = tf.divide(TP, TP + FP)
+        recall = tf.divide(TP, TP + FN)
+        f1 = 2 * precision * recall / (precision + recall)
+        return f1
+        
     with tf.variable_scope(prefix+"F1"):
       eval_metric_ops = {}
-      eval_metric_ops[prefix+"f1_draw_opt_diff"]=(f1_score(is_draw, 1.0-p_pred_win-p_pred_loss), None)
       eval_metric_ops[prefix+"f1_draw_opt"]=(f1_score(is_draw, p_pred_draw), None)
-      eval_metric_ops[prefix+"f1_draw_act"]=(f1_score(is_draw, tf.cast(pred_draw, dtype), num_thresholds=200), None)
-
+      #eval_metric_ops[prefix+"f1_draw_act"]=(f1_score(is_draw, tf.cast(pred_draw, dtype), num_thresholds=200), None)
+      #tf.summary.histogram("pred_draw", tf.cast(pred_draw, dtype))
       eval_metric_ops[prefix+"f1_zero_opt_diff"]=(f1_score(is_zero, 1.0-p_pred_win-p_pred_loss), None)
       eval_metric_ops[prefix+"f1_zero_opt"]=(f1_score(is_zero, p_pred_zero), None)
-      eval_metric_ops[prefix+"f1_zero_act"]=(f1_score(is_zero, tf.cast(pred_zero, dtype), num_thresholds=200), None)
+      #eval_metric_ops[prefix+"f1_zero_act"]=(f1_score(is_zero, tf.cast(pred_zero, dtype), num_thresholds=200), None)
 
       eval_metric_ops[prefix+"f1_win_opt_diff"]=(f1_score(is_win, p_pred_win-p_pred_loss), None)
       eval_metric_ops[prefix+"f1_win_opt"]=(f1_score(is_win, p_pred_win), None)
-      eval_metric_ops[prefix+"f1_win_act"]=(f1_score(is_win, tf.cast(pred_win, dtype), num_thresholds=200), None)
+      #eval_metric_ops[prefix+"f1_win_act"]=(f1_score(is_win, tf.cast(pred_win, dtype), num_thresholds=200), None)
       eval_metric_ops[prefix+"f1_win2_opt_diff"]=(f1_score(is_win2, p_pred_win-p_pred_loss), None)
       eval_metric_ops[prefix+"f1_win2_opt"]=(f1_score(is_win2, p_pred_win2), None)
-      eval_metric_ops[prefix+"f1_win2_act"]=(f1_score(is_win2, tf.cast(pred_win2, dtype), num_thresholds=200), None)
+      #eval_metric_ops[prefix+"f1_win2_act"]=(f1_score(is_win2, tf.cast(pred_win2, dtype), num_thresholds=200), None)
       eval_metric_ops[prefix+"f1_win3_opt_diff"]=(f1_score(is_win3, p_pred_win-p_pred_loss), None)
       eval_metric_ops[prefix+"f1_win3_opt"]=(f1_score(is_win3, p_pred_win3), None)
-      eval_metric_ops[prefix+"f1_win3_act"]=(f1_score(is_win3, tf.cast(pred_win3, dtype), num_thresholds=200), None)
+      #eval_metric_ops[prefix+"f1_win3_act"]=(f1_score(is_win3, tf.cast(pred_win3, dtype), num_thresholds=200), None)
 
       eval_metric_ops[prefix+"f1_loss_opt_diff"]=(f1_score(is_loss, p_pred_loss-p_pred_win), None)
       eval_metric_ops[prefix+"f1_loss_opt"]=(f1_score(is_loss, p_pred_loss), None)
-      eval_metric_ops[prefix+"f1_loss_act"]=(f1_score(is_loss, tf.cast(pred_loss, dtype), num_thresholds=200), None)
-      eval_metric_ops[prefix+"f1_loss_opt2_diff"]=(f1_score(is_loss2, p_pred_loss-p_pred_win), None)
+      #eval_metric_ops[prefix+"f1_loss_act"]=(f1_score(is_loss, tf.cast(pred_loss, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_loss2_opt_diff"]=(f1_score(is_loss2, p_pred_loss-p_pred_win), None)
       eval_metric_ops[prefix+"f1_loss2_opt"]=(f1_score(is_loss2, p_pred_loss2), None)
-      eval_metric_ops[prefix+"f1_loss2_act"]=(f1_score(is_loss2, tf.cast(pred_loss2, dtype), num_thresholds=200), None)
-      eval_metric_ops[prefix+"f1_loss_op3_diff"]=(f1_score(is_loss3, p_pred_loss-p_pred_win), None)
+      #eval_metric_ops[prefix+"f1_loss2_act"]=(f1_score(is_loss2, tf.cast(pred_loss2, dtype), num_thresholds=200), None)
+      eval_metric_ops[prefix+"f1_loss3_opt_diff"]=(f1_score(is_loss3, p_pred_loss-p_pred_win), None)
       eval_metric_ops[prefix+"f1_loss3_opt"]=(f1_score(is_loss3, p_pred_loss3), None)
-      eval_metric_ops[prefix+"f1_loss3_act"]=(f1_score(is_loss3, tf.cast(pred_loss3, dtype), num_thresholds=200), None)
+      #eval_metric_ops[prefix+"f1_loss3_act"]=(f1_score(is_loss3, tf.cast(pred_loss3, dtype), num_thresholds=200), None)
       
       prefix = prefix[:-1]
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw", mode, tensor=p_pred_draw))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_zero", mode, tensor=p_pred_zero))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_win", mode, tensor=p_pred_win))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_win2", mode, tensor=p_pred_win2))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_win3", mode, tensor=p_pred_win3))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss", mode, tensor=p_pred_loss))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss2", mode, tensor=p_pred_loss2))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss3", mode, tensor=p_pred_loss3))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_win_loss_diff", mode, tensor=p_pred_win-p_pred_loss))
-      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw_diff", mode, tensor=1.0-p_pred_win-p_pred_loss))
+#      eval_metric_ops.update(collect_summary(prefix, "pred_draw", mode, tensor=pred_draw))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw", mode, tensor=p_pred_draw))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_zero", mode, tensor=p_pred_zero))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_win", mode, tensor=p_pred_win))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_win2", mode, tensor=p_pred_win2))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_win3", mode, tensor=p_pred_win3))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss", mode, tensor=p_pred_loss))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss2", mode, tensor=p_pred_loss2))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_loss3", mode, tensor=p_pred_loss3))
+#      eval_metric_ops.update(collect_summary(prefix, "p_pred_win_loss_diff", mode, tensor=p_pred_win-p_pred_loss))
+#
+      eval_metric_ops.update(collect_summary(prefix, "f1_draw_act", mode, tensor=f1_tensor(is_draw, pred_draw)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_zero_act", mode, tensor=f1_tensor(is_zero, pred_zero)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_win_act", mode, tensor=f1_tensor(is_win, pred_win)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_win2_act", mode, tensor=f1_tensor(is_win2, pred_win2)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_win3_act", mode, tensor=f1_tensor(is_win3, pred_win3)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_loss_act", mode, tensor=f1_tensor(is_loss, pred_loss)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_loss2_act", mode, tensor=f1_tensor(is_loss2, pred_loss2)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_loss3_act", mode, tensor=f1_tensor(is_loss3, pred_loss3)))
+      
     return eval_metric_ops
 
   def create_result_metrics(prefix, predictions, labels, labels2, t_is_home_bool, achievable_points_mask, tc, mode):      

@@ -1680,22 +1680,26 @@ def main(_):
     #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
     #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
     target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
-      
-    # Pistor
-    target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                    "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
-    #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                    "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                    "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+    
+    if FLAGS.target_system=="Pistor":
+        # Pistor
+        target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
+                        "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
+        #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                        "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                        "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                        }
+    elif FLAGS.target_system=="Sky":
+        # Sky
+        target_distr={"cp":[(10, 22, 35), 1, (18, 10, 4), (15, 15, 80)],
+                      "sp":[(10, 25, 40), 1, (14, 8, 2), (10, 10, 90)],
+        #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                      "pg2":[(10, 25, 40), 5, (10, 8, 2), (20, 20, 80)],
+                      "av":[(5, 25, 40), 0, (20, 8, 2), (20, 20, 80)],
                     }
-    # Sky
-    target_distr={"cp":[(10, 22, 35), 1, (18, 10, 4), (15, 15, 80)],
-                  "sp":[(10, 25, 40), 1, (14, 8, 2), (10, 10, 90)],
-    #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                  "pg2":[(10, 25, 40), 5, (10, 8, 2), (20, 20, 80)],
-                  "av":[(5, 25, 40), 0, (20, 8, 2), (20, 20, 80)],
-                }
-
+    else:
+        raise("Wrong system")
+    
     dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                      FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                      FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
@@ -1713,8 +1717,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1725,13 +1729,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=200000,
+      default=80000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
       #default=2000,
-      default=300,
+      default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1770,16 +1774,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      #default="d:/Models/conv1_auto_sky3",
-      default="D:/Models/conv1_auto_pistor2",
+      default="c:/Models/conv1_auto_sky4",
+      #default="c:/Models/conv1_auto_pistor3",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
-      #default="Sky",
+      #default="Pistor",
+      default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1795,7 +1799,7 @@ if __name__ == "__main__":
       #default="static",
       default="train",
       #default="eval",
-      default="predict",
+      #default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
