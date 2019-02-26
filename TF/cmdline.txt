@@ -22,3 +22,19 @@ python conv_auto_model36.py --modes=eval --checkpoint=1000:
 
 FOR %G IN (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) DO python conv_auto_model36.py --modes=eval --checkpoints=1000:
 
+cp:
+
+L1 0.05
+L2 0.21
+L3 0.45
+W1 -0.05
+W2 -0.29
+W2 -0.55
+
+both
+0.515 - 20%
+0.580 - 80%
+
+ 
+
+

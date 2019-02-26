@@ -1676,22 +1676,30 @@ FLAGS = None
 
 def main(_):
   
-#  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/Mapping_Layer/WM", target_file_name="mapping.csv", all_tensor_names=False, all_tensors=False)
-#  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
-#  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
-  target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
-  
-  target_distr={"cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
-#                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+    #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/Mapping_Layer/WM", target_file_name="mapping.csv", all_tensor_names=False, all_tensors=False)
+    #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
+    #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
+    target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
+      
+    # Pistor
+    target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
+                    "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
+    #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                    "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                    "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                    }
+    # Sky
+    target_distr={"cp":[(10, 22, 35), 1, (18, 10, 4), (15, 15, 80)],
+                  "sp":[(10, 25, 40), 1, (14, 8, 2), (10, 10, 90)],
+    #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                  "pg2":[(10, 25, 40), 5, (10, 8, 2), (20, 20, 80)],
+                  "av":[(5, 25, 40), 0, (20, 8, 2), (20, 20, 80)],
                 }
-  
-  dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
-                 FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
-                 FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
-                 FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
+
+    dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
+                     FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
+                     FLAGS.save_steps, FLAGS.skip_download, FLAGS.max_to_keep, 
+                     FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
   
   
 
@@ -1705,8 +1713,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1784,18 +1792,18 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="train",
+      #default="train",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      #default="12000:",
+      default="262131",
       #default="60000:92000", 
-      default="-1",  # slice(-2, None)
+      #default="-1",  # slice(-2, None)
       #default="1000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
