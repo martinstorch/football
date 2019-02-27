@@ -1423,11 +1423,11 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
         cps_done.extend(cps.global_step)
         print("cps_done", cps_done)
       else:
-        time.sleep(5)
+        time.sleep(10)
       cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
-      print("cps2", cps2)
+      #print("cps2", cps2)
       cps = cps2.loc[~cps2.global_step.isin(cps_done)]
-      print("cps", cps)
+      #print("cps", cps)
   train_writer.close()
   test_writer.close()        
 
@@ -1691,11 +1691,11 @@ def main(_):
                         }
     elif FLAGS.target_system=="Sky":
         # Sky
-        target_distr={"cp":[(10, 22, 35), 1, (18, 10, 4), (15, 15, 80)],
-                      "sp":[(10, 25, 40), 1, (14, 8, 2), (10, 10, 90)],
+        target_distr={"cp":[(5, 20, 45), 1, (22, 5, 2), (10, 10, 85)],
+                      "sp":[(6, 10, 58), 1, (19, 5, 2), (10, 10, 90)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                      "pg2":[(10, 25, 40), 5, (10, 8, 2), (20, 20, 80)],
-                      "av":[(5, 25, 40), 0, (20, 8, 2), (20, 20, 80)],
+                      "pg2":[(2, 8, 70), 1, (13, 4, 2), (30, 30, 70)],
+                      "av":[(7, 15, 48), 0, (23, 5, 2), (30, 30, 70)],
                     }
     else:
         raise("Wrong system")
@@ -1735,7 +1735,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--save_steps", type=int,
       #default=2000,
-      default=1000,
+      default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1774,7 +1774,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="c:/Models/conv1_auto_sky4",
+      default="D:/Models/conv1_auto_sky4",
       #default="c:/Models/conv1_auto_pistor3",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
@@ -1808,8 +1808,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="262131",
       #default="60000:92000", 
-      default="-1",  # slice(-2, None)
-      #default="1000:",
+      #default="-1",  # slice(-2, None)
+      default="14000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
