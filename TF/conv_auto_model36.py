@@ -1438,7 +1438,7 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="infer", config = model.config)
   if len(cps)==0:
     return
-  model_dir = os.path.dirname(cps.iloc[0].checkpoint)
+  model_dir = model.model_dir #os.path.dirname(cps.iloc[0].checkpoint)
 
   data_index = train_idx+test_idx+pred_idx
   print("len(data_index)", len(data_index))
@@ -1684,9 +1684,9 @@ def main(_):
     if FLAGS.target_system=="Pistor":
         # Pistor
         target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                        "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
+                        "sp":[(5, 20, 40), 10, (18, 5, 2), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                        "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                        "pg2":[(5, 20, 45), 15, (11, 3, 1), (20, 20, 80)],
                         "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
@@ -1717,8 +1717,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1782,8 +1782,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
-      default="Sky",
+      default="Pistor",
+      #default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1806,7 +1806,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      #default="262131",
+      #default="9912",
       #default="60000:92000", 
       default="-1",  # slice(-2, None)
       #default="6000:",
