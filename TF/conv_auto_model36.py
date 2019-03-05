@@ -1438,7 +1438,7 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="infer", config = model.config)
   if len(cps)==0:
     return
-  model_dir = os.path.dirname(cps.iloc[0].checkpoint)
+  model_dir = model.model_dir #os.path.dirname(cps.iloc[0].checkpoint)
 
   data_index = train_idx+test_idx+pred_idx
   print("len(data_index)", len(data_index))
@@ -1717,8 +1717,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1774,16 +1774,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="D:/Models/conv1_auto_sky4",
-      #default="c:/Models/conv1_auto_pistor3",
+      #default="D:/Models/conv1_auto_sky4",
+      default="d:/Models/conv1_auto_pistor4",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
-      default="Sky",
+      default="Pistor",
+      #default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1806,10 +1806,10 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      #default="262131",
+      #default="9912",
       #default="60000:92000", 
-      #default="-1",  # slice(-2, None)
-      default="14000:",
+      default="-1",  # slice(-2, None)
+      #default="14000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

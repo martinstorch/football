@@ -18,7 +18,8 @@ cut_off_level_low<-0.7
 cut_off_level_high<-1.4
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
-predictions_file<-"D:\\Models\\conv1_auto_pistor//new_predictions_df.csv"
+predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
+predictions_file<-"D:\\Models\\conv1_auto_pistor3//all_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
@@ -30,7 +31,7 @@ predictions_file<-"D:\\Models\\rnn1_sky/new_predictions_df.csv"
 predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df.csv"
 predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset15.csv"
 predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset25.csv"
-predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset35.csv"
+predictions_file<-"D:\\Models\\conv1_auto_sky4//new_predictions_df.csv"
 
 
 season<-"2018/19"
@@ -164,3 +165,177 @@ evaluate(7)
 evaluate(8)
 evaluate(9)
 
+
+v<-predictions_data[predictions_data$Where=="Home" & predictions_data$Prefix!="pgpt" & predictions_data$Prefix!="av",]
+v$match<-paste(v$Team1, v$Team2, sep=" - ")
+ggplot(v, aes(x=win, y=loss, col=pred, shape=Prefix))+geom_point()
+ggplot(v, aes(x=winPt, y=lossPt, col=pred, shape=Prefix))+geom_point()
+ggplot(v, aes(x=est1, y=est2, col=pred, shape=Prefix))+geom_point()
+ggplot(v, aes(x=est1, y=est2, col=pred, shape=match, alpha=test))+geom_point() + scale_shape_manual(values=seq(0,8)) + scale_color_brewer(palette = "Spectral") + xlab("Schätzwert Heimtore") + ylab("Schätzwert Auswärtstore")
+
+
+v$pred2 <- factor(v$pred, ordered = TRUE, 
+                  levels = c("0:3", "0:2", "1:2", "0:1", "0:0", "1:1", "1:0", "2:1", "2:0", "3:1", "3:0"))
+v$act2 <- factor(v$act, ordered = TRUE, 
+                  levels = c("0:3", "0:2", "1:2", "0:1", "0:0", "1:1", "1:0", "2:1", "2:0", "3:1", "3:0"))
+ggplot(v, aes(x=est1, y=est2, col=pred2, shape=Prefix))+geom_point(alpha=0.4) + 
+  scale_color_brewer(palette = "Spectral") + 
+  xlab("Schätzwert Heimtore") + ylab("Schätzwert Auswärtstore")
+
+v<-predictions_data[predictions_data$Where=="Home" ,]
+v$match<-paste(v$Team1, v$Team2, sep=" - ")
+v$pred2 <- factor(v$pred, ordered = TRUE, 
+                  levels = c("0:3", "0:2", "1:2", "0:1", "0:0", "1:1", "1:0", "2:1", "2:0", "3:1", "3:0"))
+v$act2 <- factor(v$act, ordered = TRUE, 
+                 levels = c("0:3", "0:2", "1:2", "0:1", "0:0", "1:1", "1:0", "2:1", "2:0", "3:1", "3:0"))
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2, col=pred2))+geom_point(alpha=0.4) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2, col=act2))+geom_point(alpha=0.4) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Tatsächliches Ergebnis",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+v$pGS<-strtoi(substr(as.character(v$pred),1,1))
+v$pGC<-strtoi(substr(as.character(v$pred),3,3))
+table(v$pGS)
+table(v$pGC)
+v$GS<-strtoi(substr(as.character(v$act),1,1))
+v$GC<-strtoi(substr(as.character(v$act),3,3))
+v$pdiff<-factor(v$pGS-v$pGC)
+v$adiff<-factor(sapply(sapply(v$GS-v$GC, max, -5), min, 5))
+v$pmin<-factor(apply(v[,c("pGS", "pGC")], 1, min))
+v$amin<-factor(-apply(v[,c("GS", "GC")], 1, min))
+v$ptend<-factor(sign(v$pGS-v$pGC))
+v$atend<-factor(sign(v$GS-v$GC))
+v$ptendr<-sign(v$pGS-v$pGC)
+summary(v$pmin)
+table(v$amin)
+summary(v$adiff)
+
+ggplot(v[v$Prefix=="sp",], aes(x=est1, y=est2, col=pdiff, shape=pmin))+geom_point(alpha=0.8) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="sp",], aes(x=est1, y=est2, col=adiff, shape=amin))+geom_point(alpha=0.8) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Tatsächliches Ergebnis",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+
+ggplot(v[v$Prefix=="sp",], aes(x=est1, y=est2, col=ptend))+geom_point(alpha=0.8) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="sp",], aes(x=est1, y=est2, col=atend, shape=amin))+geom_point(alpha=0.8) + 
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Tatsächliches Ergebnis",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+
+
+g <- ggplot(v[v$Prefix=="sp",], aes(x=est1-est2))
+g + geom_density(aes(fill=ptend), alpha=0.5) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+g <- ggplot(v[v$Prefix=="pgpt",], aes(x=est1-est2))
+g + geom_density(aes(fill=atend), alpha=0.5) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+g <- ggplot(v[v$Prefix=="pg2" & v$dataset=="train",], aes(x=est1-est2))
+g + geom_density(aes(fill=atend), alpha=0.5) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="test",], aes(x=est1-est2))
+#g + geom_density(aes(fill=atend), alpha=0.5) + 
+g + geom_histogram(aes(fill=atend), bins=20) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2))+geom_density_2d(aes(colour = ptend))+
+  #scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2))+geom_density_2d(aes(colour = atend))+
+  #scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2))+geom_density_2d(aes(colour = amin, size=stat(exp(level))))+
+  scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="pgpt" & v$amin %in% c("0", "1", "2"),], aes(x=est1, y=est2))+geom_density_2d(aes(colour = amin))+
+  #scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="train",], aes(x=est1+est2))
+#g + geom_density(aes(fill=amin), alpha=0.5) + 
+g + geom_histogram(aes(fill=amin), bins=25) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="test",], aes(x=est1+est2))
+#g + geom_density(aes(y=..density.., fill=amin), alpha=0.5) + 
+g + geom_histogram(aes(fill=amin), bins=25) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+
+
+g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="train",], aes(x=est1-est2))
+g + geom_density(aes(fill=adiff), alpha=0.5) + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+g <- ggplot(v[v$Prefix=="sp" & v$dataset=="test",], aes(x=est1-est2))
+g + geom_histogram(aes(fill=adiff), bins=25) + 
+  scale_fill_brewer(palette = "Spectral") + 
+#g + geom_density(aes(fill=adiff), alpha=0.2, bw="SJ", position="stack") + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Heimtore minus Auswärtstore",
+       fill="Prognose")
+
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2))+geom_density_2d(aes(colour = ptend))+
+  #scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+ggplot(v[v$Prefix=="pgpt",], aes(x=est1, y=est2))+geom_density_2d(aes(colour = atend))+
+  #scale_color_brewer(palette = "Spectral") + 
+  labs(col = "Prognose",  x="Schätzwert Heimtore", y="Schätzwert Auswärtstore")
+
+#g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="test",], aes(x=est1-est2))
+g <- ggplot(v[v$Prefix=="pgpt" & v$dataset=="test",], aes(x=est1-est2))
+g + geom_histogram(aes(fill=act2), bins=25) + 
+  scale_fill_brewer(palette = "Spectral") 
+  #g + geom_density(aes(fill=adiff), alpha=0.2, bw="SJ", position="stack") + 
+  labs(title="Density plot", 
+       subtitle="Test scores",
+       caption="Source: Tensorflow",
+       x="Schätzwert Gewinnwahrscheinlichkeit",
+       fill="Prognose")
