@@ -481,7 +481,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
     return (h1_logits, h2_logits, p_pred_h1, label_features_h1, p_pred_h2, label_features_h2, t_mask, test_p_pred_12_h2, p_pred_12_h2)
       
-  def buildGraph(features, labels, mode, params): 
+  def buildGraph(features, labels, mode, params, t_is_home_bool): 
       print(mode)
       eval_metric_ops = {}
       with tf.variable_scope("Input_Layer"):
@@ -739,13 +739,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       with tf.variable_scope("Combine"):
         X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
         
-      with tf.variable_scope("Layer0"):
-          X0,Z0 = build_dense_layer(X, 128, mode, 
+      with tf.variable_scope("Layer0H"):
+          X0H,Z0H = build_dense_layer(X, 128, mode, 
                                     regularizer = l2_regularizer(scale=100.0), # 100.0
-                                    keep_prob=0.98, 
-                                    batch_norm=True, 
+                                    keep_prob=0.96, 
+                                    batch_norm=False, 
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
+      
+      with tf.variable_scope("Layer0A"):
+          X0A,Z0A = build_dense_layer(X, 128, mode, 
+                                    regularizer = l2_regularizer(scale=100.0), # 100.0
+                                    keep_prob=0.96, 
+                                    batch_norm=False, 
+                                    activation=None, 
+                                    eval_metric_ops=eval_metric_ops)
+      
+      X0 = tf.where(t_is_home_bool, X0H, X0A)    
       
       if False:
         with tf.variable_scope("Layer1"):
@@ -1925,9 +1935,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #features = {k:decode_home_away_matches(f) for k,f in features.items() }
       #labels   = decode_home_away_matches(labels)
 
-      graph_outputs = buildGraph(features, labels, mode, params)
-      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12  = graph_outputs
       t_is_home_bool = tf.equal(features["newgame"][:,1] , 1)
+      graph_outputs = buildGraph(features, labels, mode, params, t_is_home_bool)
+      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12  = graph_outputs
 #      t_is_train_bool = tf.equal(features["Train"] , True)
 
       def apply_prefix(predictions, prefix):
@@ -2236,6 +2246,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                     save_checkpoints_steps=save_steps,
                                     save_summary_steps=100,
                                     keep_checkpoint_max=max_to_keep,
-                                    log_step_count_steps=100)
+                                    log_step_count_steps=100),
+                                #warm_start_from = tf.estimator.WarmStartSettings(ckpt_to_initialize_from="D:/Models/conv1_auto_pistor4", vars_to_warm_start=[".*CNN.*", ".*PointMax.*", ".*Softpoints.*", ".*Poisson.*", ".*cp.*"])
                               )
 

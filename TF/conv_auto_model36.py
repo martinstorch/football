@@ -1684,9 +1684,9 @@ def main(_):
     if FLAGS.target_system=="Pistor":
         # Pistor
         target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                        "sp":[(5, 20, 35), 20, (10, 8, 2), (20, 20, 80)],
+                        "sp":[(5, 20, 40), 10, (18, 5, 2), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                        "pg2":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
+                        "pg2":[(5, 20, 45), 15, (11, 3, 1), (20, 20, 80)],
                         "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
@@ -1775,7 +1775,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/conv1_auto_pistor4",
+      default="d:/Models/conv1_auto_pistor5",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
