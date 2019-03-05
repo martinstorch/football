@@ -15,10 +15,59 @@ import numpy as np
 #model_dir = "C:/Models/simple36_sky_1819_3"
 #model_dir = "C:/Models/simple36_pistor_1819_2"
 
-eval_dir = "D:/Models/conv1_auto_pistor/eval_test"
+eval_dir = "c:/Models/conv1_auto_sky5/eval_test"
 model_dir = os.path.abspath(os.path.join(eval_dir, os.pardir))
 
 event_files = [os.path.join(eval_dir, f) for f in os.listdir(eval_dir) if f.startswith('events.out.tfevents.')]
+
+def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
+  export_dir = model_dir 
+#  if use_swa:
+#    export_dir = export_dir + "/swa"
+  print(export_dir)
+  checkpoint_paths = tf.train.get_checkpoint_state(export_dir).all_model_checkpoint_paths
+  global_steps = [int(os.path.basename(str(cp)).split('-')[1]) for cp in checkpoint_paths]
+  cp_df_all = pd.DataFrame({"global_step":global_steps, "checkpoint":checkpoint_paths})
+  cp_df_final = pd.DataFrame()
+  for cp in checkpoints.split(","):
+    fromto = cp.split(":")
+    fromto = [ft.strip() for ft in fromto]
+    fromto = [int(ft) if ft!="" else None for ft in fromto]
+    if len(fromto)==1:
+      # no separator
+      r = fromto[0]
+      if r is None:
+        cp_df = cp_df_all
+      elif r < 0:
+        # slice
+        cp_df = cp_df_all.iloc[slice(r, None)]
+      else:
+        cp_df = cp_df_all.loc[cp_df_all.global_step==r]
+    elif len(fromto)==2:
+      # range
+      ffrom = fromto[0]
+      tto = fromto[1]
+      if ffrom is None:
+        ffrom=0
+      else:
+        ffrom=int(ffrom)
+      if tto is None:
+        tto = 100000000
+      else:
+        tto=int(tto)+1
+      cp_df = cp_df_all.loc[cp_df_all.global_step.between(ffrom, tto, inclusive=True)]
+    else:
+      raise("wrong number of colon characters in "+fromto)  
+    cp_df_final = cp_df_final.append(cp_df)
+  if len(cp_df_final)==0:
+    print("No checkpoints selected in {} using filter \"{}\"".format(export_dir, checkpoints))
+  return cp_df_final.sort_values("global_step")
+
+all_checkpoints = find_checkpoints_in_scope(model_dir, "-5", True)
+print(all_checkpoints)
+new_global_step = all_checkpoints.global_step.max()
+all_checkpoints = all_checkpoints.global_step.astype(str).tolist()
+print(all_checkpoints)
 
 #all_checkpoints = ["34000", "34200", "34400", "34600", "34800", "35000", "35200", "35400"]
 #new_global_step = 35600
@@ -123,9 +172,9 @@ pd.DataFrame({"name":[v.name.replace("rnn/multi_rnn_cell/cell_","") for v in mod
               "absmean":[np.mean(np.absolute(w)) for w in weights], 
               }).sort_values("mean") 
 
-checkpoint = 'D:/Models/conv1_auto_pistor\model.ckpt-27677'  
-from tensorflow.python.tools import inspect_checkpoint 
-tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
+#checkpoint = 'D:/Models/conv1_auto_pistor\model.ckpt-27677'  
+#from tensorflow.python.tools import inspect_checkpoint 
+#tensors = inspect_checkpoint.print_tensors_in_checkpoint_file(file_name=checkpoint, tensor_name='',all_tensors=True) 
     
 
 #for e in tf.train.summary_iterator(model_dir+"/eval_test/events.out.tfevents.1548406606.14HW010662"):

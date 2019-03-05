@@ -18,7 +18,7 @@ cut_off_level_low<-0.7
 cut_off_level_high<-1.4
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
-predictions_file<-"D:\\Models\\conv1_auto_pistor//new_predictions_df.csv"
+predictions_file<-"c:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
@@ -32,6 +32,7 @@ predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset15.csv"
 predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset25.csv"
 predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset35.csv"
 
+predictions_file<-"c:\\Models\\conv1_auto_sky5//new_predictions_df.csv"
 
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)
@@ -130,7 +131,7 @@ evaluate<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
-  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "smpt", "pspt", "pgpt"))
+  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pg2", "pspt", "pgpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
