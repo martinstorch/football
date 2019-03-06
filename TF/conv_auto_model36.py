@@ -1684,7 +1684,7 @@ def main(_):
     if FLAGS.target_system=="Pistor":
         # Pistor
         target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                        "sp":[(5, 20, 40), 10, (18, 5, 2), (20, 20, 80)],
+                        "sp":[(5, 20, 40), 15, (13, 5, 2), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                         "pg2":[(5, 20, 45), 15, (11, 3, 1), (20, 20, 80)],
                         "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
@@ -1717,8 +1717,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1774,8 +1774,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="c:/Models/conv1_auto_sky5",
-      #default="c:/Models/conv1_auto_pistor3",
+      #default="c:/Models/conv1_auto_sky5",
+      default="c:/Models/conv1_auto_pistor5",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )

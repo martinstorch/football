@@ -15,6 +15,7 @@ from tensorflow.python.framework import ops
 #from tensorflow.python.ops.losses import losses
 from tensorflow.contrib.layers import l2_regularizer
 from tensorflow.contrib.metrics import f1_score
+from tensorflow.metrics import precision
 #from tensorflow.contrib import rnn
 #from tensorflow.python import debug as tf_debug
 #from tensorflow.contrib.opt.python.training.weight_decay_optimizers import extend_with_decoupled_weight_decay
@@ -631,7 +632,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         #X = tf.layers.batch_normalization(X, momentum=0.99, center=True, scale=True, training=(mode == tf.estimator.ModeKeys.TRAIN))
         X = tf.nn.sigmoid(X)
         rho_hat = tf.reduce_mean(X, axis=0)
-        rho = 0.3
+        rho = 0.1
         KL_loss = kl_divergence(rho, rho_hat)
         ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, KL_loss)
         if mode == tf.estimator.ModeKeys.TRAIN:  
@@ -741,17 +742,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 128, mode, 
-                                    regularizer = l2_regularizer(scale=100.0), # 100.0
+                                    regularizer = l2_regularizer(scale=300.0), # 100.0
                                     keep_prob=0.96, 
-                                    batch_norm=False, 
+                                    batch_norm=True, 
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 128, mode, 
-                                    regularizer = l2_regularizer(scale=100.0), # 100.0
+                                    regularizer = l2_regularizer(scale=300.0), # 100.0
                                     keep_prob=0.96, 
-                                    batch_norm=False, 
+                                    batch_norm=True, 
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
@@ -1725,6 +1726,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #eval_metric_ops[prefix+"f1_loss3_opt_diff"]=(f1_score(is_loss3, p_pred_loss-p_pred_win), None)
       eval_metric_ops[prefix+"f1_loss3_opt"]=(f1_score(is_loss3, p_pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
       #eval_metric_ops[prefix+"f1_loss3_act"]=(f1_score(is_loss3, tf.cast(pred_loss3, dtype), num_thresholds=200), None)
+
+      eval_metric_ops[prefix+"prec_draw"]=(precision(is_draw, pred_draw), None)
+      eval_metric_ops[prefix+"prec_zero"]=(precision(is_zero, pred_zero), None)
+      eval_metric_ops[prefix+"prec_win"]=(precision(is_win, pred_win), None)
+      eval_metric_ops[prefix+"prec_win2"]=(precision(is_win2, pred_win2, weights=tf.cast(is_win, tf.float32)), None)
+      eval_metric_ops[prefix+"prec_win3"]=(precision(is_win3, pred_win3, weights=tf.cast(is_win2, tf.float32)), None)
+      eval_metric_ops[prefix+"prec_loss"]=(precision(is_loss, pred_loss), None)
+      eval_metric_ops[prefix+"prec_loss2"]=(precision(is_loss2, pred_loss2, weights=tf.cast(is_loss, tf.float32)), None)
+      eval_metric_ops[prefix+"prec_loss3"]=(precision(is_loss3, pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
       
       prefix = prefix[:-1]
 #      eval_metric_ops.update(collect_summary(prefix, "pred_draw", mode, tensor=pred_draw))
@@ -2154,8 +2164,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     if True:
       print("Auto-Encoder: using gradient reduction")
       print("Small gradients", [(v,g) for g,v in zip(gradients, variables) if g is not None and "CNN_" in v.name] )
-      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else 0.01*g*0.0001) for g,v in zip(gradients, variables) if g is not None])
-      reg_variables, reg_gradients = zip(*[(v,g if "CNN_" not in v.name else 0.01*g*0.00001) for g,v in zip(reg_gradients, reg_variables) if g is not None])
+      variables, gradients = zip(*[(v,g if "CNN_" not in v.name else g*0.001) for g,v in zip(gradients, variables) if g is not None])
+      reg_variables, reg_gradients = zip(*[(v,g if "CNN_" not in v.name else g*0.0001) for g,v in zip(reg_gradients, reg_variables) if g is not None])
 
     print(variables)
     print(gradients)
