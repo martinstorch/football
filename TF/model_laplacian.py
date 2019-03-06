@@ -38,7 +38,7 @@ from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import conv_auto_Model36 as themodel
+from Estimators import Model_laplacian as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -344,8 +344,12 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
     features["zScore"+s] =  [1 if r==s else 0 for r in features["zGameFinalScore"]]  
 
   # derived feature >3 goals
-  features["FTG4+"] = [1 if t1+t2>=4 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
-  label_column_names += ["FTG4+"]
+  features["FTG4"] = [1 if t1+t2>=4 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
+  label_column_names += ["FTG4"]
+  features["FTG0"] = [1 if t1==0 or t2==0 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
+  label_column_names += ["FTG0"]
+  features["HTG0"] = [1 if t1==0 or t2==0 else 0 for t1,t2 in zip(features["T1_GHT"], features["T2_GHT"])]
+  label_column_names += ["HTG0"]
   
   gt1 = features.groupby(["Season", "Team1_index"])
   gt2 = features.groupby(["Season", "Team2_index"])
@@ -1775,7 +1779,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/conv1_auto_pistor5",
+      default="d:/Models/laplace_pistor",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
