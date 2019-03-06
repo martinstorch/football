@@ -1729,13 +1729,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=80000,
+      default=200000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
-      #default=2000,
-      default=300,
+      default=1000,
+      #default=300,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1774,8 +1774,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/conv1_auto_pistor5",
+      default="c:/Models/conv1_auto_sky5",
+      #default="c:/Models/conv1_auto_pistor3",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
@@ -1809,7 +1809,7 @@ if __name__ == "__main__":
       #default="9912",
       #default="60000:92000", 
       default="-1",  # slice(-2, None)
-      #default="14000:",
+      #default="6000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
