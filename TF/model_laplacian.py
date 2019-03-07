@@ -1469,8 +1469,8 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
         plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
-#      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
-#        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
+        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
       new_results = results.loc[results.dataset=="pred"]  
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
@@ -1688,9 +1688,9 @@ def main(_):
     if FLAGS.target_system=="Pistor":
         # Pistor
         target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
-                        "sp":[(5, 25, 35), 15, (13, 5, 2), (20, 20, 80)],
+                        "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                        "pg2":[(5, 20, 45), 15, (11, 3, 1), (20, 20, 80)],
+                        "pg2":[(2, 20, 48), 15, (11, 3, 1), (20, 20, 80)],
                         "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
@@ -1733,13 +1733,13 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=80000,
+      default=200000,
       help="Number of training steps."
   )
   parser.add_argument(
       "--save_steps", type=int,
       #default=2000,
-      default=300,
+      default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1779,15 +1779,16 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/laplace_pistor",
+      #default="c:/Models/laplace_pistor",
+      default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
-      #default="Sky",
+      #default="Pistor",
+      default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )

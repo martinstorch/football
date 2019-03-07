@@ -15,6 +15,8 @@ from tensorflow.python.framework import ops
 #from tensorflow.python.ops.losses import losses
 from tensorflow.contrib.layers import l2_regularizer
 from tensorflow.contrib.metrics import f1_score
+from tensorflow.metrics import precision, recall
+
 #from tensorflow.contrib import rnn
 #from tensorflow.python import debug as tf_debug
 #from tensorflow.contrib.opt.python.training.weight_decay_optimizers import extend_with_decoupled_weight_decay
@@ -434,7 +436,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_mask = tf.cast(t_mask, tf.float32)
   
       p_pred_12_h1 = tf.nn.softmax(h1_logits)
-      create_laplacian_loss(p_pred_12_h1)
+      create_laplacian_loss(p_pred_12_h1, alpha=100.0)
       p_pred_h1 = tf.matmul(p_pred_12_h1, t_map)
   
       if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
@@ -466,7 +468,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         X = tf.concat([X, label_features_h1], axis=1)
         h2_logits,_ = build_dense_layer(X, 49, mode, regularizer = regularizer, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         p_pred_12_h2 = tf.nn.softmax(h2_logits)
-        create_laplacian_loss(p_pred_12_h2)
+        create_laplacian_loss(p_pred_12_h2, alpha=100.0)
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
       else:
         test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
@@ -479,7 +481,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
-        create_laplacian_loss(test_p_pred_12_h2)
+        create_laplacian_loss(test_p_pred_12_h2, alpha=100.0)
         test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
         #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
         
@@ -762,7 +764,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 128, mode, 
-                                    regularizer = l2_regularizer(scale=100.0), # 100.0
+                                    regularizer = l2_regularizer(scale=300.0), # 100.0
                                     keep_prob=0.96, 
                                     batch_norm=True, 
                                     activation=None, 
@@ -770,7 +772,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 128, mode, 
-                                    regularizer = l2_regularizer(scale=100.0), # 100.0
+                                    regularizer = l2_regularizer(scale=300.0), # 100.0
                                     keep_prob=0.96, 
                                     batch_norm=True, 
                                     activation=None, 
@@ -811,7 +813,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("condprob"):
-        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.2), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
+        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.000002), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
@@ -1609,7 +1611,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       loss += 0.05*tf.reduce_mean(pt_pgpt_sm_loss)
 
-      create_laplacian_loss(predictions["sp/p_pred_12"])
+      create_laplacian_loss(predictions["sp/p_pred_12"], alpha=100.0)
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
       reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
@@ -1735,22 +1737,48 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops[prefix+"f1_win_opt"]=(f1_score(is_win, p_pred_win), None)
       #eval_metric_ops[prefix+"f1_win_act"]=(f1_score(is_win, tf.cast(pred_win, dtype), num_thresholds=200), None)
       #eval_metric_ops[prefix+"f1_win2_opt_diff"]=(f1_score(is_win2, p_pred_win-p_pred_loss), None)
-      eval_metric_ops[prefix+"f1_win2_opt"]=(f1_score(is_win2, p_pred_win2, weights=tf.cast(is_win, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_win2_opt"]=(f1_score(~is_win2, 1.0-p_pred_win2, weights=tf.cast(is_win, tf.float32)), None)
       #eval_metric_ops[prefix+"f1_win2_act"]=(f1_score(is_win2, tf.cast(pred_win2, dtype), num_thresholds=200), None)
       #eval_metric_ops[prefix+"f1_win3_opt_diff"]=(f1_score(is_win3, p_pred_win-p_pred_loss), None)
-      eval_metric_ops[prefix+"f1_win3_opt"]=(f1_score(is_win3, p_pred_win3, weights=tf.cast(is_win2, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_win3_opt"]=(f1_score(~is_win3, 1.0-p_pred_win3, weights=tf.cast(is_win2, tf.float32)), None)
       #eval_metric_ops[prefix+"f1_win3_act"]=(f1_score(is_win3, tf.cast(pred_win3, dtype), num_thresholds=200), None)
 
       #eval_metric_ops[prefix+"f1_loss_opt_diff"]=(f1_score(is_loss, p_pred_loss-p_pred_win), None)
       eval_metric_ops[prefix+"f1_loss_opt"]=(f1_score(is_loss, p_pred_loss), None)
       #eval_metric_ops[prefix+"f1_loss_act"]=(f1_score(is_loss, tf.cast(pred_loss, dtype), num_thresholds=200), None)
       #eval_metric_ops[prefix+"f1_loss2_opt_diff"]=(f1_score(is_loss2, p_pred_loss-p_pred_win), None)
-      eval_metric_ops[prefix+"f1_loss2_opt"]=(f1_score(is_loss2, p_pred_loss2, weights=tf.cast(is_loss, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss2_opt"]=(f1_score(~is_loss2, 1.0-p_pred_loss2, weights=tf.cast(is_loss, tf.float32)), None)
       #eval_metric_ops[prefix+"f1_loss2_act"]=(f1_score(is_loss2, tf.cast(pred_loss2, dtype), num_thresholds=200), None)
       #eval_metric_ops[prefix+"f1_loss3_opt_diff"]=(f1_score(is_loss3, p_pred_loss-p_pred_win), None)
-      eval_metric_ops[prefix+"f1_loss3_opt"]=(f1_score(is_loss3, p_pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss3_opt"]=(f1_score(~is_loss3, 1.0-p_pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
       #eval_metric_ops[prefix+"f1_loss3_act"]=(f1_score(is_loss3, tf.cast(pred_loss3, dtype), num_thresholds=200), None)
       
+      eval_metric_ops[prefix+"f1_draw_prec"]=(precision(is_draw, pred_draw), None)
+      eval_metric_ops[prefix+"f1_zero_prec"]=(precision(is_zero, pred_zero), None)
+      eval_metric_ops[prefix+"f1_win_prec"]=(precision(is_win, pred_win), None)
+      eval_metric_ops[prefix+"f1_win2_prec"]=(precision(~is_win2, ~pred_win2, weights=tf.cast(is_win, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_win3_prec"]=(precision(~is_win3, ~pred_win3, weights=tf.cast(is_win2, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss_prec"]=(precision(is_loss, pred_loss), None)
+      eval_metric_ops[prefix+"f1_loss2_prec"]=(precision(~is_loss2, ~pred_loss2, weights=tf.cast(is_loss, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss3_prec"]=(precision(~is_loss3, ~pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
+
+      eval_metric_ops[prefix+"f1_draw_rec"]=(recall(is_draw, pred_draw), None)
+      eval_metric_ops[prefix+"f1_zero_rec"]=(recall(is_zero, pred_zero), None)
+      eval_metric_ops[prefix+"f1_win_rec"]=(recall(is_win, pred_win), None)
+      eval_metric_ops[prefix+"f1_win2_rec"]=(recall(~is_win2, ~pred_win2, weights=tf.cast(is_win, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_win3_rec"]=(recall(~is_win3, ~pred_win3, weights=tf.cast(is_win2, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss_rec"]=(recall(is_loss, pred_loss), None)
+      eval_metric_ops[prefix+"f1_loss2_rec"]=(recall(~is_loss2, ~pred_loss2, weights=tf.cast(is_loss, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss3_rec"]=(recall(~is_loss3, ~pred_loss3, weights=tf.cast(is_loss2, tf.float32)), None)
+
+      eval_metric_ops[prefix+"f1_draw_pred"]=(precision(pred_draw, tf.ones_like(pred_draw)), None)
+      eval_metric_ops[prefix+"f1_zero_pred"]=(precision(pred_zero, tf.ones_like(pred_draw)), None)
+      eval_metric_ops[prefix+"f1_win_pred"]=(precision(pred_win, tf.ones_like(pred_draw)), None)
+      eval_metric_ops[prefix+"f1_win2_pred"]=(precision(~pred_win2, tf.ones_like(pred_draw), weights=tf.cast(is_win, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_win3_pred"]=(precision(~pred_win3, tf.ones_like(pred_draw), weights=tf.cast(is_win2, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss_pred"]=(precision(pred_loss, tf.ones_like(pred_draw)), None)
+      eval_metric_ops[prefix+"f1_loss2_pred"]=(precision(~pred_loss2, tf.ones_like(pred_draw), weights=tf.cast(is_loss, tf.float32)), None)
+      eval_metric_ops[prefix+"f1_loss3_pred"]=(precision(~pred_loss3, tf.ones_like(pred_draw), weights=tf.cast(is_loss2, tf.float32)), None)
       prefix = prefix[:-1]
 #      eval_metric_ops.update(collect_summary(prefix, "pred_draw", mode, tensor=pred_draw))
 #      eval_metric_ops.update(collect_summary(prefix, "p_pred_draw", mode, tensor=p_pred_draw))
@@ -1766,11 +1794,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops.update(collect_summary(prefix, "f1_draw_act", mode, tensor=f1_tensor(is_draw, pred_draw)))
       eval_metric_ops.update(collect_summary(prefix, "f1_zero_act", mode, tensor=f1_tensor(is_zero, pred_zero)))
       eval_metric_ops.update(collect_summary(prefix, "f1_win_act", mode, tensor=f1_tensor(is_win, pred_win)))
-      eval_metric_ops.update(collect_summary(prefix, "f1_win2_act", mode, tensor=f1_tensor(is_win2, pred_win2, weights=is_win)))
-      eval_metric_ops.update(collect_summary(prefix, "f1_win3_act", mode, tensor=f1_tensor(is_win3, pred_win3, weights=is_win2)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_win2_act", mode, tensor=f1_tensor(~is_win2, ~pred_win2, weights=is_win)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_win3_act", mode, tensor=f1_tensor(~is_win3, ~pred_win3, weights=is_win2)))
       eval_metric_ops.update(collect_summary(prefix, "f1_loss_act", mode, tensor=f1_tensor(is_loss, pred_loss)))
-      eval_metric_ops.update(collect_summary(prefix, "f1_loss2_act", mode, tensor=f1_tensor(is_loss2, pred_loss2, weights=is_loss)))
-      eval_metric_ops.update(collect_summary(prefix, "f1_loss3_act", mode, tensor=f1_tensor(is_loss3, pred_loss3, weights=is_loss2)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_loss2_act", mode, tensor=f1_tensor(~is_loss2, ~pred_loss2, weights=is_loss)))
+      eval_metric_ops.update(collect_summary(prefix, "f1_loss3_act", mode, tensor=f1_tensor(~is_loss3, ~pred_loss3, weights=is_loss2)))
       eval_metric_ops.update(collect_summary(prefix, "metric_pred_win", mode, tensor=tf.cast(pred_win, tf.float32)))
       eval_metric_ops.update(collect_summary(prefix, "metric_pred_loss", mode, tensor=tf.cast(pred_loss, tf.float32)))
       eval_metric_ops.update(collect_summary(prefix, "metric_pred_win2", mode, tensor=tf.cast(tf.logical_and(pred_win2, tf.logical_not(pred_win3)), tf.float32)))
