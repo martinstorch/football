@@ -38,7 +38,7 @@ from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import Model_laplacian as themodel
+from Estimators import Model_sequential as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -480,10 +480,10 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   
 #  print(features["mh1len"])
   
-  # left padding with -1 
-  mh1 = mh1.map(lambda x: [-1]*(steps-len(x))+x)
-  mh2 = mh2.map(lambda x: [-1]*(steps-len(x))+x)
-  mh12 = mh12.map(lambda x: [-1]*(steps-len(x))+x)
+  # right padding with -1 
+  mh1 = mh1.map(lambda x: x+[-1]*(steps-len(x)))
+  mh2 = mh2.map(lambda x: x+[-1]*(steps-len(x)))
+  mh12 = mh12.map(lambda x: x+[-1]*(steps-len(x)))
   
   mh1 = np.array(mh1.tolist(), dtype=np.int16)
   mh2 = np.array(mh2.tolist(), dtype=np.int16)
@@ -1779,7 +1779,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/laplace_pistor",
+      default="d:/Models/sequential_pistor",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
