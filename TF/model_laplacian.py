@@ -146,7 +146,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
       break
     else:
       if cur_dir == parent_dir: #if dir is root dir
-        raise Exception("NewGames.csv not found")
+        raise Exception(cur_dir+"/NewGames.csv not found")
       else:
         cur_dir = parent_dir  
               

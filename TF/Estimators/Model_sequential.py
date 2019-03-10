@@ -608,10 +608,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        return state[1] # use upper layer state
 #
       rnn_cell = layers.StackedRNNCells([
-          layers.LSTMCell(units=128, recurrent_dropout=0.05),
-          layers.LSTMCell(units=49+output_size, dropout=0.05),
+          layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
+          layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=10.1)),
           ])
-      rnn_layer = layers.RNN(rnn_cell, return_sequences=True)
+      rnn_layer1 = layers.RNN(rnn_cell, return_sequences=True)
+      rnn_layer2 = layers.RNN(rnn_cell, return_sequences=True)
+      rnn_layer12 = layers.RNN(rnn_cell, return_sequences=True)
       #print(output_seq_1)
 #      def rnn_histograms():
 #        def rnn_histogram(section, num, part, regularizer=None):
@@ -636,15 +638,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        rnn_histogram("candidate", "1", "bias")
 
       with tf.variable_scope("RNN_1"):
-        output_seq_1 = rnn_layer(match_history_t1)
+        output_seq_1 = rnn_layer1(match_history_t1)
 #        shared_rnn_cell = make_gru_cell()
 #        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
 #        rnn_histograms()
       with tf.variable_scope("RNN_2"):
-        output_seq_2 = rnn_layer(match_history_t2)
+        output_seq_2 = rnn_layer2(match_history_t2)
 #        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
       with tf.variable_scope("RNN_12"):
-        output_seq_12 = rnn_layer(match_history_t12)
+        output_seq_12 = rnn_layer12(match_history_t12)
 #        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
 #        rnn_histograms()
 
@@ -875,7 +877,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           a = tf.argmax(p_pred_12, axis=1)
         pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
         pred = tf.cast(pred, tf.int32)
-        
+
         predictions = {
           "p_marg_1":p_marg_1, 
           "p_marg_2":p_marg_2, 
@@ -1323,9 +1325,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
           X = tf.stop_gradient(X)
           with tf.variable_scope("Layer1"):
-            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.95, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
+            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
           with tf.variable_scope("Layer2"):
-            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.95, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
+            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
           with tf.variable_scope("Layer3"):
             X,_ = build_dense_layer(X, output_size=49, mode=mode, regularizer = None, keep_prob=1.0, batch_norm=False, activation=None)
           
@@ -1364,21 +1366,22 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     current_tendency = tf.reduce_max(t_tendencies)
     metrics.update(collect_summary("regularization", "current_tendency", mode, tensor=current_tendency))
 
-    is_win  = labels[:,18]
-    is_loss = labels[:,20]
-    pred_win  = tf.exp(predictions["outputs_poisson"][:,18])
-    pred_loss = tf.exp(predictions["outputs_poisson"][:,20])
-    
-    current_winloss_corr = corrcoef(is_win-is_loss, pred_win-pred_loss) 
-    metrics.update(collect_summary("regularization", "current_winloss_corr", mode, tensor=current_winloss_corr))
-    
-    pred_gs = predictions["outputs_poisson"][::2, 0]
-    gs_mean, gs_variance = tf.nn.moments(pred_gs, axes=[0])
-    # variance should be in the order of 1.0
-    #base_noise_factor /= tf.sqrt(tf.minimum(gs_variance, 0.1))
-    #base_noise_factor *= 0.01
-    #base_noise_factor *= 0.1
-    metrics.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
+    if False:
+        is_win  = labels[:,18]
+        is_loss = labels[:,20]
+        pred_win  = tf.exp(predictions["outputs_poisson"][:,18])
+        pred_loss = tf.exp(predictions["outputs_poisson"][:,20])
+        
+        current_winloss_corr = corrcoef(is_win-is_loss, pred_win-pred_loss) 
+        metrics.update(collect_summary("regularization", "current_winloss_corr", mode, tensor=current_winloss_corr))
+        
+        pred_gs = predictions["outputs_poisson"][::2, 0]
+        gs_mean, gs_variance = tf.nn.moments(pred_gs, axes=[0])
+        # variance should be in the order of 1.0
+        #base_noise_factor /= tf.sqrt(tf.minimum(gs_variance, 0.1))
+        #base_noise_factor *= 0.01
+        #base_noise_factor *= 0.1
+        metrics.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
     return metrics
 
   def create_poisson_correlation_metrics(outputs, t_labels, mode, mask = None, section="poisson"):
@@ -1651,7 +1654,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       l_softmax = sequence_len_mask * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=rnn_labels_gsgc, logits=sm_logits)
 
       reg_eval_metric_ops={}
-      #reg_eval_metric_ops = create_model_regularization_metrics(eval_metric_ops, predictions, t_labels, mode)
+      reg_eval_metric_ops = create_model_regularization_metrics(eval_metric_ops, predictions, t_labels, mode)
       
       l_loglike_poisson = tf.reduce_sum(l_loglike_poisson, axis=2)
       loss = tf.reduce_mean(l_loglike_poisson)
@@ -2057,12 +2060,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def apply_prefix(predictions, prefix):
         return {prefix+k:v for k,v in predictions.items() }
       predictions = {}
-      predictions_1 = create_predictions(outputs_1[:,-1], logits_1[:,-1], t_is_home_bool, tc, True)
-      predictions.update(apply_prefix(predictions_1, "p1/"))
-      predictions_2 = create_predictions(outputs_2[:,-1], logits_2[:,-1], t_is_home_bool, tc, True)
-      predictions.update(apply_prefix(predictions_2, "p2/"))
-      predictions_12 = create_predictions(outputs_12[:,-1], logits_12[:,-1], t_is_home_bool, tc, True)
-      predictions.update(apply_prefix(predictions_12, "p12/"))
+      
+      def make_simple_predictions(outputs, logits, prefix, predictions):
+          predictions_x = create_predictions(outputs, logits, t_is_home_bool, tc, True)
+          predictions_x = apply_poisson_summary(predictions_x["p_pred_12"], t_is_home_bool, tc, predictions = predictions_x)
+          predictions_x = calc_probabilities(predictions_x["p_pred_12"], predictions_x)
+          create_laplacian_loss(predictions_x["p_pred_12"], alpha=1.0)
+          predictions.update(apply_prefix(predictions_x, prefix))
+          return predictions
+      
+      predictions = make_simple_predictions(outputs_1[:,-1], logits_1[:,-1], "p1/", predictions)  
+      predictions = make_simple_predictions(outputs_2[:,-1], logits_2[:,-1], "p2/", predictions)  
+      predictions = make_simple_predictions(outputs_12[:,-1], logits_12[:,-1], "p12/", predictions)  
+
       with tf.variable_scope("sp"):
           #predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp", apply_point_scheme=False)
           sp_predictions = create_quantile_scheme_prediction(outputs_1[:,-1], logits_1[:,-1], t_is_home_bool, tc, mode, prefix="sp")
@@ -2204,7 +2214,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
     eval_metric_ops.update(result_metrics)
     
-    sp_logits = outputs_1[:,-1]
+    sp_logits = 0.999 * tf.stop_gradient(outputs_1[:,-1]) + 1e-8 * outputs_1[:,-1]
     eval_loss_ops, sp_loss = create_losses_softpoints(sp_logits, labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
     with tf.variable_scope("t1"):
       eval_loss_ops, loss1 = create_losses_RNN(output_seq_1, match_history_t1_seqlen, labels, features["match_history_t1"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
@@ -2267,7 +2277,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     reg_gradients, reg_variables = zip(*reg_optimizer.compute_gradients(reg_loss))
     
 #    print(reg_gradients)
-#    print("reg gradient variables: ", reg_variables)
+    print("reg gradient variables: ", reg_variables)
 
     #exclude_list = ["CNN", "RNN", "Layer0", "Layer1", "Layer2", "Poisson"]
     exclude_list = []

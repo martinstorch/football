@@ -1779,7 +1779,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/sequential_pistor",
+      default="c:/Models/sequential_pistor",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
