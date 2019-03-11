@@ -1759,7 +1759,7 @@ if __name__ == "__main__":
       #default=["1213", "1314", "1415"], #
       #default=["1314", "1415", "1516"], #
       #default=["1415", "1516", "1617", "1718", "1819"], #
-      default=["0809", "0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
+      default=["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819"], #
       #default=["1415", "1516", "1617"], #
       #default=["1415", "1516", "1617", "1718"], #
       #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
@@ -1779,7 +1779,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="c:/Models/sequential_pistor",
+      default="c:/Models/sequential_pistor_2",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."

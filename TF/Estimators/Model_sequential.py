@@ -609,8 +609,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #
       rnn_cell = layers.StackedRNNCells([
           layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
+          layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
           layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=10.1)),
           ])
+
+      #rnn_cell = layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=1.1))
+      
       rnn_layer1 = layers.RNN(rnn_cell, return_sequences=True)
       rnn_layer2 = layers.RNN(rnn_cell, return_sequences=True)
       rnn_layer12 = layers.RNN(rnn_cell, return_sequences=True)
@@ -1575,7 +1579,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     return eval_metric_ops, loss
 
     
-  def create_losses_RNN(outputs, sequence_length, t_labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops):
+  def create_losses_RNN(outputs, sequence_length, t_labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops, suffix=""):
       tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
     
       outputs = tf.clip_by_value(outputs, -10, 10)
@@ -1699,10 +1703,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #tf.summary.scalar("loss", loss)
       
       eval_metric_ops = reg_eval_metric_ops
-      eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson", mode, tensor=l_loglike_poisson))
+      eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson"+suffix, mode, tensor=l_loglike_poisson))
 #      eval_metric_ops.update(collect_summary("losses", "l_softmax_1h", mode, tensor=l_softmax_1h))
 #      eval_metric_ops.update(collect_summary("losses", "l_softmax_2h", mode, tensor=l_softmax_2h))
-      eval_metric_ops.update(collect_summary("losses", "l_softmax", mode, tensor=l_softmax))
+      eval_metric_ops.update(collect_summary("losses", "l_softmax"+suffix, mode, tensor=l_softmax))
  
       eval_metric_ops.update(collect_summary("losses", "loss", mode, tensor=loss))
       eval_metric_ops.update(collect_summary("summary", "loss", mode, tensor=loss))
@@ -2216,12 +2220,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     sp_logits = 0.999 * tf.stop_gradient(outputs_1[:,-1]) + 1e-8 * outputs_1[:,-1]
     eval_loss_ops, sp_loss = create_losses_softpoints(sp_logits, labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
-    with tf.variable_scope("t1"):
-      eval_loss_ops, loss1 = create_losses_RNN(output_seq_1, match_history_t1_seqlen, labels, features["match_history_t1"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
-    with tf.variable_scope("t2"):
-      eval_loss_ops, loss2 = create_losses_RNN(output_seq_2, match_history_t2_seqlen, labels, features["match_history_t2"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
-    with tf.variable_scope("t12"):
-      eval_loss_ops, loss12 = create_losses_RNN(output_seq_12, match_history_t12_seqlen, labels, features["match_history_t12"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
+    eval_loss_ops, loss1 = create_losses_RNN(output_seq_1, match_history_t1_seqlen, labels, features["match_history_t1"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops, suffix="_1")
+    eval_loss_ops, loss2 = create_losses_RNN(output_seq_2, match_history_t2_seqlen, labels, features["match_history_t2"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops, suffix="_2")
+    eval_loss_ops, loss12 = create_losses_RNN(output_seq_12, match_history_t12_seqlen, labels, features["match_history_t12"], predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops, suffix="_12")
     
     loss = sp_loss+loss1+loss2+loss12
     #eval_metric_ops.update(eval_loss_ops)
