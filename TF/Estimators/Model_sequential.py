@@ -608,16 +608,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        return state[1] # use upper layer state
 #
       rnn_cell = layers.StackedRNNCells([
-          layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
-          layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
+          layers.LSTMCell(units=8, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
+          layers.LSTMCell(units=8, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
           layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=10.1)),
           ])
 
       #rnn_cell = layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=1.1))
       
-      rnn_layer1 = layers.RNN(rnn_cell, return_sequences=True)
-      rnn_layer2 = layers.RNN(rnn_cell, return_sequences=True)
-      rnn_layer12 = layers.RNN(rnn_cell, return_sequences=True)
+      rnn_layer1 = layers.RNN(rnn_cell, return_sequences=True, unroll=False)
+      rnn_layer2 = layers.RNN(rnn_cell, return_sequences=True, unroll=False)
+      rnn_layer12 = layers.RNN(rnn_cell, return_sequences=True, unroll=False)
       #print(output_seq_1)
 #      def rnn_histograms():
 #        def rnn_histogram(section, num, part, regularizer=None):
@@ -1356,38 +1356,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
           return predictions
   
-  def create_model_regularization_metrics(eval_metric_ops, predictions, labels, mode):
-    metrics = {}
-    for w in tf.get_collection(tf.GraphKeys.WEIGHTS):
-      wname = w.name[6:-2]
-      with tf.variable_scope("regularization"):
-        metrics.update(variable_summaries(w, wname, mode))
-      metrics.update(collect_summary("regularization", wname+"_L1", mode, tensor=tf.abs(w)))
-      metrics.update(collect_summary("regularization", wname+"_L2", mode, tensor=tf.square(w)))
-
-    l_tendencies = [tf.reduce_mean(predictions[p + "is_tendency"]) for p in prefix_list]
-    t_tendencies = tf.stack(l_tendencies)
-    current_tendency = tf.reduce_max(t_tendencies)
-    metrics.update(collect_summary("regularization", "current_tendency", mode, tensor=current_tendency))
-
-    if False:
-        is_win  = labels[:,18]
-        is_loss = labels[:,20]
-        pred_win  = tf.exp(predictions["outputs_poisson"][:,18])
-        pred_loss = tf.exp(predictions["outputs_poisson"][:,20])
-        
-        current_winloss_corr = corrcoef(is_win-is_loss, pred_win-pred_loss) 
-        metrics.update(collect_summary("regularization", "current_winloss_corr", mode, tensor=current_winloss_corr))
-        
-        pred_gs = predictions["outputs_poisson"][::2, 0]
-        gs_mean, gs_variance = tf.nn.moments(pred_gs, axes=[0])
-        # variance should be in the order of 1.0
-        #base_noise_factor /= tf.sqrt(tf.minimum(gs_variance, 0.1))
-        #base_noise_factor *= 0.01
-        #base_noise_factor *= 0.1
-        metrics.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
-    return metrics
-
   def create_poisson_correlation_metrics(outputs, t_labels, mode, mask = None, section="poisson"):
     metrics={}
     for i,col in enumerate(label_column_names):
@@ -1623,11 +1591,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       sm_logits = outputs[:,:,0:49] # softmax
       ps_logits = outputs[:,:,49:] # poisson
-      print(sm_logits)
-      print(ps_logits)
+      #print(sm_logits)
+      #print(ps_logits)
       
       rnn_labels = tf.concat([rnn_labels, tf.expand_dims(t_labels, axis=1)], axis=1)
-      print(rnn_labels)
+      #print(rnn_labels)
       
       rnn_labels_gs  = tf.cast(rnn_labels[:,:,0], tf.int32)
       rnn_labels_gc  = tf.cast(rnn_labels[:,:,1], tf.int32)
@@ -1636,12 +1604,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       rnn_labels_gc = tf.minimum(rnn_labels_gc,6)
       rnn_labels_gsgc = rnn_labels_gs * 7  + rnn_labels_gc      
       
-      # ignore matches 
+      # ignore matches before end of sequence
       sequence_len_mask = 1.0-tf.sequence_mask(maxseqlen-sequence_length, maxlen=maxseqlen, dtype=t_labels.dtype)
+      # ignore matches having all features and all labels zero
+      is_not_zero = tf.cast(tf.greater(tf.reduce_max(features, axis=2), 0.0), dtype=t_labels.dtype)
       
-      l_loglike_poisson = tf.expand_dims(sequence_len_mask, axis=2) * tf.nn.log_poisson_loss(targets=rnn_labels, log_input=ps_logits)
+      row_weight = tf.range(maxseqlen, dtype=tf.float32) / maxseqlen
+      row_weight = tf.exp(row_weight - 1.0)
+      row_weight = tf.expand_dims(row_weight, axis=0)
       
-      
+      l_loglike_poisson = tf.expand_dims(row_weight, axis=2) * tf.nn.log_poisson_loss(targets=rnn_labels, log_input=ps_logits)
+      l_loglike_poisson = tf.expand_dims(sequence_len_mask, axis=2) * l_loglike_poisson 
+      l_loglike_poisson = tf.expand_dims(is_not_zero, axis=2) * l_loglike_poisson 
+            
       #l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
       poisson_column_weights = tf.ones(shape=[1, 1, t_labels.shape[1]], dtype=t_labels.dtype)
       poisson_column_weights = tf.concat([
@@ -1655,11 +1630,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      l_softmax_1h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs_1h*7+gc_1h, logits=h1_logits)
 #      l_softmax_2h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs*7+gc, logits=h2_logits)
 
-      l_softmax = sequence_len_mask * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=rnn_labels_gsgc, logits=sm_logits)
+      l_softmax = is_not_zero * sequence_len_mask * row_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=rnn_labels_gsgc, logits=sm_logits)
 
-      reg_eval_metric_ops={}
-      reg_eval_metric_ops = create_model_regularization_metrics(eval_metric_ops, predictions, t_labels, mode)
-      
       l_loglike_poisson = tf.reduce_sum(l_loglike_poisson, axis=2)
       loss = tf.reduce_mean(l_loglike_poisson)
       
@@ -1668,17 +1640,28 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       loss += tf.reduce_mean(l_softmax) 
       
-      
-      #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
-      reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-      #reg_variables = tf.get_collection(tf.GraphKeys.WEIGHTS)
-      #print(reg_variables)
-      l_regularization = tf.zeros(shape=(), dtype=t_labels.dtype)
-      if (reg_variables):
-        #reg_term = tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, reg_variables)
-        for r in reg_variables:
-          reg_eval_metric_ops.update(collect_summary("regularization", r.name[6:-2], mode, tensor=r))
-          l_regularization += r
+      eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson"+suffix, mode, tensor=l_loglike_poisson))
+#      eval_metric_ops.update(collect_summary("losses", "l_softmax_1h", mode, tensor=l_softmax_1h))
+#      eval_metric_ops.update(collect_summary("losses", "l_softmax_2h", mode, tensor=l_softmax_2h))
+      eval_metric_ops.update(collect_summary("losses", "l_softmax"+suffix, mode, tensor=l_softmax))
+ 
+      return eval_metric_ops, loss
+
+  def create_model_regularization_metrics(eval_metric_ops, predictions, labels, mode):
+    reg_variables = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    l_regularization = tf.zeros(shape=(), dtype=labels.dtype)
+    for w in tf.get_collection(tf.GraphKeys.WEIGHTS):
+      wname = w.name[6:-2]
+      with tf.variable_scope("regularization"):
+        eval_metric_ops.update(variable_summaries(w, wname, mode))
+      eval_metric_ops.update(collect_summary("regularization", wname+"_L1", mode, tensor=tf.abs(w)))
+      eval_metric_ops.update(collect_summary("regularization", wname+"_L2", mode, tensor=tf.square(w)))
+
+    if (reg_variables):
+      #reg_term = tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, reg_variables)
+      for r in reg_variables:
+        eval_metric_ops.update(collect_summary("regularization", r.name[6:-2], mode, tensor=r))
+        l_regularization += r
 
 #        #print(reg_term)
 #        tf.summary.scalar("regularization/reg_term", reg_term)
@@ -1686,37 +1669,33 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      for r in reg_variables:
 #        tf.summary.scalar("regularization/"+r.name[6:-2], tf.contrib.layers.apply_regularization(GLOBAL_REGULARIZER, r))
 #        
-      if False:
-        loss += l_regularization
-      
-#      ### ensemble
-#      t_home_points = tf.stack([predictions[p+"z_points"][0::2] for p in ens_prefix_list], axis=1)
-#      t_away_points = tf.stack([predictions[p+"z_points"][1::2] for p in ens_prefix_list], axis=1)
-#      t_points = tf.concat([t_home_points, t_away_points], axis=1)
-#      t_ensemble_softpoints = t_weight[::2] * tf.reduce_sum(predictions["ens/p_ensemble"][0::2]*t_points, axis=1)
+    l_tendencies = [tf.reduce_mean(predictions[p + "is_tendency"]) for p in prefix_list]
+    t_tendencies = tf.stack(l_tendencies)
+    current_tendency = tf.reduce_max(t_tendencies)
+    eval_metric_ops.update(collect_summary("regularization", "current_tendency", mode, tensor=current_tendency))
 
-      #loss -= tf.reduce_mean(30*t_ensemble_softpoints)
-      # 30.1.2018
-#      loss -= tf.reduce_mean(10*t_ensemble_softpoints)
-      
-      loss = tf.identity(loss, "loss")
-      #tf.summary.scalar("loss", loss)
-      
-      eval_metric_ops = reg_eval_metric_ops
-      eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson"+suffix, mode, tensor=l_loglike_poisson))
-#      eval_metric_ops.update(collect_summary("losses", "l_softmax_1h", mode, tensor=l_softmax_1h))
-#      eval_metric_ops.update(collect_summary("losses", "l_softmax_2h", mode, tensor=l_softmax_2h))
-      eval_metric_ops.update(collect_summary("losses", "l_softmax"+suffix, mode, tensor=l_softmax))
- 
-      eval_metric_ops.update(collect_summary("losses", "loss", mode, tensor=loss))
-      eval_metric_ops.update(collect_summary("summary", "loss", mode, tensor=loss))
+    if False:
+        is_win  = labels[:,18]
+        is_loss = labels[:,20]
+        pred_win  = tf.exp(predictions["outputs_poisson"][:,18])
+        pred_loss = tf.exp(predictions["outputs_poisson"][:,20])
+        
+        current_winloss_corr = corrcoef(is_win-is_loss, pred_win-pred_loss) 
+        eval_metric_ops.update(collect_summary("regularization", "current_winloss_corr", mode, tensor=current_winloss_corr))
+        
+        pred_gs = predictions["outputs_poisson"][::2, 0]
+        gs_mean, gs_variance = tf.nn.moments(pred_gs, axes=[0])
+        # variance should be in the order of 1.0
+        #base_noise_factor /= tf.sqrt(tf.minimum(gs_variance, 0.1))
+        #base_noise_factor *= 0.01
+        #base_noise_factor *= 0.1
+        eval_metric_ops.update(collect_summary("regularization", "gs_variance", mode, tensor=gs_variance))
 
+    eval_metric_ops.update(collect_summary("losses", "l_regularization", mode, tensor=l_regularization))
+    eval_metric_ops.update(collect_summary("summary", "l_regularization", mode, tensor=l_regularization))
+    
+    return eval_metric_ops, l_regularization
 
-#      eval_metric_ops.update(collect_summary("losses", "t_ensemble_softpoints", mode, tensor=t_ensemble_softpoints))
-      eval_metric_ops.update(collect_summary("losses", "l_regularization", mode, tensor=l_regularization))
-      eval_metric_ops.update(collect_summary("summary", "l_regularization", mode, tensor=l_regularization))
-      
-      return eval_metric_ops, loss
 
   def create_f1_metrics(prefix, predictions, labels, labels2, t_is_home_bool, mode):      
     
@@ -2021,7 +2000,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     #labels = tf.cast(labels, tf.float32)
     alldata0 = tf.concat([alldata_placeholder[0:1]*0.0, alldata_placeholder], axis=0)
     alllabels0 = tf.concat([alllabels_placeholder[0:1]*0.0, alllabels_placeholder], axis=0)
-    def build_history_input(name):
+    
+    features_newgame = features["newgame"]
+    match_dates = 1000.0 * features_newgame[:,4+2*teams_count]
+
+    def build_history_input(name, max_date_diff=365):
       hist_idx = tf.cast(features[name], tf.int32)
       hist_idx = tf.concat([hist_idx, selected_batch], axis=1) # append current match as last one in the sequence
 #      print_op = tf.print(name, hist_idx[0:5], output_stream=sys.stdout)
@@ -2029,17 +2012,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       hist_idx = hist_idx+1
       data = tf.gather(params=alldata0, indices=hist_idx[:, 1:]) # use input data for new match
       labels = tf.gather(params=alllabels0, indices=hist_idx[:, :-1]) # with outputs from previous match
+      history_match_dates = 1000.0 * data[:,:,4+2*teams_count]
       features[name] = tf.concat([data, labels], axis=2)
       features[name] = tf.cast(features[name], tf.float32)
+      # set historic matches to zero which are more than one year ago: cut history between relegation and promotion of the same team
+      datediff = tf.expand_dims(match_dates, axis=1) - history_match_dates
+      within_range = tf.less(datediff, max_date_diff)
+      within_range = tf.expand_dims(within_range, axis=2)
+      within_range = tf.cast(within_range, tf.float32)
+      features[name] = within_range * features[name]
 
-    features_newgame = features["newgame"]
     match_history_t1_seqlen = 10*features_newgame[:,0]
     match_history_t2_seqlen = 10*features_newgame[:,2]
     match_history_t12_seqlen = 10*features_newgame[:,3]
   
     build_history_input("match_history_t1")
     build_history_input("match_history_t2")
-    build_history_input("match_history_t12")
+    build_history_input("match_history_t12", max_date_diff=3*365)
     
     with tf.variable_scope("Model"):
 
@@ -2226,11 +2215,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     loss = sp_loss+loss1+loss2+loss12
     #eval_metric_ops.update(eval_loss_ops)
+    eval_metric_ops, reg_loss = create_model_regularization_metrics(eval_metric_ops, predictions, labels, mode)
     
 #    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
 #    eval_metric_ops.update(eval_ae_loss_ops)
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "z_points" in k })
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "is_tendency" in k })
+
+    loss = tf.identity(loss, "loss")
+    eval_metric_ops.update(collect_summary("losses", "loss", mode, tensor=loss))
+    eval_metric_ops.update(collect_summary("summary", "loss", mode, tensor=loss))
 
     if mode == tf.estimator.ModeKeys.EVAL:
 #      for key, value in eval_metric_ops.items():
