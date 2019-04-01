@@ -1473,8 +1473,8 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
         plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
-      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
-        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+#      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
+#        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
       new_results = results.loc[results.dataset=="pred"]  
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
@@ -1487,8 +1487,8 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
 #  print("len(predictions[sp/p_pred_12])", len(predictions["sp/p_pred_12"]))
   if predictions is None:
     return []
-  if len(predictions["sp/p_pred_12"])==0:
-    return []
+#  if len(predictions["sp/p_pred_12"])==0:
+#    return []
   
   #features = features[:len(predictions)] # cut off features if not enough predictions are present
   #labels = labels[:len(predictions)] # cut off labels if not enough predictions are present
@@ -1659,7 +1659,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   from sklearn.base import BaseEstimator, TransformerMixin
   from sklearn import metrics
   from sklearn.metrics import confusion_matrix
-  from sklearn.decomposition import TruncatedSVD
+  from sklearn.decomposition import TruncatedSVD, IncrementalPCA, PCA
   from sklearn.ensemble import GradientBoostingClassifier
   #from sklearn.ensemble import VotingClassifier
   from sklearn.preprocessing import OneHotEncoder, LabelEncoder, LabelBinarizer
@@ -1691,20 +1691,23 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     Y_train = Y[train_idx]
     Y_test = Y[test_idx]
     
-    le = LabelEncoder()
-    le.fit(unique_labels(Y_train, Y_test))
-    Y_train0 = le.transform(Y_train)
-    Y_test0 = le.transform(Y_test)
-    pipeline.fit(X_train,Y_train0)
+#    le = LabelEncoder()
+#    le.fit(unique_labels(Y_train, Y_test))
+#    Y_train0 = le.transform(Y_train)
+##    Y_test0 = le.transform(Y_test)
+#    le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+#    print(le_name_mapping)
+
+    pipeline.fit(X_train,Y_train)
     print("Detailed classification report:")
     print()
-    print("The model is trained on a random sample of the development set.")
-    print()
-    print('Accuracy of Train Data :', pipeline.score(X_train,Y_train0))
-    print('Accuracy of Test Data :', pipeline.score(X_test,Y_test0))
+#    print("The model is trained on a random sample of the development set.")
+#    print()
+#    print('Accuracy of Train Data :', pipeline.score(X_train,Y_train0))
+#    print('Accuracy of Test Data :', pipeline.score(X_test,Y_test0))
     
-    y_true, y_pred0 = Y_test, pipeline.predict(X_test)
-    y_pred = le.inverse_transform(y_pred0)
+    y_true, y_pred = Y_test, pipeline.predict(X_test)
+    #y_pred = le.inverse_transform(y_pred0)
     print(Counter(y_pred))
     print(Counter(y_true))
     y_true = [classlabels[i] for i in y_true.astype(int)]
@@ -1728,8 +1731,9 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     for k in sparse_results.keys():
       print(k, " - ", sparse_results[k])
     
-    ty_true, ty_pred0 = Y_train, pipeline.predict(X_train)
-    ty_pred = le.inverse_transform(ty_pred0)
+    ty_true, ty_pred = Y_train, pipeline.predict(X_train)
+    print(Counter(ty_pred))
+    #ty_pred = le.inverse_transform(ty_pred0)
     ty_true = [classlabels[i] for i in ty_true.astype(int)]
     ty_pred = [classlabels[i] for i in ty_pred.astype(int)]
 
@@ -1758,7 +1762,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
       
     return pipeline.predict_proba(X), ul
 
-  def visualize_results(proba, used_labels, idx_train, idx_test):
+  def visualize_results(proba, used_labels, prefix, idx_train, idx_test, idx_pred=[]):
 
     p_pred_12 = np.zeros(dtype=np.float32, shape=[proba.shape[0], 49])
     reverse_mapping={}
@@ -1773,7 +1777,6 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   #  print(p_pred_12.shape)
   #  print(p_pred_12.reshape(-1,7,7).shape)
   #  print(np.sum(p_pred_12.reshape(-1,7,7), axis=1).shape)
-    prefix="sp/"  
     pred={}
     pred[prefix+"p_pred_12"] = p_pred_12
     pred[prefix+"ev_points"] = p_pred_12
@@ -1792,9 +1795,9 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     pGC = np.mod(pgsgc, 7)
     pred[prefix+"pred"] = np.stack([pGS, pGC], axis=1)
     
-    data_index = idx_train + idx_test
+    data_index = idx_train + idx_test + idx_pred
   #  print("len(data_index)", len(data_index))
-    data_set = ["train"]*len(idx_train)+["test"]*len(idx_test)
+    data_set = ["train"]*len(idx_train)+["test"]*len(idx_test)+["pred"]*len(idx_pred)
     features_batch = features_arrays['match_input_layer'][data_index]
     labels_batch = labels_array[data_index]
     predictions = {k:np.array([v[i] for i in data_index]) for k,v in pred.items()}
@@ -1805,6 +1808,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     results = pd.concat(results, sort=False)
   #  print(results)
     plot_checkpoints(results, predictions, prefix=prefix)
+    return results
 
   
   class PrintMessage(BaseEstimator, TransformerMixin):
@@ -1841,10 +1845,13 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
           return X[:,self._slice]
         else:
           return X.tocsr()[:,self._slice]
+
   class TransformerLinearDiscriminantAnalysis(LinearDiscriminantAnalysis):
-      def __init__(self, mode=0, **params):
+
+      def __init__(self, _transform=False, mode=0, **params):
         super().__init__(**params)
         self.mode = mode
+        self._transform = _transform
         
       def fit(self, X, y):
         gs = y//7
@@ -1853,14 +1860,20 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
           y = np.sign(gs-gc)       
         elif self.mode==1:
           y = gs-gc          
+          y = np.maximum(-6, y)
+          y = np.minimum(6, y)
         super().fit(X,y)
         return self
   
       def transform(self, X, *_):
-        p_pred_12 = super().predict_proba(X)
-        return p_pred_12#-np.mean(p_pred_12)
+        if self._transform:
+          p_pred_12 = super().predict_proba(X)
+          return p_pred_12#-np.mean(p_pred_12)
+        else:
+          return super().transform(X)
     
   class TransformerQuadraticDiscriminantAnalysis(QuadraticDiscriminantAnalysis):
+
       def __init__(self, mode=0, **params):
         super().__init__(**params)
         self.mode = mode
@@ -1872,43 +1885,39 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
           y = np.sign(gs-gc)       
         elif self.mode==1:
           y = gs-gc          
+          y = np.maximum(-6, y)
+          y = np.minimum(6, y)
         super().fit(X,y)
         return self
   
       def transform(self, X, *_):
         p_pred_12 = super().predict_proba(X)
         return p_pred_12#-np.mean(p_pred_12)
+      
+  class MyTruncatedSVD(TruncatedSVD):
+      def __init__(self, **params):
+        super().__init__(**params)
+        
+      def fit(self, X, y):
+        print("MyTruncatedSVD.fit()")
+        super().fit(X,y)
+        return self
+      def fit_transform(self, X, y=None):
+        print("MyTruncatedSVD.fit_transform()")
+        return super().fit_transform(X,y)
+        
+      def transform(self, X, *_):
+        print("MyTruncatedSVD.transform()")
+        return super().transform(X)
+
     
-    
-#  class LabelOneHotTransformer(BaseEstimator, TransformerMixin):
-#      def __init__(self):
-#        self.oh = OneHotEncoder(categories='auto') 
-#        self.oh = self.oh.fit(np.array([i for i in range(49)]).reshape((-1,1)))
-#        #print("init:", self.oh.get_params())
-#        #print(self.oh.categories_)
-#      
-#      def fit(self, X, y, *_):
-#        self.oh = self.oh.fit(np.array([[i] for i in range(49)]))
-#        #print("fit:", self.oh.get_params())
-#        #print(self.oh.categories_)
-#        return self
-#  
-#      def transform(self, X, y=None):
-#        #print("transform:", self.oh.get_params())
-#        if y is None:
-#          return X
-#        else:
-#          y = self.oh.transform(y)
-#          #print(y.shape)
-#          #print(y)
-#          return X, y
 
   X = features_arrays['match_input_layer']
   ncol = X.shape[1]
   X_hist = np.concatenate([
-      X[features_arrays['match_history_t1']],
-      X[features_arrays['match_history_t2']],
-      X[features_arrays['match_history_t12']]], axis=1)
+      X[features_arrays['match_history_t1']][:,0:30,:],
+      X[features_arrays['match_history_t2']][:,0:30,:],
+      X[features_arrays['match_history_t12']][:,0:6,:]], axis=1)
   #print(X[features_arrays['match_history_t1']].shape)
   #print(X_hist.shape)
   X_hist = X_hist.reshape((-1, X_hist.shape[1]*X_hist.shape[2]))
@@ -1917,24 +1926,25 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   
   pca1 = Pipeline([
       ("cs", ColumnSelector(slice(0,ncol))),
-      ("pca1", TruncatedSVD(n_components=30))
+      ("pca1", IncrementalPCA(n_components=6, whiten=False))
       ])
   
-  pca2 = Pipeline([
-      ("cs", ColumnSelector(slice(ncol))),
-      ("pca2", TruncatedSVD(n_components=60))])
+#  pca2 = Pipeline([
+#      ("cs", ColumnSelector(slice(ncol, None))),
+#      ("pca2", IncrementalPCA(n_components=5, whiten=False))])
   
   pca = FeatureUnion([
       ("pca1",pca1),
-      ("pca2",pca2),
+      #("pca2",pca2),
       ])
-  
-  combined_features = Pipeline([
-      #("lenc", LabelBinarizer()),
-      ("fu", FeatureUnion([("all", IdentityTransformer()), 
-                                    ("pca", pca),
-                                    ]))
-      ])
+  #pca = TruncatedSVD(n_components=50)
+#  combined_features = Pipeline([
+#      #("lenc", LabelBinarizer()),
+#      ("fu", FeatureUnion([#("all", IdentityTransformer()), 
+#          #("cs", ColumnSelector(slice(0,ncol))),
+#          ("pca", pca),
+#          ]))
+#      ])
   #import sklearn.preprocessing as preprocessing
   #Y = [classlabels[min(48,int(i))] for i in Y]
   #print(Y)
@@ -1947,61 +1957,81 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
 #                                          validation_fraction=0.1,
 #                                          n_iter_no_change=10
 #                                          )
-  lda = TransformerLinearDiscriminantAnalysis(solver="eigen", shrinkage="auto", n_components=20)
-  lda2 = TransformerLinearDiscriminantAnalysis(mode=2, solver="svd", shrinkage=None, n_components=20)
-  lda3 = TransformerLinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto", n_components=40)
-  qda = QuadraticDiscriminantAnalysis(reg_param=0.0)
-  
-  fu1 = FeatureUnion([
-                      ("m0", TransformerLinearDiscriminantAnalysis(mode=0, solver="eigen", shrinkage="auto", n_components=5)),
-                      ("m1", TransformerLinearDiscriminantAnalysis(mode=1, solver="eigen", shrinkage="auto", n_components=2)),
-                      ("m2", TransformerLinearDiscriminantAnalysis(mode=2, solver="eigen", shrinkage="auto", n_components=3)),
-                      ])
-
-  fu2 = FeatureUnion([
-                      ("m0", TransformerLinearDiscriminantAnalysis(mode=0, solver="svd", shrinkage=None, n_components=20)),
-                      ("m1", TransformerLinearDiscriminantAnalysis(mode=1, solver="svd", shrinkage=None, n_components=20)),
-                      ("m2", TransformerLinearDiscriminantAnalysis(mode=2, solver="svd", shrinkage=None, n_components=20)),
-                      ])
-
-  fu4 = FeatureUnion([
-                      #("m0", TransformerQuadraticDiscriminantAnalysis(mode=0, reg_param=0.0)),
-                      ("m1", TransformerQuadraticDiscriminantAnalysis(mode=1, reg_param=0.0)),
-                      ("m2", TransformerQuadraticDiscriminantAnalysis(mode=2, reg_param=0.0)),
-                      ])
-  pipeline1 = Pipeline([("cf", combined_features),
-                       ("lda1", fu1),
-                       #("pm", PrintMessage())
-                       ])
-
-  pipeline2 = Pipeline([("cf", combined_features),
-                       ("lda2", fu2),
-                       #("pm", PrintMessage())
-                       ])
-
-  pipeline3 = Pipeline([("cf", combined_features),
-                       ("lda3", lda3),
-                       #("pm", PrintMessage())
-                       ])
-
-  pipeline4 = Pipeline([("cf", combined_features),
-                       ("qa", fu4),
-                       #("pm", PrintMessage())
-                       ])
-#  pipeline3 = Pipeline([("cf", combined_features),
-#                        ("vt", VarianceThreshold()),
-#                       ("qda", qda),
+#  lda = TransformerLinearDiscriminantAnalysis(solver="eigen", shrinkage="auto", n_components=20)
+#  lda2 = TransformerLinearDiscriminantAnalysis(mode=2, solver="svd", shrinkage=None, n_components=20)
+#  lda3 = TransformerLinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto", n_components=40)
+#  qda = QuadraticDiscriminantAnalysis(reg_param=0.0)
+#  
+#  fu1 = FeatureUnion([
+#                      #("m0", TransformerLinearDiscriminantAnalysis(mode=0, solver="eigen", shrinkage="auto", n_components=5)),
+#                      ("m1", TransformerLinearDiscriminantAnalysis(mode=1, solver="eigen", shrinkage="auto", n_components=2)),
+#                      ("m2", TransformerLinearDiscriminantAnalysis(mode=2, solver="eigen", shrinkage="auto", n_components=4)),
+#                      ])
+#
+#  fu2 = FeatureUnion([
+#                      #("m0", TransformerLinearDiscriminantAnalysis(mode=0, solver="svd", shrinkage=None, n_components=20)),
+#                      ("m1", TransformerLinearDiscriminantAnalysis(mode=1, solver="svd", shrinkage=None, n_components=2)),
+#                      ("m2", TransformerLinearDiscriminantAnalysis(mode=2, solver="svd", shrinkage=None, n_components=4)),
+#                      ])
+#
+#  fu3 = FeatureUnion([
+#                      #("m0", TransformerLinearDiscriminantAnalysis(mode=0, solver="lsqr", shrinkage="auto", n_components=20)),
+#                      ("m1", TransformerLinearDiscriminantAnalysis(mode=1, solver="lsqr", shrinkage="auto", n_components=2)),
+#                      ("m2", TransformerLinearDiscriminantAnalysis(mode=2, solver="lsqr", shrinkage="auto", n_components=4)),
+#                      ])
+#  fu4 = FeatureUnion([
+#                      #("m0", TransformerQuadraticDiscriminantAnalysis(mode=0, reg_param=0.0)),
+#                      ("m1", TransformerQuadraticDiscriminantAnalysis(mode=1, reg_param=0.0)),
+#                      ("m2", TransformerQuadraticDiscriminantAnalysis(mode=2, reg_param=0.0)),
+#                      ])
+#  pipeline1 = Pipeline([("cf", combined_features),
+#                       ("lda1", fu1),
 #                       #("pm", PrintMessage())
 #                       ])
+#
+#  pipeline2 = Pipeline([("cf", combined_features),
+#                       ("lda2", fu2),
+#                       #("pm", PrintMessage())
+#                       ])
+#
+#  pipeline3 = Pipeline([("cf", combined_features),
+#                       ("lda3", fu3),
+#                       #("pm", PrintMessage())
+#                       ])
+#
+#  pipeline4 = Pipeline([("cf", combined_features),
+#                       ("qa", fu4),
+#                       #("pm", PrintMessage())
+#                       ])
+##  pipeline3 = Pipeline([("cf", combined_features),
+##                        ("vt", VarianceThreshold()),
+##                       ("qda", qda),
+##                       #("pm", PrintMessage())
+##                       ])
 
-  combined_predictions = FeatureUnion([
-                                    ("is_home", ColumnSelector(slice(1,2))),
-                                    #("lda3", pipeline3), 
-                                    #("lda2", pipeline2),
-                                    #("lda1", pipeline1),
-                                    #("qda", pipeline4),
-                                    ("pca", pca),
-                                    ])
+  combined_predictions = \
+    FeatureUnion([
+        #("is_home", ColumnSelector(slice(1,2))),
+        ("pca", pca),
+        ("lda", Pipeline([
+          #("cs", ColumnSelector(slice(0,ncol))),
+          ("pca", pca),
+#          ("fu", FeatureUnion([
+            #("m00", TransformerLinearDiscriminantAnalysis(mode=0, solver="eigen", shrinkage="auto", n_components=3)),
+            #("m01", TransformerLinearDiscriminantAnalysis(mode=1, solver="eigen", shrinkage="auto", n_components=3)),
+            #("m02", TransformerLinearDiscriminantAnalysis(mode=2, solver="eigen", shrinkage="auto", n_components=3)),
+            #("m10", TransformerLinearDiscriminantAnalysis(mode=0, solver="svd", shrinkage=None, n_components=3)),
+            #("m11", TransformerLinearDiscriminantAnalysis(mode=1, solver="svd", shrinkage=None, n_components=3)),
+            #("m12", TransformerLinearDiscriminantAnalysis(mode=2, solver="svd", shrinkage=None, n_components=3)),
+            #("m20", TransformerLinearDiscriminantAnalysis(_transform=True, mode=0, solver="lsqr", shrinkage="auto", n_components=3)),
+#            ("m21", TransformerLinearDiscriminantAnalysis(_transform=True, mode=1, solver="lsqr", shrinkage="auto", n_components=4)),
+            #("m22", TransformerLinearDiscriminantAnalysis(_transform=True, mode=2, solver="lsqr", shrinkage="auto", n_components=2)),
+#            ("m30", TransformerQuadraticDiscriminantAnalysis(mode=0, reg_param=0.0)),
+#            ("m31", TransformerQuadraticDiscriminantAnalysis(mode=1, reg_param=0.0)),
+#            ("m32", TransformerQuadraticDiscriminantAnalysis(mode=2, reg_param=0.0)),
+#            ]))
+          ]))
+      ])
 
 
 #  pipeline = VotingClassifier(estimators=[('gtb', pipeline1), 
@@ -2131,7 +2161,8 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
         softpoints = achievable_points * model.output  
         #print("softpoints",softpoints)
         softpoints_loss = -K.mean(K.sum(softpoints, axis=1))
-        return softpoints_loss+create_laplacian_loss(model.output, alpha=0.01)
+        alpha = 0.02
+        return softpoints_loss+create_laplacian_loss(model.output, alpha=alpha)
       # Return a function
       return loss
     
@@ -2158,9 +2189,41 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   val_data = combined_predictions.transform(X[test_idx])
   print("val_data", val_data.shape)
   print("X0shape", X0shape)
+  from matplotlib.colors import ListedColormap
+  mapped_test = combined_predictions.transform(X[test_idx])[::2]
+  mapped_train = combined_predictions.transform(X[train_idx])[::2]
+  col_train = np.sign(labels_array[train_idx,0]-labels_array[train_idx,1])[::2]
+  col_test = np.sign(labels_array[test_idx,0]-labels_array[test_idx,1])[::2]
+  cmap = ListedColormap(['r', 'g', 'b'])
+  #fig = plt.figure(figsize=(8,8))
+  fig, ax = plt.subplots(3,2,figsize=(12, 20))
+  ax[0,0].scatter(mapped_train[:,0], mapped_train[:,1],alpha=0.1,c=col_train, marker='o', cmap=cmap)
+  ax[0,1].scatter(mapped_test[:,0], mapped_test[:,1],alpha=0.1,c=col_test, marker='o', cmap=cmap)
+  ax[1,0].scatter(mapped_train[:,0], mapped_train[:,2],alpha=0.1,c=col_train, marker='o', cmap=cmap)
+  ax[1,1].scatter(mapped_test[:,0], mapped_test[:,2],alpha=0.1,c=col_test, marker='o', cmap=cmap)
+  ax[2,0].scatter(mapped_train[:,1], mapped_train[:,2],alpha=0.1,c=col_train, marker='o', cmap=cmap)
+  ax[2,1].scatter(mapped_test[:,1], mapped_test[:,2],alpha=0.1,c=col_test, marker='o', cmap=cmap)
+  plt.show()
+  plt.close()
+  
 
+#  print(combined_predictions.get_params(True).keys())
+#  evr1 = combined_predictions.get_params(True)['pca__pca1__pca1'].explained_variance_ratio_
+#  #evr2 = combined_predictions.get_params(True)['pca__pca2__pca2'].explained_variance_ratio_
+#  print('pca__pca1__pca1 ', evr1, sum(evr1))
+#  #print('pca__pca2__pca2 ', evr2, sum(evr2))
 
-  def build_fn(optimizer="Adam", learning_rate=1e-3, weight_decay=0.01, layers=3, units=32, dropout_rate=0.05):
+  #print(combined_predictions.get_params(True))
+  def export_predictions(results):
+    results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
+#      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
+#        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+    new_results = results.loc[results.dataset=="pred"]  
+    with open(model_dir+'/new_predictions_df.csv', 'a') as f:
+      new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+
+  def build_fn(optimizer="Adam", learning_rate=3e-2, weight_decay=0.02, layers=2, units=16, dropout_rate=0.01):
     print(optimizer, learning_rate, layers, units, dropout_rate)
     num_classes = 49
     # Create model instance.
@@ -2202,7 +2265,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
         y = self.oh.transform(y.reshape(-1, 1))
         super().score(x, y, **kwargs)
   
-  keras_clf = OneHotKerasClassifier(build_fn=build_fn, verbose=1, epochs=40, 
+  keras_clf = OneHotKerasClassifier(build_fn=build_fn, verbose=1, epochs=80, 
                               batch_size=256, validation_split=0.1,
   )
   
@@ -2229,7 +2292,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   
   #eval_new_sample(X[::2], Y[::2], pipeline)
   
-  keras_clf2 =  OneHotKerasClassifier(build_fn=build_fn, verbose=1, epochs=200, batch_size=2048)
+  keras_clf2 =  OneHotKerasClassifier(build_fn=build_fn, verbose=1, epochs=400, batch_size=2048)
   fixed_pipeline = Pipeline([
       ("features", combined_predictions),
       ("pm", PrintMessage()),
@@ -2242,15 +2305,18 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   fixed_pipeline.set_params(ens__validation_data=(val_data, val_labels))
   
   proba, used_labels = eval_new_sample(X, Y, fixed_pipeline, (train_idx, test_idx))
-  visualize_results(proba, used_labels, train_idx, test_idx)
-  
+  results = visualize_results(proba, used_labels, "fx/", train_idx, test_idx, pred_idx)
+  export_predictions(results)
+
   proba, used_labels = eval_new_sample(X, Y, pipeline, (train_idx, test_idx))
-  visualize_results(proba, used_labels, train_idx, test_idx)
+  results = visualize_results(proba, used_labels, "pp/", train_idx, test_idx, pred_idx)
+  export_predictions(results)
 
   #print(pipeline.get_params(True))
 
   proba, used_labels = eval_new_sample(X, Y, pipeline, (train_idx[::2], test_idx[::2]))
-  visualize_results(proba, used_labels, train_idx[::2], test_idx[::2])
+  results = visualize_results(proba, used_labels, "home/", train_idx[::2], test_idx[::2], pred_idx)
+  export_predictions(results)
 
   #print(pipeline.get_params(True))
 
