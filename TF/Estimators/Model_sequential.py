@@ -26,12 +26,12 @@ GLOBAL_REGULARIZER = l2_regularizer(scale=0.1)
 MINOR_REGULARIZER = l2_regularizer(scale=0.005)
 #plot_list = ["cp/", "cp2/", "sm2/", "pg2/", "av/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
 #prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/", "av/"]
-plot_list = ["p1/", "p2/", "p12/", "pg2/", "pgpt/", "sp/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
-prefix_list = ["p1/", "p2/", "p12/", "pg2/", "pgpt/", "sp/"]
+plot_list = ["p1/", "p2/", "av/", "p12/", "pg2/", "pgpt/", "sp/", "av2/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
+prefix_list = ["p1/", "p2/", "av/", "p12/", "pg2/", "pgpt/", "sp/", "av2/"]
 #ens_prefix_list = ["pg/", "pgpt/", "pghb/", "ps/", "pspt/", "sp/", "smpt/", "cp/", "cp2/"]
 ens_prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/"]
 #segmentation_strategies = {"cp":"cp2", "pg":"pg2"}
-segmentation_strategies = {"pg":"pg2"}
+segmentation_strategies = {"pg":"pg2", "av":"av2"}
 point_scheme = None
 
 #MINOR_REGULARIZER = l2_regularizer(scale=0.0)
@@ -563,10 +563,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           return tf.sigmoid(x)
 
       def tanhStochastic(x):
-        if False and mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == tf.estimator.ModeKeys.TRAIN:
           #print("tanh sampling")
-          return tanhSample(passThroughSigmoid(x))
-          #return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
+          #return tanhSample(passThroughSigmoid(x))
+          return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.01), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
         else:
           #print("tanh smooth")
           return tf.tanh(x)
@@ -608,9 +608,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        return state[1] # use upper layer state
 #
       rnn_cell = layers.StackedRNNCells([
-          layers.LSTMCell(units=8, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
-          layers.LSTMCell(units=8, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
-          layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=10.1)),
+          layers.LSTMCell(units=128, 
+                          dropout=0.05, recurrent_dropout=0.05, 
+                          activation=tanhStochastic,
+                          recurrent_activation=tanhStochastic,
+                          kernel_regularizer=l2_regularizer(scale=0.1), 
+                          recurrent_regularizer=l2_regularizer(scale=0.1)),
+#          layers.LSTMCell(units=128, dropout=0.25, recurrent_dropout=0.15, kernel_regularizer=l2_regularizer(scale=1.1), recurrent_regularizer=l2_regularizer(scale=1.1)),
+          layers.LSTMCell(units=49+output_size, 
+                          activation=tf.nn.tanh, recurrent_activation=tanhStochastic,
+                          kernel_regularizer=l2_regularizer(scale=0.1), 
+                          recurrent_regularizer=l2_regularizer(scale=0.1)),
           ])
 
       #rnn_cell = layers.LSTMCell(units=49+output_size, activation=tf.nn.tanh, kernel_regularizer=l2_regularizer(scale=10.1), recurrent_regularizer=l2_regularizer(scale=1.1))
@@ -1329,9 +1337,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
           X = tf.stop_gradient(X)
           with tf.variable_scope("Layer1"):
-            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
+            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.tanh) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
           with tf.variable_scope("Layer2"):
-            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.relu) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
+            X,_ = build_dense_layer(X, output_size=10, mode=mode, regularizer = None, keep_prob=0.5, batch_norm=True, activation=tf.nn.tanh) #, eval_metric_ops=None, use_bias=None, add_term=None, batch_scale=True)        
           with tf.variable_scope("Layer3"):
             X,_ = build_dense_layer(X, output_size=49, mode=mode, regularizer = None, keep_prob=1.0, batch_norm=False, activation=None)
           
@@ -2065,6 +2073,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       predictions = make_simple_predictions(outputs_1[:,-1], logits_1[:,-1], "p1/", predictions)  
       predictions = make_simple_predictions(outputs_2[:,-1], logits_2[:,-1], "p2/", predictions)  
       predictions = make_simple_predictions(outputs_12[:,-1], logits_12[:,-1], "p12/", predictions)  
+      predictions = make_simple_predictions(outputs_1[:,-1]+outputs_2[:,-1], logits_1[:,-1]+logits_2[:,-1], "av/", predictions)  
 
       with tf.variable_scope("sp"):
           #predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp", apply_point_scheme=False)

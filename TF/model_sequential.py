@@ -1691,7 +1691,7 @@ def main(_):
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                         "pg2":[(2, 20, 48), 15, (11, 3, 1), (20, 20, 80)],
-                        "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                        "av2":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
         # Sky
@@ -1699,7 +1699,7 @@ def main(_):
                       "sp":[(6, 10, 58), 1, (19, 5, 2), (10, 10, 90)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                       "pg2":[(2, 8, 70), 1, (13, 4, 2), (30, 30, 70)],
-                      "av":[(7, 15, 48), 0, (23, 5, 2), (30, 30, 70)],
+                      "av2":[(7, 15, 48), 0, (23, 5, 2), (30, 30, 70)],
                     }
     else:
         raise("Wrong system")
@@ -1779,7 +1779,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/sequential_pistor_2",
+      default="c:/Models/sequential_pistor_4",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."

@@ -1469,8 +1469,8 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
         plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
-      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
-        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+#      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
+#        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
       new_results = results.loc[results.dataset=="pred"]  
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
@@ -1721,8 +1721,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1738,8 +1738,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
-      #default=1000,
+      #default=200,
+      default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1779,8 +1779,8 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/laplace_pistor",
-      #default="c:/Models/laplace_sky",
+      #default="d:/Models/laplace_pistor",
+      default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )

@@ -20,11 +20,11 @@ human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
 
 predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
-predictions_file<-"D:\\Models\\conv1_auto_pistor3//all_predictions_df.csv"
+predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
-cut_off_level_low<-1.15
+cut_off_level_low<-1.2
 cut_off_level_high<-2.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
@@ -35,10 +35,12 @@ predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset25.csv"
 predictions_file<-"D:\\Models\\conv1_auto_sky4//new_predictions_df.csv"
 
 predictions_file<-"c:\\Models\\conv1_auto_sky5//new_predictions_df.csv"
+predictions_file<-"c:\\Models\\laplace_sky//new_predictions_df.csv"
 
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)
 
+predictions_data<-predictions_data%>%filter(train>cut_off_level_low & test>cut_off_level_low)
 
 table(predictions_data$pred)
 table(predictions_data$pred, predictions_data$Prefix)
@@ -105,7 +107,7 @@ g + geom_density(aes(fill=Prefix), alpha=0.5) +
 # http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
 
 # test ~ train  - points and ellipsis summary
-pp<-point_data %>%filter(!is.na(test), !is.na(train), Prefix!="cp1")%>%mutate(Prefix=factor(Prefix))
+pp<-point_data %>%filter(!is.na(test), !is.na(train), Prefix!="cp1") # %>%mutate(Prefix=factor(Prefix))
 plot(test~train, data=pp, col=Prefix, pch=as.integer(Prefix))
 legend("bottomright", legend = levels(pp$Prefix), horiz = T, text.col = as.integer(pp$Prefix),
        pch = as.integer(pp$Prefix), col = as.integer(pp$Prefix))
@@ -133,7 +135,7 @@ evaluate<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
-  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pg2", "pspt", "pgpt"))
+  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pg2", "pspt", "pgpt", "cp2"))
   #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
