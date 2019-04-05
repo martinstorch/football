@@ -732,13 +732,13 @@ gridscope<-levels(alldata$season)#[-2]
 
 gridscope<-train_seasons
 traindata <- alldata%>%filter(season %in% gridscope)
-#traindata <- alldata%>%filter(spieltag %in% 18:34)
+traindata <- alldata%>%filter(spieltag %in% 10:24)
 quotes <- 1/traindata[,c('BWH', 'BWD', 'BWA')]
 #quotes <- 1/traindata[,c('B365H', 'B365D', 'B365A')]
 quotes <- quotes / rowSums(quotes)
 
 testdata <- alldata%>%filter(season %in% test_seasons)
-#testdata <- alldata%>%filter(!spieltag %in% 18:34)
+testdata <- alldata%>%filter(!spieltag %in% 10:24)
 testquotes <- 1/testdata[,c('BWH', 'BWD', 'BWA')]
 #testquotes <- 1/testdata[,c('B365H', 'B365D', 'B365A')]
 testquotes <- testquotes / rowSums(testquotes)
@@ -903,19 +903,19 @@ p_points<-function(pHG, pAG, FTHG, FTAG){
 
 
 newdata<-matrix(ncol=3, byrow = T, 
-                c(2.2, 3.5, 3.25,
-                  3.2, 3.4, 2.25,
+                c(2.2, 3.4, 3.3,
+                  3.3, 3.4, 2.2,
                   2.35, 3.6, 2.85,
                   1.8, 3.7, 4.5,
                   1.9, 3.6, 4.1,
-                  1.36, 5.0, 8.5,
-                  1.55, 5.0, 5.0,
+                  1.36, 5.25, 8.25,
+                  1.53, 4.6, 5.5,
                   3.7, 4.25, 1.85,
                   2.1, 3.6, 3.4
 ))
 
-#point_system<-"pistor"
-point_system<-"sky"
+point_system<-"pistor"
+#point_system<-"sky"
 colnames(newdata)<-c("BWH", "BWD", "BWA")
 newquotes <- 1/newdata
 print(newquotes)
@@ -929,7 +929,7 @@ newdata<-data.frame(X1=predict(model, newquotes))
 newdata$X1<-newdata$X1*orientation$X1
 
 l <- nrow(traindata)
-plot(seq_along(traindata$X1)/l, sort(traindata$X1), pch=".", axes=F)
+plot(seq_along(traindata$X1)/l, sort(traindata$X1), axes=F, col="forestgreen", pch=".", type="l")
 axis(1,at=seq(0,1,0.05),labels=T)
 axis(2,labels=T)
 
@@ -942,13 +942,14 @@ best<-q %>% arrange_(.dots=paste0("desc(", point_system, ")")) %>% head(20)
 
 segments(x0 = best$away, x1 = (best$draw+best$away), 
          y0=quantile(traindata$X1, best$away) , 
-         y1=quantile(traindata$X1, best$draw+best$away), col="tan2")
+         y1=quantile(traindata$X1, best$draw+best$away), col="darkolivegreen1")
 segments(x0 = best$away, x1 = (best$draw+best$away), 
          y0=quantile(traindata$X1, best$away) , 
-         y1=quantile(traindata$X1, best$away), col="tan2")
+         y1=quantile(traindata$X1, best$away), col="darkolivegreen1")
+points(x = (best$draw+best$away), y=quantile(traindata$X1, best$away), col="darkolivegreen1")
 
 ltest <- nrow(testdata)
-points(seq_along(testdata$X1)/ltest, sort(testdata$X1), pch=".", col="forestgreen", type="l", lwd=2)
+points(seq_along(testdata$X1)/ltest, sort(testdata$X1), col="tan2", type="l", lwd=2)
 
 testperc<-sapply(newdata$X1, function(x) sum(testdata$X1 < x))
 abline(v=testperc/ltest, col="yellowgreen", lty=3)
@@ -959,10 +960,11 @@ testbest<-qtest %>% arrange_(.dots=paste0("desc(", point_system, ")")) %>% head(
 
 segments(x0 = testbest$away, x1 = (testbest$draw+testbest$away), 
          y0=quantile(testdata$X1, testbest$away) , 
-         y1=quantile(testdata$X1, testbest$draw+testbest$away), col="lightblue")
+         y1=quantile(testdata$X1, testbest$draw+testbest$away), col="orange")
 segments(x0 = testbest$away, x1 = (testbest$draw+testbest$away), 
          y0=quantile(testdata$X1, testbest$draw+testbest$away) , 
-         y1=quantile(testdata$X1, testbest$draw+testbest$away), col="lightblue")
+         y1=quantile(testdata$X1, testbest$draw+testbest$away), col="orange")
+points(x = testbest$away, y=quantile(testdata$X1, testbest$draw+testbest$away), col="orange")
 
 text(perc/l, newdata$X1+0.3, 1:nrow(newdata), col="red")
 text(testperc/ltest, newdata$X1+0.3, 1:nrow(newdata), col="blue")
@@ -1003,17 +1005,17 @@ testseq<-make_cumsum(testseq, qtest, point_system)
 
 par(new = T)
 yrange <- rbind(trainseq, testseq) %>% summarise(min=min(cp1, cp2, cp20), max=max(cp1, cp2, cp20))
-plot(cp1~q, data = testseq, type="l", axes=F, xlab=NA, ylab=NA, col="tomato", lwd=2, ylim=c(yrange$min, yrange$max))
+plot(cp1~q, data = testseq, type="l", axes=F, xlab=NA, ylab=NA, col="tomato", lwd=2, ylim=c((yrange$min+yrange$max)/2, yrange$max))
 points(cp2~q, data = testseq, type="l", col="cornflowerblue", lwd=2)
 points(cp20~q, data = testseq, type="l", col="darkgreen", lwd=2, lty=3)
 points(cp02~q, data = testseq, type="l", col="darkgray", lwd=2, lty=2)
-abline(h=testbest1[,point_system], col="forestgreen", lwd=2)
+abline(h=testbest1[,point_system], col="tan3", lwd=2)
 
 points(cp1~q, data = trainseq, type="l", xlab=NA, ylab=NA, col="red")
 points(cp2~q, data = trainseq, type="l", col="blue")
 points(cp20~q, data = trainseq, type="l", col="seagreen", lty=3)
 points(cp02~q, data = trainseq, type="l", col="gainsboro", lty=2)
-abline(h=best1[,point_system], col="black")
+abline(h=best1[,point_system], col="forestgreen")
 
 axis(side = 4, at=seq(0.5,2.0,0.01))
 abline(v=best1$away, col="red")
