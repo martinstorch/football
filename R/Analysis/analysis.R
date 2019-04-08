@@ -1,12 +1,17 @@
 setwd("~/LearningR/Bundesliga/Analysis")
 library(metR)
+library(ggExtra)
 library(ggplot2)
+library(ggpmisc)
 
 seasons<-c("0001", "0102", "0203", "0304", "0405","0506","0607", "0708","0809","0910","1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
 seasons<-c("0405","0506","0607", "0708","0809","0910","1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
 
 library(dplyr)
 library(reshape2)
+library(lfda)
+library(caret)
+library(MASS)
 
 fetch_data<-function(season){
   url <- paste0("http://www.football-data.co.uk/mmz4281/", season, "/D1.csv")
@@ -44,6 +49,7 @@ fetch_data<-function(season){
   })
   results$spieltag <- floor((9:(nrow(results)+8))/9)
   results$round <- ((results$spieltag-1) %% 34) +1
+  results$subround<-as.factor(floor(results$round/6))
   results$Date<-as.Date(results$Date, "%d/%m/%y")
   results$dayofweek<-weekdays(results$Date)
   results$gameindex<-(0:(nrow(results)-1))%%9+1
@@ -57,6 +63,25 @@ for (s in seasons) {
 }
 str(alldata)
 alldata$SeasonTeam <- paste(alldata$season, floor(alldata$round/5))
+
+draws_vs_corr<-alldata%>%group_by(round)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+
+drawmodel<-lm(pct_draw~poly(round, 2), data=draws_vs_corr)
+summary(drawmodel)
+
+plot(pct_draw~round, data=draws_vs_corr)
+points(draws_vs_corr$round, predict(drawmodel), type="l")
+
+alldata$draw_prior <- predict(drawmodel, newdata=alldata)
+
+quote_names<-c('BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')
+normalized_quote_names<-paste0("p", quote_names)
+
+alldata[,normalized_quote_names]<-1/alldata[,quote_names]
+alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/rowSums(alldata[,normalized_quote_names[1:3]])
+alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
+
+
 FTRs <- alldata %>% group_by(SeasonTeam) %>% dplyr::select(FTR, SeasonTeam) %>% table()
 
 FTRs <- alldata %>% group_by(season) %>% dplyr::select(FTR, season) %>% table()
@@ -91,8 +116,6 @@ s2[is.na(s2)]<-0
 print(s2)
 
 
-library(ggplot2)
-library(ggExtra)
 # Scatterplot
 theme_set(theme_bw())  # pre-set the bw theme.
 g <- ggplot(alldata %>% filter(season==1819)%>%select(FTHG,FTAG)%>%group_by(FTHG,FTAG)%>%mutate(n=n()), aes(FTHG, FTAG, size=n))
@@ -104,18 +127,34 @@ lines((relFTRs[2,]), type="l", ylim = c(0, 0.5), col="green")
 lines((relFTRs[3,]), type="l", ylim = c(0, 0.5), col="blue")
 axis(1, at=seq_along(seasons), labels=seasons)
 
-df <- as.data.frame(relFTRs)
-#plot(df %>% dplyr::filter(FTR=="A") %>% select(Freq), type="l", ylim = c(0, 0.5), col="red")
-plot(df %>% dplyr::filter(FTR=="A") %>% select(Freq), ylim = c(0, 0.5), col="red")
+draws_vs_corr<-alldata%>%group_by(season)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+draws_vs_corr%>%summary()
+plot(pct_draw~corr, data=draws_vs_corr)
+points(pct_draw~corr, data=draws_vs_corr%>%filter(season=="1819"), col="red")
+abline(lm(pct_draw~corr, data = draws_vs_corr))
+cor(draws_vs_corr[,2:3])
 
-correlations <- sapply(unique(alldata$SeasonTeam), function(s) alldata%>%filter(SeasonTeam==s)%>%dplyr::select(FTHG, FTAG)%>%cor)[2,]
+draws_vs_corr<-alldata%>%group_by(season, floor(round/6))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+draws_vs_corr%>%summary()
+plot(pct_draw~corr, data=draws_vs_corr)
+points(pct_draw~corr, data=draws_vs_corr%>%filter(season=="1819"), col="red")
+abline(lm(pct_draw~corr, data = draws_vs_corr))
+cor(draws_vs_corr[,3:4])
 
-correlations <- sapply(seasons, function(s) alldata%>%filter(season==s)%>%dplyr::select(FTHG, FTAG)%>%cor)[2,]
-draws_vs_corr = as.data.frame(cbind(cor=correlations, draws=relFTRs[2,]))
-plot(draws_vs_corr)
-abline(lm(draws~cor, data = draws_vs_corr))
-cor(draws_vs_corr)
+draws_vs_corr<-alldata%>%group_by(season, round)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),                                                                                                 corr=cor(FTHG, FTAG))
+draws_vs_corr%>%summary()
+plot(pct_draw~corr, data=draws_vs_corr)
+points(pct_draw~corr, data=draws_vs_corr%>%filter(season=="1819"), col="red")
+abline(lm(pct_draw~corr, data = draws_vs_corr))
+cor(draws_vs_corr[,3:4])
 
+draws_vs_corr<-alldata%>%group_by(f=as.factor(floor(round/6)), season)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+draws_vs_corr<-alldata%>%group_by(f=subround, season)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+draws_vs_corr%>%summary()
+plot(pct_draw~corr, data=draws_vs_corr)
+points(pct_draw~corr, data=draws_vs_corr%>%filter(season=="1819"), col="red")
+abline(lm(pct_draw~corr, data = draws_vs_corr))
+cor(draws_vs_corr[,3:4])
 
 
 alldata$round3 <- floor(alldata$round/5)
@@ -727,57 +766,86 @@ test_seasons<-c( "1415", "1516", "1617", "1718", "1819")
 train_seasons<-sample(levels(alldata$season), 8)
 test_seasons<-setdiff(levels(alldata$season), train_seasons)
 
+quote_names<-c('BWH', 'BWD', 'BWA')
+quote_names<-c('B365H', 'B365D', 'B365A')
+quote_names<-c('BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')
 
 gridscope<-levels(alldata$season)#[-2]
 
 gridscope<-train_seasons
 traindata <- alldata%>%filter(season %in% gridscope)
-traindata <- alldata%>%filter(spieltag %in% 10:24)
-quotes <- 1/traindata[,c('BWH', 'BWD', 'BWA')]
-#quotes <- 1/traindata[,c('B365H', 'B365D', 'B365A')]
-quotes <- quotes / rowSums(quotes)
+#traindata <- alldata%>%filter(!spieltag %in% 10:24)
+#traindata <- alldata%>%filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
+
+# quotes <- 1/traindata[,quote_names]
+# #quotes <- quotes / rowSums(quotes)
+# quotes[,1:3] <- quotes[,1:3] / rowSums(quotes[,1:3])
+# quotes[,4:6] <- quotes[,4:6] / rowSums(quotes[,4:6])
 
 testdata <- alldata%>%filter(season %in% test_seasons)
-testdata <- alldata%>%filter(!spieltag %in% 10:24)
-testquotes <- 1/testdata[,c('BWH', 'BWD', 'BWA')]
-#testquotes <- 1/testdata[,c('B365H', 'B365D', 'B365A')]
-testquotes <- testquotes / rowSums(testquotes)
+#testdata <- alldata%>%filter(spieltag %in% 10:24)
+#testdata <- alldata%>%filter(HomeTeam=="Bayern Munich" | AwayTeam=="Bayern Munich")
+# testquotes <- 1/testdata[,quote_names]
+# #testquotes <- testquotes / rowSums(testquotes)
+# testquotes[,1:3] <- testquotes[,1:3] / rowSums(testquotes[,1:3])
+# testquotes[,4:6] <- testquotes[,4:6] / rowSums(testquotes[,4:6])
+
+feature_columns<-c(normalized_quote_names, "draw_prior")
+quotes<-traindata[, feature_columns]
+testquotes<-testdata[, feature_columns]
 
 metric = c("orthonormalized", "plain", "weighted")
 trans = preProcess(quotes, c("BoxCox", "center", "scale"))
 quotes <- data.frame(trans = predict(trans, quotes))
-testquotes <- data.frame(trans = predict(trans, testquotes))
+ggplot(melt(quotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
 
-model <- lfda(quotes, traindata$FTR, r=1,  metric = metric, knn = 20)
+testquotes <- data.frame(trans = predict(trans, testquotes))
+ggplot(melt(testquotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
+
+model <- lfda(quotes, traindata$FTR, r=3,  metric = metric, knn = 20)
+
+rownames(model$T)<-feature_columns
+print(model$T)
+print(model)
 
 # plot(model$Z, col=as.integer(thedata$FTR)+1)
 # plot(model$Z[,2:3], col=as.integer(thedata$FTR)+1)
 # plot(model$Z[,c(1,3)], col=as.integer(thedata$FTR)+1)
 # ggplot(data.frame(model$Z, FTR=thedata$FTR), aes(x=X1, fill=FTR))+geom_density(alpha=0.4) #+geom_histogram()
-traindata<-data.frame(traindata, X1=model$Z)
-testdata<-data.frame(testdata, X1=predict(model, testquotes))
+traindata<-data.frame(traindata, model$Z)
+testdata<-data.frame(testdata, predict(model, testquotes))
 # move HomeWins to high end of scale
-#orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1), X2=median(X2), X3=median(X3))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1:X3), rank)%>%mutate_at(vars(X1:X3), function(x) 2*(x-1.5))%>%filter(FTR=="H")
-orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1), rank)%>%mutate_at(vars(X1), function(x) 2*(x-1.5))%>%filter(FTR=="H")
+orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1), X2=median(X2), X3=median(X3))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1:X3), rank)%>%mutate_at(vars(X1:X3), function(x) 2*(x-1.5))%>%filter(FTR=="H")
+#orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1), rank)%>%mutate_at(vars(X1), function(x) 2*(x-1.5))%>%filter(FTR=="H")
 print(orientation)
 traindata$X1<-traindata$X1*orientation$X1
 testdata$X1<-testdata$X1*orientation$X1
-
-#traindata$X2<-traindata$X2*orientation$X2
-#traindata$X3<-traindata$X3*orientation$X3
-#testdata$X2<-testdata$X2*orientation$X2
-#testdata$X3<-testdata$X3*orientation$X3
+traindata$X2<-traindata$X2*orientation$X2
+traindata$X3<-traindata$X3*orientation$X3
+testdata$X2<-testdata$X2*orientation$X2
+testdata$X3<-testdata$X3*orientation$X3
 
 print(traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
 print(testdata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
+ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+facet_grid(FTR~.)+geom_histogram(bins=40)
+plot(FTR~X1, data=traindata, main="Train Data")
+plot(FTR~X1, data=testdata, main="Test Data")
+#ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+geom_histogram(bins=40)
 
-ggplot(traindata, aes(x=X1, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=40)
-# ggplot(traindata, aes(x=X2, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=40)
+ggplot(traindata, aes(y=X1, color=FTR)) +geom_boxplot()+ coord_flip()
+ggplot(traindata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
 # ggplot(traindata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=40)
 # ggplot(traindata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
 # ggplot(traindata, aes(x=X1, y=X3, colour=FTR))+geom_point(alpha=0.4)
 
+plot(FTR~X2, data=traindata, main="Train Data")
+plot(FTR~X2, data=testdata, main="Test Data")
+plot(FTR~X3, data=traindata, main="Train Data")
+plot(FTR~X3, data=testdata, main="Test Data")
+
+
 ggplot(testdata, aes(x=X1, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
+ggplot(testdata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
 # ggplot(testdata, aes(x=X2, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
 # ggplot(testdata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
 # ggplot(testdata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
@@ -884,6 +952,8 @@ ggplot(qtest, aes(x=hwin, y=away, z=sky, colour=sky, fill=sky, size=sky))+
   geom_point()+
   geom_contour(binwidth=0.01)+
   geom_text_contour(binwidth=0.01, min.size = 5)
+#  stat_dens2d_filter(color = "red", keep.fraction = 0.05)
+#+stat_peaks(col = "black", span = 5, strict = T, geom = "text")
 qtest %>% arrange(-sky) %>% head(20)
 
 #ggplot(alldata, aes(shape=FTR, y=log(BWA), x=log(BWH), col=-log(BWD)))+scale_colour_gradientn(colours = rev(rainbow(10)))+geom_point(alpha=0.2)
@@ -913,20 +983,30 @@ newdata<-matrix(ncol=3, byrow = T,
                   3.7, 4.25, 1.85,
                   2.1, 3.6, 3.4
 ))
+colnames(newdata)<-feature_columns
 
 point_system<-"pistor"
 #point_system<-"sky"
-colnames(newdata)<-c("BWH", "BWD", "BWA")
 newquotes <- 1/newdata
 print(newquotes)
 print(rowSums(newquotes))
-#testquotes <- 1/testdata[,c('B365H', 'B365D', 'B365A')]
-newquotes <- newquotes / rowSums(newquotes)
+#newquotes <- newquotes / rowSums(newquotes)
+newquotes[,1:3] <- newquotes[,1:3] / rowSums(newquotes[,1:3])
+newquotes[,4:6] <- newquotes[,4:6] / rowSums(newquotes[,4:6])
+
+if (T){
+  newquotes<-as.matrix(tail(alldata%>%dplyr::select(feature_columns), 9))
+}  
 
 newquotes <- data.frame(trans = predict(trans, newquotes))
 
-newdata<-data.frame(X1=predict(model, newquotes))
+# newdata<-data.frame(X1=predict(model, newquotes))
+# newdata$X1<-newdata$X1*orientation$X1
+
+newdata<-data.frame(predict(model, newquotes))
 newdata$X1<-newdata$X1*orientation$X1
+newdata$X2<-newdata$X2*orientation$X2
+newdata$X3<-newdata$X3*orientation$X3
 
 l <- nrow(traindata)
 plot(seq_along(traindata$X1)/l, sort(traindata$X1), axes=F, col="forestgreen", pch=".", type="l")
@@ -1027,11 +1107,15 @@ trainseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp
 testseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp02=max(cp02))
 
 
+#library(ggpmisc)
+#install.packages("ggpmisc")
+#ggpmisc:::find_peaks(y)
 
 #cbind(traindata$FTHG, traindata$FTAG, p_points(0,0,traindata$FTHG, traindata$FTAG)$sky)
 
 ################################################################################################################
 
+feature_columns<-c(normalized_quote_names, "draw_prior")
 
 
 qmix_lda<-function(model, thedata, predictorsTrans){
@@ -1057,18 +1141,21 @@ qmix_lda<-function(model, thedata, predictorsTrans){
 
 prepare_plot_data_lda<-function(thedata, step=0.01){
   #quotes <- 1/thedata[,c('B365H', 'B365D', 'B365A')]
-  quotes <- 1/thedata[,c('BWH', 'BWD', 'BWA')]
-  quotes <- quotes / rowSums(quotes)
-  
+  #quotes <- 1/thedata[,c('BWH', 'BWD', 'BWA')]
+  #quotes <- quotes / rowSums(quotes)
+  quotes <- thedata[,feature_columns]
 
   trans = preProcess(quotes, c("BoxCox", "center", "scale"))
   predictorsTrans <- data.frame(trans = predict(trans, quotes))
-  ldatransmodel <- lda(FTR ~ ., data=cbind(FTR=thedata$FTR, predictorsTrans), CV = F)
-  predictorsTrans <- as.data.frame(predict(ldamodel, newdata = predictorsTrans)$x)
+  #ldatransmodel <- lda(FTR ~ ., data=cbind(FTR=thedata$FTR, predictorsTrans), CV = F)
+  metric = c("orthonormalized", "plain", "weighted")
+  ldatransmodel <- lfda(predictorsTrans, thedata$FTR, r=3,  metric = metric, knn = 20)
+  
+  predictorsTrans <- as.data.frame(predict(ldatransmodel, newdata = predictorsTrans))
   dataX <- data.frame(predictorsTrans, FTR=thedata$FTR)
   q<-c()  
-  for (pwin in seq(0.1,0.9,step)) {
-    for (pdraw in seq(0.0, 1.00-pwin, step)) {
+  for (pwin in seq(0.1,0.6,step)) {
+    for (pdraw in seq(0.25, min(1.00-pwin, 0.4), step)) {
       ploss<-1.0-pwin-pdraw
       prior<-c(ploss, pdraw, pwin)
       print(prior)
@@ -1102,7 +1189,7 @@ ggplot(seasonsq, aes(x=hwin, y=draw, z=sky, colour=sky, fill=sky, size=sky))+
   geom_text_contour(binwidth=0.03, min.size = 10)
 
 
-q<-prepare_plot_data_lda(alldata, step=0.01)
+q<-prepare_plot_data_lda(alldata, step=0.005)
 #q<-prepare_plot_data2(alldata)
 
 ggplot(q, aes(x=hwin, y=away, z=pistor, colour=pistor, fill=pistor, size=pistor))+
