@@ -251,6 +251,13 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df1['Season'] = df_data["Season"]
   df1["Train"] = df_data["Train"]
   df1["Date"]= df_data["Date"]
+
+  df1['BW1'] = 1/df_data["BWH"]
+  df1['BW2'] = 1/df_data["BWA"]
+  df1['BW0'] = 1/df_data["BWD"]
+  df1['B365_1'] = 1/df_data["B365H"]
+  df1['B365_2'] = 1/df_data["B365A"]
+  df1['B365_0'] = 1/df_data["B365D"]
     
   df2 = pd.DataFrame()
   df2["Team1"] = df_data["AwayTeam"]
@@ -262,6 +269,13 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df2['Season'] = df_data["Season"]
   df2["Train"] = df_data["Train"]
   df2["Date"]= df_data["Date"]
+
+  df2['BW2'] = 1/df_data["BWH"]
+  df2['BW1'] = 1/df_data["BWA"]
+  df2['BW0'] = 1/df_data["BWD"]
+  df2['B365_2'] = 1/df_data["B365H"]
+  df2['B365_1'] = 1/df_data["B365A"]
+  df2['B365_0'] = 1/df_data["B365D"]
   
   columns = [c[1:] for c in COLS[::2]]
 #  feature_column_names_fixed = ["Team1", "Team2", "Where", "Season", "Train"]
@@ -288,6 +302,19 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df2.index=df1.index+1
   features = pd.concat([df1,df2], ignore_index=False )
   features = features.sort_index()
+
+  print(features[["BW1", "BW0", "BW2"]])
+  print(features[["B365_1", "B365_0", "B365_2"]])
+  print(np.sum(features[["BW1", "BW0", "BW2"]], axis=1))
+  # normalized Bet&Win probabilities
+  bwsum = np.sum(features[["BW1", "BW0", "BW2"]], axis=1).values
+  b365sum = np.sum(features[["B365_1", "B365_0", "B365_2"]], axis=1).values
+  features["BW1"] /= bwsum
+  features["BW0"] /= bwsum
+  features["BW2"] /= bwsum
+  features["B365_1"] /= b365sum 
+  features["B365_0"] /= b365sum 
+  features["B365_2"] /= b365sum 
   
   # derived feature 2nd half goals
   features["T1_GH2"] = features["T1_GFT"] - features["T1_GHT"]
@@ -295,6 +322,9 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   label_column_names += ["T1_GH2", "T2_GH2"]
   columns += ["GH2"]
 
+  print(features[["BW1", "BW0", "BW2"]])
+  print(features[["B365_1", "B365_0", "B365_2"]])
+  
   # derived feature full time win/loss/draw
   features["zGameResult"] = [np.sign(x1-x2) for x1,x2 in zip(features["T1_GFT"], features["T2_GFT"])]
   features["zGameHTResult"] = [np.sign(x1-x2) for x1,x2 in zip(features["T1_GHT"], features["T2_GHT"])]
@@ -368,6 +398,11 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   features["t2games_where"] = gt2w.cumcount()
 
   feature_column_names = ["Date", "t1games", "t1dayssince", "t2dayssince"]
+
+  use_bwin_statistics = True
+  if use_bwin_statistics:
+    feature_column_names += ["BW1", "BW0", "BW2", "B365_1", "B365_0", "B365_2"]
+  
   for colname in columns:
     features["T1_CUM_T1_"+colname] = (gt1["T1_"+colname].cumsum()-features["T1_"+colname])/(features["t1games"]+2)
     features["T2_CUM_T2_"+colname] = (gt2["T2_"+colname].cumsum()-features["T2_"+colname])/(features["t2games"]+2)
@@ -1716,7 +1751,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=False, 
+      default=True, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1738,8 +1773,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      #default=200,
-      default=1000,
+      default=200,
+      #default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1779,8 +1814,8 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      #default="d:/Models/laplace_pistor",
-      default="c:/Models/laplace_sky",
+      default="d:/Models/laplace_pistor_bw",
+      #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
