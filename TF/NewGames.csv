@@ -1,19 +1,19 @@
 "Date","HomeTeam","AwayTeam","ID"
-"12/04/19","Nurnberg","Schalke 04",29
-"13/04/19","Hannover","M'gladbach",29
-"13/04/19","RB Leipzig","Wolfsburg",29
-"13/04/19","Stuttgart","Leverkusen",29
-"13/04/19","Werder Bremen","Freiburg",29
-"13/04/19","Dortmund","Mainz",29
-"14/04/19","Hoffenheim","Hertha",29
-"14/04/19","Fortuna Dusseldorf","Bayern Munich",29
-"14/04/19","Ein Frankfurt","Augsburg",29
-"21/04/19","Mainz","Fortuna Dusseldorf",30
-"21/04/19","Leverkusen","Nurnberg",30
-"21/04/19","Bayern Munich","Werder Bremen",30
-"21/04/19","Augsburg","Stuttgart",30
-"21/04/19","M'gladbach","RB Leipzig",30
-"21/04/19","Schalke 04","Hoffenheim",30
-"21/04/19","Freiburg","Dortmund",30
-"21/04/19","Hertha","Hannover",30
-"22/04/19","Wolfsburg","Ein Frankfurt",30
+"12/04/19","Nurnberg","Schalke 04",29				1:2		0:1
+"13/04/19","Hannover","M'gladbach",29				1:2		0:2
+"13/04/19","RB Leipzig","Wolfsburg",29				2:1		2:1
+"13/04/19","Stuttgart","Leverkusen",29				1:2		1:2
+"13/04/19","Werder Bremen","Freiburg",29			2:1		2:1
+"13/04/19","Dortmund","Mainz",29					2:0		2:0
+"14/04/19","Hoffenheim","Hertha",29					2:1		2:1
+"14/04/19","Fortuna Dusseldorf","Bayern Munich",29	1:2		0:3
+"14/04/19","Ein Frankfurt","Augsburg",29			2:0		2:0
+"21/04/19","Mainz","Fortuna Dusseldorf",30			1:1		2:1
+"21/04/19","Leverkusen","Nurnberg",30				1:0		2:0
+"21/04/19","Bayern Munich","Werder Bremen",30		2:0		3:1
+"21/04/19","Augsburg","Stuttgart",30				2:1		1:0  
+"21/04/19","M'gladbach","RB Leipzig",30				1:1		1:2  2:1
+"21/04/19","Schalke 04","Hoffenheim",30				1:1		1:2  1:1
+"21/04/19","Freiburg","Dortmund",30					1:1		1:2
+"21/04/19","Hertha","Hannover",30					2:1		2:1
+"22/04/19","Wolfsburg","Ein Frankfurt",30			2:1		1:2  2:1
