@@ -64,13 +64,21 @@ for (s in seasons) {
 str(alldata)
 alldata$SeasonTeam <- paste(alldata$season, floor(alldata$round/5))
 
-draws_vs_corr<-alldata%>%group_by(round)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG))
+draws_vs_corr<-alldata%>%group_by(round)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG))
+#draws_vs_corr<-alldata%>%group_by(season)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())
+#draws_vs_corr<-alldata%>%group_by(HomeTeam)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG))
+#draws_vs_corr<-alldata%>%group_by(AwayTeam)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG))
+#draws_vs_corr<-alldata%>%group_by(r = sample(seq(1,nrow(alldata))%%34))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())
+#draws_vs_corr<-alldata%>%group_by(r = sample(15, size = nrow(alldata), replace = T))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())
+table(draws_vs_corr$n)
+
+sample(seq(1,nrow(alldata))%%34)
 
 drawmodel<-lm(pct_draw~poly(round, 2), data=draws_vs_corr)
 summary(drawmodel)
 
 plot(pct_draw~round, data=draws_vs_corr)
-points(draws_vs_corr$round, predict(drawmodel), type="l")
+points(pdraws ~ round, data = draws_vs_corr%>%mutate(pdraws=predict(drawmodel, as.data.frame(round)))%>%arrange(round), type="l")
 
 alldata$draw_prior <- predict(drawmodel, newdata=alldata)
 
@@ -81,6 +89,429 @@ alldata[,normalized_quote_names]<-1/alldata[,quote_names]
 alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/rowSums(alldata[,normalized_quote_names[1:3]])
 alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
 
+w<-4
+offset<-0
+draws_vs_corr<-alldata%>%group_by(season, floor((round+offset)/w))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())
+rsq <- summary(lm(pct_draw ~ corr, data=draws_vs_corr))$r.square
+print(rsq)
+rsqrand<-function(x){
+  draws_vs_corr<-alldata%>%group_by(r = sample(paste(season, floor((round+offset)/w))))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())
+  s<-summary(lm(pct_draw ~ corr, data=draws_vs_corr))
+  rsq<-s$r.squared
+  return(rsq)
+}
+x <- sapply(1:300, rsqrand)
+hist(x)
+abline(v=rsq, col="red")
+print(mean(x>rsq))
+
+print.data.frame(draws_vs_corr)
+
+w<-1
+offset<-0
+alldata0 <- alldata %>% filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
+ts<-alldata0%>%group_by(r=paste(season, format(floor((round+offset)/w), digits=2)))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())%>%
+  arrange(r) # %>%dplyr::select(r, pct_draw, corr)
+acf(ts[,2:3], lag.max = 34, plot = T)
+
+library(astrochron)
+ts$r<-1:nrow(ts)
+mwCor(ts, win = 4, cols = 2:3)
+mwCor(ts[sample(nrow(ts)),], win = 4, cols = 2:3)
+
+library('forecast')
+library('tseries')
+
+draw_ts <- ts(ts$pct_draw, frequency = 34, start = 2004)
+#draw_ts <- ts(ts[,c("pct_draw", "corr")])
+#draw_ts <- ts(ts$corr)
+
+plot(draw_ts)
+plot(ma(draw_ts, order=34))
+
+decomp <- stl(ts(na.omit(ma(draw_ts, order=1)), frequency=34), s.window="periodic")
+decomp <- stl(draw_ts, s.window="periodic")
+deseasonal_cnt <- seasadj(decomp)
+#deseasonal_cnt == decomp$time.series[,2]+decomp$time.series[,3]
+plot(decomp)
+summary(decomp)
+ggplot(decomp$time.series, aes(x=seasonal))+geom_histogram(bins=50)
+
+adf.test(draw_ts, alternative = "stationary", k=34)
+adf.test(deseasonal_cnt, alternative = "stationary", k=34)
+
+adf.test(ts(na.omit(ts$pct_draw - lag(ts$pct_draw, 3*34))), alternative = "stationary", k=34)
+
+acf(draw_ts)
+pacf(draw_ts)
+
+count_d1 = diff(deseasonal_cnt, lag=1, differences = 1)
+plot(count_d1)
+adf.test(count_d1, alternative = "stationary")
+
+Acf(count_d1, main='ACF for Differenced Series')
+Pacf(count_d1, main='PACF for Differenced Series')
+
+auto.arima(deseasonal_cnt, seasonal=FALSE)
+auto.arima(count_d1, seasonal=FALSE)
+auto.arima(draw_ts, seasonal=FALSE)
+
+fit<-auto.arima(draw_ts, seasonal=FALSE)
+fit<-arima(draw_ts, order=c(1,1,1))
+str(predict(fit))
+tsdisplay(residuals(fit), lag.max=45, main='(1,1,1) Model Residuals')
+
+fitted<-draw_ts-fit$residuals
+plot(x=(draw_ts), y=fitted)
+cor(draw_ts , fitted)
+summary(lm(fitted ~ draw_ts))
+
+
+fit2 = auto.arima(count_d1, seasonal=F) #, order=c(1,1,7))
+library(DescTools)
+
+alldata%>%group_by(r=format(AddMonths(Date, 6),"%m"), season)%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())%>%arrange(-pct_draw)%>%
+  group_by(season)%>%mutate(rk=rank(-pct_draw, ties.method = "rand"))%>%arrange(r)%>% # print.data.frame()
+  ggplot(aes(x=rk, fill=r))+ scale_fill_brewer(palette = "Spectral")+geom_density(alpha=0.4)+geom_histogram(bins=10)
+
+  print.data.frame()
+
+alldata0 <- alldata %>% filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
+ts<-alldata%>%group_by(r=paste(season, format(round, digits=2)))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())%>%
+  arrange(r) # %>%dplyr::select(r, pct_draw, corr)
+draw_ts <- ts(ts$pct_draw, frequency = 34, start = 2004)
+draw_ts <- ts(ts$corr, frequency = 34, start = 2004)
+Acf(count_d1, main='ACF for Differenced Series')
+Pacf(count_d1, main='PACF for Differenced Series')
+table(ts$n)
+w<-window(draw_ts, c(2004, 1), c(2012, 27))
+wtest<-window(draw_ts, c(2012, 28))
+
+decomp <- stl(w, s.window="periodic")
+periodic<-decomp$time.series[1:34,1]
+plot(periodic, type="l")
+points(smooth(periodic), type="l", col="red")
+#ggplot(data.frame(p=rep(periodic, rep=3), i=1:(3*34)), aes(x=i, y=p))+geom_line()+geom_smooth()+geom_vline(xintercept = c(35, 68), col="red")
+#loess(p~i, data=data.frame(p=rep(periodic, rep=3), i=1:(3*34)))
+ggplot(data.frame(p=rep(periodic, rep=1), i=1:(34)), aes(x=i, y=p))+geom_line()+geom_smooth()
+periodic_smooth<-predict(loess(p~i, data=data.frame(p=rep(periodic, rep=1), i=1:(1*34))))*0
+
+#deseasonal_cnt <- seasadj(decomp)
+deseasonal_cnt <- w-periodic_smooth
+deseasonal_test <- wtest-periodic_smooth
+
+count_d1 = diff(deseasonal_cnt, lag=2, differences = 2)
+count_d1_test = diff(deseasonal_test, lag=2, differences = 2)
+count_d2 = diff(deseasonal_cnt, lag=1, differences = 4)
+count_d2_test = diff(deseasonal_test, lag=1, differences = 4)
+var(count_d1)
+var(count_d2)
+#wtest[1:34]
+#count_d1_test[1:34]
+#count_d2_test[1:34]
+
+dm<-mean(deseasonal_cnt)
+fit0 = arima(deseasonal_cnt-dm, order=c(2,0,1), xreg = deseasonal_cnt-lag(as.vector(deseasonal_cnt[]),2))
+fit1 = arima(count_d1, order=c(4,1,1))
+fit2 = arima(count_d2, order=c(4,2,1))
+summary(fit0)
+var(deseasonal_cnt)
+sd(deseasonal_cnt)
+# fit1
+# fit2
+# fit2$aic
+mean(draw_ts)
+fc<-forecast(fit0, h = 20, xreg = deseasonal_cnt-lag(as.vector(deseasonal_cnt[]),2))
+plot(c(deseasonal_cnt, deseasonal_test), xlim=length(deseasonal_cnt)+c(-10, 20), type="o")
+abline(v=length(deseasonal_cnt))
+points(length(deseasonal_cnt)+(1:20), fc$mean+dm, col="red", type="o")
+
+fc<-forecast(fit1, h = 20)
+plot(c(count_d1, count_d1_test), xlim=length(count_d1)+c(-10, 20), type="o")
+abline(v=length(count_d1))
+points(length(count_d1)+(1:20), fc$mean, col="red", type="o")
+
+fc<-forecast(fit2, h = 20)
+plot(c(count_d2, count_d2_test), xlim=length(count_d2)+c(-10, 20), type="o")
+abline(v=length(count_d2))
+points(length(count_d2)+(1:20), fc$mean, col="red", type="o")
+
+length(count_d2)
+length(count_d2_test)
+
+fitted1<-count_d1-fit1$residuals
+plot(count_d1, fitted1)
+abline(lm(fitted1 ~ count_d1))
+cor(count_d1 , fitted1)
+summary(lm(fitted1 ~ count_d1))$r.square
+
+newfit1<-Arima(count_d1_test, model=fit1) 
+newfit1$aic
+points(count_d1_test, newfit1$fitted, col="red")
+abline(lm(newfit1$fitted ~ count_d1_test), col="red")
+cor(count_d1_test, newfit1$fitted)
+summary(lm(newfit1$fitted ~ count_d1_test))$r.square
+
+fitted2<-count_d2-fit2$residuals
+plot(count_d2, fitted2)
+abline(lm(fitted2 ~ count_d2))
+cor(count_d2 , fitted2)
+summary(lm(fitted2 ~ count_d2))$r.square
+
+newfit2<-Arima(count_d2_test, model=fit2) 
+newfit2$aic
+points(count_d2_test, newfit2$fitted, col="red")
+abline(lm(newfit2$fitted ~ count_d2_test), col="red")
+cor(count_d2_test, newfit2$fitted)
+summary(lm(newfit2$fitted ~ count_d2_test))$r.square
+
+refitted_train1 <- deseasonal_cnt+fitted1 +periodic_smooth[c(2:34, 1)]
+refitted_test1 <- deseasonal_test+newfit1$fitted +periodic_smooth[c(2:34, 1)]
+refitted_train2 <- deseasonal_cnt+fitted2 +periodic_smooth[c(3:34, 1:2)]
+refitted_test2 <- deseasonal_test+newfit2$fitted +periodic_smooth[c(3:34, 1:2)]
+
+plot(w[-1:-1], refitted_train1)
+abline(lm(refitted_train1 ~ w[-1:-1]))
+cor(w[-1:-1] , refitted_train1)
+summary(lm(refitted_train1 ~ w[-1:-1]))$r.square
+
+points(wtest[-1:-1], refitted_test1, col="red")
+abline(lm(refitted_test1 ~ wtest[-1:-1]), col="red")
+cor(wtest[-1:-1] , refitted_test1)
+summary(lm(refitted_test1 ~ wtest[-1:-1]))$r.square
+
+points(w[-2:-1], refitted_train2, col="blue")
+abline(lm(refitted_train2 ~ w[-2:-1]), col="blue")
+cor(w[-2:-1] , refitted_train2)
+summary(lm(refitted_train2 ~ w[-2:-1]))$r.square
+
+points(wtest[-2:-1], refitted_test2, col="green")
+abline(lm(refitted_test2 ~ wtest[-2:-1]), col="green")
+cor(wtest[-2:-1] , refitted_test2)
+summary(lm(refitted_test2 ~ wtest[-2:-1]))$r.square
+
+summary(lm(w[-2:-1]~refitted_train1[-1:-1]+refitted_train2))$r.square
+summary(lm(wtest[-2:-1]~refitted_test1[-1:-1]+refitted_test2))$r.square
+
+boxplot(refitted_train1 ~ w[-1:-1])
+boxplot(refitted_test1 ~ wtest[-1:-1])
+boxplot(refitted_train2 ~ w[-2:-1])
+boxplot(refitted_test2 ~ wtest[-2:-1])
+
+#' Reverse pre-processing done by caret to a dataset
+#'
+#' @param preProc a preProcess object from the caret package
+#' @param data a data.frame with the same elements as the preProcess object
+#'
+#' @return a data.frame
+#' @details This only reverses scaling and centering done by preProcess currently. 
+#' It cannot undo PCA transformations, it cannot undo imputation, exponential transformations, 
+#' or any other method
+#' @export
+unPreProc <- function(preProc, data){
+  stopifnot(class(preProc) == "preProcess")
+  stopifnot(class(data) == "data.frame")
+  for(i in names(preProc$mean)){
+    tmp <- data[, i] * preProc$std[[i]] + preProc$mean[[i]]
+    data[, i] <- tmp
+  }
+  return(data)  
+}
+invBoxCox <- function(x, lambda) 
+  if (lambda == 0) exp(x) else (lambda*x + 1)^(1/lambda) 
+
+far2 <- function(x, h){forecast(Arima(x, order=c(5,1,5)), h=h)}
+e <- tsCV(draw_ts-periodic_smooth, far2, h=1)#, window=7*34)
+print(e)
+hist(e)
+summary(e[108:504])
+sd(e[108:504], na.rm = T)
+plot(draw_ts-periodic_smooth, draw_ts-periodic_smooth-e)
+act<-draw_ts
+pred<-draw_ts-e
+act<-act[108:504]
+pred<-pred[108:504]
+cor(act, pred, use = "complete.obs")
+summary(lm(act ~ pred, na.action = na.exclude))
+
+#####################################################################################
+alldata0 <- alldata %>% filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
+ts<-alldata%>%group_by(r=paste(season, format(round, digits=2)))%>%mutate(isdraw = ifelse(FTR=="D", 1,0))%>%summarise(pct_draw=mean(isdraw),corr=cor(FTHG, FTAG), meangoals=mean(FTHG+FTAG), FTHG=mean(FTHG), FTAG=mean(FTAG), gdiff=mean(FTHG-FTAG), n=n())%>%
+  arrange(r) # %>%dplyr::select(r, pct_draw, corr)
+draw_ts <- ts(ts$pct_draw, frequency = 34, start = 2004)
+draw_ts <- ts(ts$corr, frequency = 34, start = 2004)
+Acf(draw_ts, main='ACF for Original Series')
+Pacf(draw_ts, main='PACF for Original Series')
+count_d1 = diff(draw_ts, lag=1, differences = 1)
+Acf(count_d1, main='ACF for Differenced Series')
+Pacf(count_d1, main='PACF for Differenced Series')
+count_d2 = diff(draw_ts, lag=1, differences = 2)
+Acf(count_d1, main='ACF for 2nd Differenced Series')
+Pacf(count_d1, main='PACF for 2nd Differenced Series')
+count_d4 = diff(draw_ts, lag=1, differences = 4)
+Acf(count_d4, main='ACF for 4th Differenced Series')
+Pacf(count_d4, main='PACF for 4th Differenced Series')
+
+w<-window(draw_ts, c(2004, 1), c(2013, 34))
+wtest<-window(draw_ts, 2014)
+decomp <- stl(w, s.window="periodic")
+periodic<-decomp$time.series[1:34,1]
+ggplot(data.frame(p=rep(periodic, rep=1), i=1:(34)), aes(x=i, y=p))+geom_line()+geom_smooth()
+ggplot(data.frame(p=stl(wtest, s.window="periodic")$time.series[1:34,1], i=1:(34)), aes(x=i, y=p))+geom_line()+geom_smooth()
+periodic_smooth<-predict(loess(p~i, data=data.frame(p=rep(periodic, rep=1), i=1:(1*34))))
+periodic_smooth<-periodic*0
+mn <- mean(draw_ts)
+m0<-Arima(w-periodic_smooth-mn, order=c(10,0,2))
+m1<-Arima(w-periodic_smooth-mn, order=c(6,1,4))
+m2<-Arima(w-periodic_smooth-mn, order=c(2,2,6))
+# far0 <- function(x, h){forecast(Arima(x, order=c(10,0,0)), h=h)}
+# far1 <- function(x, h){forecast(Arima(x, order=c(20,0,0)), h=h)}
+# far2 <- function(x, h){forecast(Arima(x, order=c(30,0,0)), h=h)}
+far0 <- function(x, h){forecast(Arima(x, model=m0), h=h)}
+far1 <- function(x, h){forecast(Arima(x, model=m1), h=h)}
+far2 <- function(x, h){forecast(Arima(x, model=m2), h=h)}
+e0 <- tsCV(draw_ts-periodic_smooth-mn, far0, h=1)#, window=34)
+e1 <- tsCV(draw_ts-periodic_smooth-mn, far1, h=1)#, window=34)
+e2 <- tsCV(draw_ts-periodic_smooth-mn, far2, h=1)#, window=34)
+plot((e0+e1+e2)/3)
+summary((e0+e1+e2)/3)
+sd((e0+e1+e2)/3, na.rm = T)
+#pred0<-draw_ts*0.0+0.247+periodic_smooth
+#pred1<-draw_ts*0.0+0.247+periodic
+pred0<-draw_ts-lag(as.vector(e0[]))+periodic_smooth
+pred1<-draw_ts-lag(as.vector(e1[]))+periodic_smooth
+pred2<-draw_ts-lag(as.vector(e2[]))+periodic_smooth
+act<-draw_ts
+n<-length(act)
+act<-act[-seq_along(w)]
+pred0<-pred0[-seq_along(w)]
+pred1<-pred1[-seq_along(w)]
+pred2<-pred2[-seq_along(w)]
+cor(act, pred0, use = "complete.obs", method = "pearson")
+cor(act, pred1, use = "complete.obs")
+cor(act, pred2, use = "complete.obs")
+cor(act, pred0+pred1+pred2, use = "complete.obs")
+summary(lm(act ~ pred0, na.action = na.exclude))
+summary(lm(act ~ pred1, na.action = na.exclude))
+summary(lm(act ~ pred2, na.action = na.exclude))
+summary(lm(act ~ pred1+pred2, na.action = na.exclude))
+summary(lm(act ~ pred0+pred1+pred2, na.action = na.exclude))
+#plot(act, (pred0+pred1+pred2)/3)
+plot(act+0*rnorm(n = length(act), sd=0.004), pred0, xlim=range(act)+c(-0.05, 0.05), ylim=range(act)*1.2)
+points(act+0*rnorm(n = length(act), sd=0.004)+0*0.02, pred1, col="red")
+points(act+0*rnorm(n = length(act), sd=0.004)+0*0.04, pred2, col="blue")
+abline(lm(act ~ pred0, na.action = na.exclude))
+abline(lm(act ~ pred1, na.action = na.exclude), col="red")
+abline(lm(act ~ pred2, na.action = na.exclude), col="blue")
+
+m<-lm(act ~ pred0+pred1+pred2, na.action = na.exclude)
+plot(act, predict(m))
+ppp<-predict(m)
+plot((seq_along(ppp)-1)%%34, ppp)
+
+plot(act[477:504], type="l", xlim=c(1, 34), lwd=2)
+points(act[477:504], type="p")
+points(ppp[477:504], type="l", col="red")
+points(pred2[477:504], type="l", col="blue")
+points(ppp[477:504], type="p", col="red")
+points(pred2[477:504], type="p", col="blue")
+
+# new predictions from current season
+p0<-far0(window(draw_ts, 2018)-periodic_smooth[1:28]-0.247, h=6)
+p1<-far1(window(draw_ts, 2018)-periodic_smooth[1:28], h=6)
+p2<-far2(window(draw_ts, 2018)-periodic_smooth[1:28], h=6)
+preddraw<-data.frame(
+  pred0 = p0$mean+0.247+periodic_smooth[29:34],
+  pred1 = p1$mean+periodic_smooth[29:34],
+  pred2 = p2$mean+periodic_smooth[29:34]
+)
+preddraw$r<-predict(m, newdata=preddraw)
+preddraw
+
+# new predictions from all seasons
+p0<-far0(window(draw_ts, 2004)-periodic_smooth[1:34]-0.247, h=6)
+p1<-far1(window(draw_ts, 2004)-periodic_smooth[1:34], h=6)
+p2<-far2(window(draw_ts, 2004)-periodic_smooth[1:34], h=6)
+preddraw<-data.frame(
+  pred0 = p0$mean+0.247+periodic_smooth[29:34],
+  pred1 = p1$mean+periodic_smooth[29:34],
+  pred2 = p2$mean+periodic_smooth[29:34]
+)
+preddraw$r<-predict(m, newdata=preddraw)
+preddraw
+
+points(29:34, preddraw$r, type="l", col="red")
+points(29:34, preddraw$r, type="p", col="red")
+points(29:34, preddraw$pred2, type="l", col="blue")
+points(29:34, preddraw$pred2, type="p", col="blue")
+
+
+summary(ppp)
+
+
+
+draw_ts_trans
+
+draw_ts_trans = preProcess(data.frame(draws=as.vector(draw_ts[])), c("center", "scale"))
+predictorsTrans = data.frame(trans = predict(draw_ts_trans, data.frame(draws=as.vector(draw_ts[]))))
+hist(predictorsTrans$draws, breaks = 50)
+periodic_smoothTrans = data.frame(trans = predict(draw_ts_trans, data.frame(draws=periodic_smooth)))
+
+newmodel<-Arima(predictorsTrans$draws-periodic_smooth, order=c(5,1,5))
+#newmodel<-auto.arima(predictorsTrans$draws-periodic_smooth, seasonal = F)
+newmodel
+fc<-forecast(newmodel, h=6)
+fc$mean+periodic_smooth[29:34]
+unPreProc(draw_ts_trans , data.frame(draws=fc$mean+periodic_smooth[29:34]))
+
+plot(abs(e))
+
+tsdisplay(residuals(fit2), lag.max=45, main='Seasonal Model Residuals')
+
+
+fcast <- forecast(fit2, h=30)
+plot(fcast)
+
+hold <- window(ts(deseasonal_cnt), start=380)
+
+fit_no_holdout = arima(ts(deseasonal_cnt[1:400]), order=c(4,1,4))
+fcast_no_holdout <- forecast(fit_no_holdout,h=100)
+plot(fcast_no_holdout, main=" ")
+lines(ts(deseasonal_cnt))
+
+plot(deseasonal_cnt[401:425], fcast_no_holdout$mean[1:25])
+cor(deseasonal_cnt[401:425], fcast_no_holdout$mean[1:25])
+
+fit_w_seasonality = arima(deseasonal_cnt, seasonal = list(order = c(1L, 1L, 1L), period = 34), order = c(4L, 1L, 4L))
+fit_w_seasonality
+seas_fcast <- forecast(fit_w_seasonality, h=30)
+plot(seas_fcast)
+
+
+
+
+plot(pct_draw ~ corr, data=draws_vs_corr)
+abline(lm(pct_draw ~ corr, data=draws_vs_corr))
+summary(lm(pct_draw ~ corr, data=draws_vs_corr))$r.square
+
+plot(pct_draw ~ meangoals, data=draws_vs_corr)
+abline(lm(pct_draw ~ meangoals, data=draws_vs_corr))
+summary(lm(pct_draw ~ meangoals, data=draws_vs_corr))
+
+plot(pct_draw ~ I(corr-meangoals), data=draws_vs_corr)
+abline(lm(pct_draw ~ I(corr-meangoals), data=draws_vs_corr))
+summary(lm(pct_draw ~ I(corr-meangoals), data=draws_vs_corr))
+
+plot(pct_draw ~ I(corr-gdiff), data=draws_vs_corr)
+abline(lm(pct_draw ~ I(corr-gdiff), data=draws_vs_corr))
+summary(lm(pct_draw ~ I(corr-gdiff), data=draws_vs_corr))
+
+plot(pct_draw ~ FTHG, data=draws_vs_corr)
+abline(lm(pct_draw ~ FTHG, data=draws_vs_corr))
+summary(lm(pct_draw ~ FTHG, data=draws_vs_corr))
+
+cor(draws_vs_corr[,-1])
+#draws_vs_corr<-(draws_vs_corr%>%arrange(meangoals))[2:33,]
 
 FTRs <- alldata %>% group_by(SeasonTeam) %>% dplyr::select(FTR, SeasonTeam) %>% table()
 
@@ -611,8 +1042,9 @@ summary(score_from_qpred(as.integer(predict(model, newdata=x)$class)-2, thedata)
 
 model$scaling
 
-
-
+x <- data.frame(predict(lfdamodel, newdata=quotes), FTR=a0$FTR)
+x<-x %>% dplyr::select(-X1)
+thedata<-a0
 library("rpart")
 model <- rpart(FTR ~ ., data=x)
 decisionplot(model, x, class = "FTR", main = "CART")
@@ -970,6 +1402,35 @@ p_points<-function(pHG, pAG, FTHG, FTAG){
   sky <- 2*tendency+3*hit
   return (list(pistor=pistor, sky=sky))
 }
+
+a0<-alldata
+a0$draw_prior<-rep(ppp, each=9)
+
+#install.packages("tidyimpute")
+library(tidyimpute)
+library(na.tools)
+
+a0<-a0%>%impute(draw_prior=na.mean)
+
+summary(a0$draw_prior)
+quotes<-a0%>%dplyr::select(pBWH:draw_prior)
+
+library(lfda)
+#install.packages("lfda")
+metric = c("orthonormalized", "plain", "weighted")
+lfdamodel <- lfda(quotes, a0$FTR, r=3,  metric = metric, knn = 20)
+
+summary(lfdamodel$Z)
+hist(lfdamodel$Z[,1])
+hist(lfdamodel$Z[,2])
+plot(lfdamodel$Z, col=as.integer(a0$FTR)+1)
+plot(lfdamodel$Z[,2:3], col=as.integer(a0$FTR)+1)
+plot(lfdamodel$Z[,c(1,3)], col=as.integer(a0$FTR)+1)
+
+predict(lfdamodel, newdata=quotes)
+
+
+###############
 
 
 newdata<-matrix(ncol=3, byrow = T, 

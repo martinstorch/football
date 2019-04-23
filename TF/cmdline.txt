@@ -37,10 +37,10 @@ both
 
 git pull https://github.com/martinstorch/football
 
-python model_laplacian.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=c:\Models\laplace_sky 
+python model_laplacian.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=c:\Models\laplace_sky2 
 python model_laplacian.py --modes=train --train_steps=30000 --target_system=Pistor --model_dir=c:\Models\laplace_pistor
  
-python model_laplacian.py --modes=predict --checkpoints=206000: --target_system=Sky --model_dir=c:\Models\laplace_sky 
-python model_laplacian.py --modes=predict --checkpoints=421000: --target_system=Pistor --model_dir=c:\Models\laplace_pistor
+python model_laplacian.py --modes=predict --checkpoints=31000: --target_system=Sky --model_dir=c:\Models\laplace_sky2 
+python model_laplacian.py --modes=predict --checkpoints=502000: --target_system=Pistor --model_dir=c:\Models\laplace_pistor
 
 

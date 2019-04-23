@@ -21,10 +21,12 @@ human_level_median <- 219 / 9 / 31
 
 predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
+predictions_file<-"d:\\Models\\new_predictions_df.csv"
+predictions_file<-"d:\\Models\\laplace_pistor_bwin//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
-cut_off_level_low<-1.2
+cut_off_level_low<-1.25
 cut_off_level_high<-2.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
@@ -36,6 +38,7 @@ predictions_file<-"D:\\Models\\conv1_auto_sky4//new_predictions_df.csv"
 
 predictions_file<-"c:\\Models\\conv1_auto_sky5//new_predictions_df.csv"
 predictions_file<-"c:\\Models\\laplace_sky//new_predictions_df.csv"
+predictions_file<-"d:\\Models\\laplace_sky_bwin//new_predictions_df.csv"
 
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)
@@ -125,13 +128,13 @@ with (pp,
 data_summary <- predictions_data %>% group_by(Prefix) %>% summarise(TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) )
 print(data_summary%>%arrange(-TestMean))
 
-hometeams<-unique(predictions_data[predictions_data$Where=="Home","Team1"])
+hometeams<-unique(predictions_data[predictions_data$Where=="Home",c("Team1", "Team2")])
 print(hometeams)
 
 t <- 1
 evaluate<-function(t){
-  onematch1 <- predictions_data %>% filter(Team1==hometeams[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1, Team2, Prefix, pred, train, test)
-  onematch2 <- predictions_data %>% filter(Team2==hometeams[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, train, test) %>% mutate(pred=stringi::stri_reverse(pred))
+  onematch1 <- predictions_data %>% filter(Team1==hometeams$Team1[t] & Team2==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1, Team2, Prefix, pred, train, test)
+  onematch2 <- predictions_data %>% filter(Team2==hometeams$Team1[t] & Team1==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, train, test) %>% mutate(pred=stringi::stri_reverse(pred))
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
