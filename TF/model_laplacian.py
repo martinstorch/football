@@ -399,7 +399,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
 
   feature_column_names = ["Date", "t1games", "t1dayssince", "t2dayssince"]
 
-  use_bwin_statistics = True
+  use_bwin_statistics = False
   if use_bwin_statistics:
     feature_column_names += ["BW1", "BW0", "BW2", "B365_1", "B365_0", "B365_2"]
   
@@ -1751,7 +1751,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1773,8 +1773,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
-      #default=1000,
+      #default=200,
+      default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(

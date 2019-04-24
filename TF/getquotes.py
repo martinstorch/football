@@ -4,9 +4,6 @@ Created on Fri Dec 14 09:05:44 2018
 
 @author: 811087
 """
-print("hello!")
-
-#import bs4
 from bs4 import BeautifulSoup
 import pandas as pd
 from urllib import request
@@ -73,6 +70,7 @@ quotes_bwin.iloc[0:9].to_csv("quotes_bwin.csv", encoding = "utf-8")
 print(quotes_bwin)
 
 ####################################################################################################
+
 
 
 ##url='https://www.bet365.com/#/AC/B1/C1/D13/E109/F16/'
