@@ -69,7 +69,8 @@ quotes_bwin = pd.DataFrame({
   'DOW':dows
 })
 quotes_bwin.to_csv("quotes_bwin.csv", encoding = "utf-8")
-print("Done")
+quotes_bwin.iloc[0:9].to_csv("quotes_bwin.csv", encoding = "utf-8")
+print(quotes_bwin)
 
 ####################################################################################################
 
