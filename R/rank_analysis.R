@@ -24,7 +24,7 @@ fetch_data<-function(season){
   data<-read.csv(inputFile)
   data[is.na(data<-data)]<-0
   data$season<-season
-  #print(str(data))
+  print(str(data))
   if ("HFKC" %in% colnames(data))
   {
     data$HF<-data$HFKC
@@ -43,7 +43,10 @@ fetch_data<-function(season){
     data$B365A<-NA
   }
   #results <- data[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'Date')]
-  results <- data[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'Date', 'HS', 'AS', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY',  'HR',  'AR' , 'BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')]
+  if (!"HST" %in% colnames(data)){
+    data <- data%>%mutate(HST=HS*0.376, AST=AS*0.376)
+  }
+  results <- data[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'Date', 'HS', 'AS', 'HST', 'AST', 'HF', 'AF', 'HC', 'AC', 'HY', 'AY',  'HR',  'AR' , 'BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')]
   results$season<-as.factor(results$season)
   with(results[!is.na(results$FTR),],{
     print(cbind ( table(FTR , season), table(FTR , season)/length(FTR)*100))
@@ -66,6 +69,8 @@ for (s in seasons) {
   alldata<-rbind(alldata, fetch_data(s))
 }
 str(alldata)
+#mean(alldata$HST)/mean(alldata$HS)
+#mean(alldata$AST)/mean(alldata$AS)
 
 quote_names<-c('BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')
 quote_names<-c('BWH', 'BWD', 'BWA')
@@ -82,10 +87,11 @@ alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/row
 str(alldata)
 tail(alldata)
 
+
 #data<-rbind(data3[,colnames(data1)], data2, data1)
 teams <- unique(alldata$HomeTeam)
-results <- alldata[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'round', 'Date', 'dayofweek', #'HS', 'AS', 'HST', 'AST', 
-                      'HF', 'AF', 'HC', 'AC', 'HY', 'AY',  'HR',  'AR' )]
+results <- alldata[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'round', 'Date', 'dayofweek', 'HS', 'AS', 'HST', 'AST', 
+                      'HF', 'AF', 'HC', 'AC', 'HY', 'AY',  'HR',  'AR', normalized_quote_names )]
 results$season<-as.factor(results$season)
 table(results$FTR , results$season)
 #results$spieltag <- floor((9:(nrow(results)+8))/9)
@@ -97,18 +103,20 @@ teamresults <- data.frame(team=results$HomeTeam, oppTeam=results$AwayTeam,
                           GS=results$FTHG, GC=results$FTAG, where="Home", round=results$round, season=results$season, 
                           GS1H=results$HTHG, GC1H=results$HTAG, GS2H=results$FTHG-results$HTHG, GC2H=results$FTAG-results$HTAG, 
                           dow=results$dayofweek, gameindex=results$gameindex,
-                          #Shots=results$HS, Shotstarget=results$HST, 
+                          Shots=results$HS, Shotstarget=results$HST, 
                           Fouls=results$HF, Corners=results$HC, Yellow=results$HY, Red=results$HR,
-                          #oppShots=results$AS, oppShotstarget=results$AST, 
-                          oppFouls=results$AF, oppCorners=results$AC, oppYellow=results$AY, oppRed=results$AR)
+                          oppShots=results$AS, oppShotstarget=results$AST, 
+                          oppFouls=results$AF, oppCorners=results$AC, oppYellow=results$AY, oppRed=results$AR,
+                          bwinWin=results$pBWH, bwinLoss=results$pBWA, bwinDraw=results$pBWD)
 teamresults <- rbind(data.frame(team=results$AwayTeam, oppTeam=results$HomeTeam, 
                                 GS=results$FTAG, GC=results$FTHG, where="Away", round=results$round, season=results$season,
                                 GS1H=results$HTAG, GC1H=results$HTHG, GS2H=results$FTAG-results$HTAG, GC2H=results$FTHG-results$HTHG, 
                                 dow=results$dayofweek, gameindex=results$gameindex,
-                                #Shots=results$AS, Shotstarget=results$AST, 
+                                Shots=results$AS, Shotstarget=results$AST, 
                                 Fouls=results$AF, Corners=results$AC, Yellow=results$AY, Red=results$AR,
-                                #oppShots=results$HS, oppShotstarget=results$HST, 
-                                oppFouls=results$HF, oppCorners=results$HC, oppYellow=results$HY, oppRed=results$HR),
+                                oppShots=results$HS, oppShotstarget=results$HST, 
+                                oppFouls=results$HF, oppCorners=results$HC, oppYellow=results$HY, oppRed=results$HR,
+                                bwinWin=results$pBWA, bwinLoss=results$pBWH, bwinDraw=results$pBWD),
                      teamresults)
 
 teamresults<-teamresults[order(teamresults$season, teamresults$round, teamresults$team),]
@@ -121,6 +129,8 @@ teamresults$oppPoints<-ifelse(
   sign(teamresults$GS - teamresults$GC)==1, 0, 
   ifelse(teamresults$GS == teamresults$GC, 1, 3))
 
+library(TTR)
+#install.packages("TTR")
 
 teamresults<-
   teamresults %>%
@@ -134,12 +144,13 @@ teamresults<-
   mutate(t_GS2H = cumsum(GS2H)-GS2H) %>%
   mutate(t_GC2H = cumsum(GC2H)-GC2H) %>%
   mutate(t_Matches_total = ifelse(round>1, round-1, 1)) %>%
-#  mutate(t_Shots = cumsum(Shots)-Shots) %>%
-#  mutate(t_Shotstarget = cumsum(Shotstarget)-Shotstarget) %>%
+  mutate(t_Shots = cumsum(Shots)-Shots) %>%
+  mutate(t_Shotstarget = cumsum(Shotstarget)-Shotstarget) %>%
   mutate(t_Fouls = cumsum(Fouls)-Fouls) %>%
   mutate(t_Corners = cumsum(Corners)-Corners) %>%
   mutate(t_Yellow = cumsum(Yellow)-Yellow) %>%
   mutate(t_Red = cumsum(Red)-Red) %>%
+  mutate(ema_Cards = lag(EMA(Red+0.25*Yellow, n=1, ratio=0.2), 1)) %>%
   group_by(season, where, team) %>%
   arrange(round) %>%
   mutate(t_Points_where = cumsum(points)-points) %>%
@@ -150,8 +161,8 @@ teamresults<-
   mutate(t_GS2H_where = cumsum(GS2H)-GS2H) %>%
   mutate(t_GC2H_where = cumsum(GC2H)-GC2H) %>%
   mutate(t_Matches_where = ifelse(row_number()>1, row_number()-1, 1)) %>%
- # mutate(t_Shots_where = cumsum(Shots)-Shots) %>%
-#  mutate(t_Shotstarget_where = cumsum(Shotstarget)-Shotstarget) %>%
+  mutate(t_Shots_where = cumsum(Shots)-Shots) %>%
+  mutate(t_Shotstarget_where = cumsum(Shotstarget)-Shotstarget) %>%
   mutate(t_Fouls_where = cumsum(Fouls)-Fouls) %>%
   mutate(t_Corners_where = cumsum(Corners)-Corners) %>%
   mutate(t_Yellow_where = cumsum(Yellow)-Yellow) %>%
@@ -165,12 +176,13 @@ teamresults<-
   mutate(t_oppGC1H = cumsum(GS1H)-GS1H) %>%
   mutate(t_oppGS2H = cumsum(GC2H)-GC2H) %>%
   mutate(t_oppGC2H = cumsum(GS2H)-GS2H) %>%
- # mutate(t_oppShots = cumsum(Shots)-Shots) %>%
-#  mutate(t_oppShotstarget = cumsum(Shotstarget)-Shotstarget) %>%
+  mutate(t_oppShots = cumsum(Shots)-Shots) %>%
+  mutate(t_oppShotstarget = cumsum(Shotstarget)-Shotstarget) %>%
   mutate(t_oppFouls = cumsum(Fouls)-Fouls) %>%
   mutate(t_oppCorners = cumsum(Corners)-Corners) %>%
   mutate(t_oppYellow = cumsum(Yellow)-Yellow) %>%
   mutate(t_oppRed = cumsum(Red)-Red) %>%
+  mutate(ema_oppCards = lag(EMA(Red+0.25*Yellow, n=1, ratio=0.2), 1)) %>%
   group_by(season, where, oppTeam) %>%
   arrange(round) %>%
   mutate(t_oppPoints_where = cumsum(oppPoints)-oppPoints) %>% 
@@ -181,46 +193,136 @@ teamresults<-
   mutate(t_oppGS2H_where = cumsum(GC2H)-GC2H) %>%
   mutate(t_oppGC2H_where = cumsum(GS2H)-GS2H) %>%
   mutate(t_oppMatches_where = ifelse(row_number()>1, row_number()-1, 1)) %>%
- # mutate(t_oppShots_where = cumsum(Shots)-Shots) %>%
-#  mutate(t_oppShotstarget_where = cumsum(Shotstarget)-Shotstarget) %>%
+  mutate(t_oppShots_where = cumsum(Shots)-Shots) %>%
+  mutate(t_oppShotstarget_where = cumsum(Shotstarget)-Shotstarget) %>%
   mutate(t_oppFouls_where = cumsum(Fouls)-Fouls) %>%
   mutate(t_oppCorners_where = cumsum(Corners)-Corners) %>%
   mutate(t_oppYellow_where = cumsum(Yellow)-Yellow) %>%
   mutate(t_oppRed_where = cumsum(Red)-Red) %>%
-  ungroup()
+  ungroup()%>%
+  mutate(ema_Cards = ifelse(is.na(ema_Cards), 0.5, ema_Cards),
+         ema_oppCards = ifelse(is.na(ema_oppCards), 0.5, ema_oppCards))
+
+#teamresults%>%arrange(season, team)%>%dplyr::select(season, team, Yellow, Red, t_Yellow, t_Red, ema_Cards)%>%print.data.frame()
+#teamresults%>%arrange(season, oppTeam)%>%dplyr::select(season, oppTeam, Yellow, Red, t_oppYellow, t_oppRed, ema_oppCards)%>%print.data.frame()
+
+# teamresults<-
+#   teamresults %>%
+#   group_by(season, round) %>%
+#   mutate(t_Rank = rank(-t_Points, ties.method="min"),
+#          t_oppRank = rank(-t_oppPoints, ties.method="min")) %>% 
+#   arrange(season, round, team) %>%
+#   ungroup() %>%  
+#   mutate(t_diffRank = -t_Rank+t_oppRank,
+#          t_diffPoints = t_Points-t_oppPoints,
+#          t_diffGoals = t_GS - t_GC,
+#          t_diffGoals1H = t_GS1H - t_GC1H,
+#          t_diffGoals2H = t_GS2H - t_GC2H,
+#          t_diffOppGoals = t_oppGS - t_oppGC,
+#          t_diffOppGoals1H = t_oppGS1H - t_oppGC1H,
+#          t_diffOppGoals2H = t_oppGS2H - t_oppGC2H,
+#          t_diffGoals_where = t_GS_where - t_GC_where,
+#          t_diffGoals1H_where = t_GS1H_where - t_GC1H_where,
+#          t_diffGoals2H_where = t_GS2H_where - t_GC2H_where,
+#          t_diffOppGoals_where = t_oppGS_where - t_oppGC_where,
+#          t_diffOppGoals1H_where = t_oppGS1H_where - t_oppGC1H_where,
+#          t_diffOppGoals2H_where = t_oppGS2H_where - t_oppGC2H_where,
+#          t_diffBothGoals = t_diffGoals - t_diffOppGoals,
+#          t_diffBothGoals1H = t_diffGoals1H - t_diffOppGoals1H,
+#          t_diffBothGoals2H = t_diffGoals2H - t_diffOppGoals2H,
+#          t_diffBothGoals_where = t_diffGoals_where - t_diffOppGoals_where,
+#          t_diffBothGoals1H_where = t_diffGoals1H_where - t_diffOppGoals1H_where,
+#          t_diffBothGoals2H_where = t_diffGoals2H_where - t_diffOppGoals2H_where
+#   )
 
 teamresults<-
   teamresults %>%
-  group_by(season, round) %>%
-  mutate(t_Rank = rank(-t_Points, ties.method="min"),
-         t_oppRank = rank(-t_oppPoints, ties.method="min")) %>% 
-  arrange(season, round, team) %>%
-  ungroup() %>%  
-  mutate(t_diffRank = -t_Rank+t_oppRank,
-         t_diffPoints = t_Points-t_oppPoints,
-         t_diffGoals = t_GS - t_GC,
-         t_diffGoals1H = t_GS1H - t_GC1H,
-         t_diffGoals2H = t_GS2H - t_GC2H,
-         t_diffOppGoals = t_oppGS - t_oppGC,
-         t_diffOppGoals1H = t_oppGS1H - t_oppGC1H,
-         t_diffOppGoals2H = t_oppGS2H - t_oppGC2H,
-         t_diffGoals_where = t_GS_where - t_GC_where,
-         t_diffGoals1H_where = t_GS1H_where - t_GC1H_where,
-         t_diffGoals2H_where = t_GS2H_where - t_GC2H_where,
-         t_diffOppGoals_where = t_oppGS_where - t_oppGC_where,
-         t_diffOppGoals1H_where = t_oppGS1H_where - t_oppGC1H_where,
-         t_diffOppGoals2H_where = t_oppGS2H_where - t_oppGC2H_where,
-         t_diffBothGoals = t_diffGoals - t_diffOppGoals,
-         t_diffBothGoals1H = t_diffGoals1H - t_diffOppGoals1H,
-         t_diffBothGoals2H = t_diffGoals2H - t_diffOppGoals2H,
-         t_diffBothGoals_where = t_diffGoals_where - t_diffOppGoals_where,
-         t_diffBothGoals1H_where = t_diffGoals1H_where - t_diffOppGoals1H_where,
-         t_diffBothGoals2H_where = t_diffGoals2H_where - t_diffOppGoals2H_where
-  )
+  mutate(t_Points = t_Points/t_Matches_total,
+         t_GS = t_GS/t_Matches_total,
+         t_GC = t_GC/t_Matches_total,
+         t_GS1H = t_GS1H/t_Matches_total,
+         t_GC1H = t_GC1H/t_Matches_total,
+         t_GS2H = t_GS2H/t_Matches_total,
+         t_GC2H = t_GC2H/t_Matches_total,
+         t_Shots = t_Shots/t_Matches_total,
+         t_Shotstarget = t_Shotstarget/t_Matches_total,
+         t_Fouls = t_Fouls/t_Matches_total,
+         t_Corners = t_Corners/t_Matches_total,
+         t_Yellow = t_Yellow/t_Matches_total,
+         t_Red = t_Red/t_Matches_total,
+         
+         
+         t_oppPoints = t_oppPoints/t_Matches_total,
+         t_oppGS = t_oppGS/t_Matches_total,
+         t_oppGC = t_oppGC/t_Matches_total,
+         t_oppGS1H = t_oppGS1H/t_Matches_total,
+         t_oppGC1H = t_oppGC1H/t_Matches_total,
+         t_oppGS2H = t_oppGS2H/t_Matches_total,
+         t_oppGC2H = t_oppGC2H/t_Matches_total,
+         t_oppShots = t_oppShots/t_Matches_total,
+         t_oppShotstarget = t_oppShotstarget/t_Matches_total,
+         t_oppFouls = t_oppFouls/t_Matches_total,
+         t_oppCorners = t_oppCorners/t_Matches_total,
+         t_oppYellow = t_oppYellow/t_Matches_total,
+         t_oppRed = t_oppRed/t_Matches_total,
+         
+         t_Points_where = t_Points_where/t_Matches_where,
+         t_GS_where = t_GS_where/t_Matches_where,
+         t_GC_where = t_GC_where/t_Matches_where,
+         t_GS1H_where = t_GS1H_where/t_Matches_where,
+         t_GC1H_where = t_GC1H_where/t_Matches_where,
+         t_GS2H_where = t_GS2H_where/t_Matches_where,
+         t_GC2H_where = t_GC2H_where/t_Matches_where,
+         t_Shots_where = t_Shots_where/t_Matches_where,
+         t_Shotstarget_where = t_Shotstarget_where/t_Matches_where,
+         t_Fouls_where = t_Fouls_where/t_Matches_where,
+         t_Corners_where = t_Corners_where/t_Matches_where,
+         t_Yellow_where = t_Yellow_where/t_Matches_where,
+         t_Red_where = t_Red_where/t_Matches_where,
+         
+         
+         t_oppPoints_where = t_oppPoints_where/t_oppMatches_where,
+         t_oppGS_where = t_oppGS_where/t_oppMatches_where,
+         t_oppGC_where = t_oppGC_where/t_oppMatches_where,
+         t_oppGS1H_where = t_oppGS1H_where/t_oppMatches_where,
+         t_oppGC1H_where = t_oppGC1H_where/t_oppMatches_where,
+         t_oppGS2H_where = t_oppGS2H_where/t_oppMatches_where,
+         t_oppGC2H_where = t_oppGC2H_where/t_oppMatches_where,
+         t_oppShots_where = t_oppShots_where/t_oppMatches_where,
+         t_oppShotstarget_where = t_oppShotstarget_where/t_oppMatches_where,
+         t_oppFouls_where = t_oppFouls_where/t_oppMatches_where,
+         t_oppCorners_where = t_oppCorners_where/t_oppMatches_where,
+         t_oppYellow_where = t_oppYellow_where/t_oppMatches_where,
+         t_oppRed_where = t_oppRed_where/t_oppMatches_where
+         
+  ) 
 
+# teamresults$diffpoints<-teamresults$t_Points*teamresults$t_Matches_total-teamresults$t_oppPoints*teamresults$t_Matches_total
+# library(e1071)
+# 
+# teamresults%>%filter(where=="Home")%>%
+#   mutate(s=paste(season, as.integer((round-1)/17)))%>%
+#   group_by(s)%>%summarise(skew=skewness(t_Points), kurtosis=kurtosis(t_Points), dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC), win=mean(GS>GC), loss=mean(GS<GC))%>%dplyr::select(-s)%>%cor()
+# 
+# teamresults%>%filter(where=="Home")%>%
+#   mutate(s=paste(season, as.integer((round-1)/17)))%>%
+#   group_by(s)%>%summarise(dp=max(t_Points*t_Matches_total), dpmin=min(t_Points*t_Matches_total), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC), win=mean(GS>GC), loss=mean(GS<GC))%>%dplyr::select(-s)%>%cor()
+# 
+# teamresults%>%filter(where=="Home")%>%
+#   mutate(s=paste(season, as.integer((round-1)/6)))%>%
+#   group_by(s)%>%summarise(dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC))%>%dplyr::select(c, draw)%>%plot()
+# 
+# t2<-teamresults%>%filter(where=="Home")%>%
+#   mutate(s=paste(season, as.integer((round-1)/6)))%>%
+#   group_by(s)%>%summarise(dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC))%>%dplyr::select(c, draw)
+# 
+# plot(t2$c, type="l")
+# plot(t2$draw, type="l")
+# 
+# 
 
 teamresults<-teamresults[order(teamresults$season, teamresults$round, teamresults$gameindex, teamresults$where),]
-
+colnames(teamresults)
 (teamresults[9080:9090,c("team", "oppTeam", "where", "t_Rank", "t_oppRank", "t_diffRank" )])
 
 p_points<-function(pHG, pAG, FTHG, FTAG){
@@ -317,6 +419,40 @@ eval_partition_points<-function(p, thedata){
   return (c(cutoffs, pistor=pistor, sky=sky, tcs=tcs, hwin=sum(qpred==1)/length(qpred), draw=sum(qpred==0)/length(qpred), away=sum(qpred==-1)/length(qpred)))
 }
 
+decisionplot <- function(model, data, class = NULL, predict_type = "class",
+                         resolution = 100, showgrid = TRUE, ...) {
+  
+  if(!is.null(class)) cl <- data[,class] else cl <- 1
+  data <- data[,1:2]
+  k <- length(unique(cl))
+  
+  plot(data, col = as.integer(cl)+1L, pch = as.integer(cl)+1L, ...)
+  
+  # make grid
+  r <- sapply(data, range, na.rm = TRUE)
+  xs <- seq(r[1,1], r[2,1], length.out = resolution)
+  ys <- seq(r[1,2], r[2,2], length.out = resolution)
+  g <- cbind(rep(xs, each=resolution), rep(ys, time = resolution))
+  colnames(g) <- colnames(r)
+  g <- as.data.frame(g)
+  
+  ### guess how to get class labels from predict
+  ### (unfortunately not very consistent between models)
+  p <- predict(model, g, type = predict_type)
+  if(is.list(p)) p <- p$class
+  p <- as.factor(p)
+  
+  if(showgrid) points(g, col = as.integer(p)+1L, pch = ".")
+  
+  if (!is.null(model$means)) points(as.data.frame(model$means), pch=1, cex=3, lwd=2, col=2:(nlevels(p)+1L))
+  
+  z <- matrix(as.integer(p), nrow = resolution, byrow = TRUE)
+  contour(xs, ys, z, add = TRUE, drawlabels = FALSE,
+          lwd = 2, levels = (1:(k-1))+.5)
+  
+  invisible(z)
+}
+
 
 train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718")
 test_seasons<-c("1819")
@@ -337,7 +473,7 @@ quote_names<-c('BWH', 'BWD', 'BWA')
 gridscope<-levels(alldata$season)#[-2]
 
 gridscope<-train_seasons
-traindata <- alldata%>%filter(season %in% gridscope)
+traindata <- teamresults%>%filter(season %in% gridscope & where=="Home")
 #traindata <- alldata%>%filter(!spieltag %in% 10:24)
 #traindata <- alldata%>%filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
 
@@ -346,39 +482,331 @@ traindata <- alldata%>%filter(season %in% gridscope)
 # quotes[,1:3] <- quotes[,1:3] / rowSums(quotes[,1:3])
 # quotes[,4:6] <- quotes[,4:6] / rowSums(quotes[,4:6])
 
-testdata <- alldata%>%filter(season %in% test_seasons)
+testdata <- teamresults%>%filter(season %in% test_seasons & where=="Home")
 #testdata <- alldata%>%filter(spieltag %in% 10:24)
 #testdata <- alldata%>%filter(HomeTeam=="Bayern Munich" | AwayTeam=="Bayern Munich")
 # testquotes <- 1/testdata[,quote_names]
 # #testquotes <- testquotes / rowSums(testquotes)
 # testquotes[,1:3] <- testquotes[,1:3] / rowSums(testquotes[,1:3])
 # testquotes[,4:6] <- testquotes[,4:6] / rowSums(testquotes[,4:6])
+str(traindata)
+colnames(traindata)
+X_train <- traindata%>%dplyr::select(bwinWin:t_oppRed_where, -points, -oppPoints)
+X_test <- testdata%>%dplyr::select(bwinWin:t_oppRed_where, -points, -oppPoints)
+Y_train <- traindata%>%dplyr::select(GS, GC)%>%mutate(FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
+Y_test <- testdata%>%dplyr::select(GS, GC)%>%mutate(FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
 
-feature_columns<-c(normalized_quote_names, "draw_prior")
-feature_columns<-normalized_quote_names[1:3]
-quotes<-traindata[, feature_columns]
-testquotes<-testdata[, feature_columns]
+Y_train<-Y_train%>%mutate(FTX=FTR) %>%
+  #mutate(FTX=factor(ifelse(GS==0 & GC==0, "0:0", as.character(FTX)))) %>%
+  mutate(FTX=factor(ifelse(GS-GC==2, "2:0", as.character(FTX)))) %>%
+  mutate(FTX=factor(ifelse(GS-GC>=3, "3:0", as.character(FTX)))) 
+  #mutate(FTX=factor(ifelse(GC-GS==2, "0:2", as.character(FTX)))) 
 
+Y_test<-Y_test%>%mutate(FTX=FTR) %>%
+  #mutate(FTX=factor(ifelse(GS==0 & GC==0, "0:0", as.character(FTX)))) %>%
+  mutate(FTX=factor(ifelse(GS-GC==2, "2:0", as.character(FTX)))) %>%
+  mutate(FTX=factor(ifelse(GS-GC>=3, "3:0", as.character(FTX)))) 
+  #mutate(FTX=factor(ifelse(GC-GS==2, "0:2", as.character(FTX)))) 
+  
+table(Y_train$FTX)
+table(Y_train$FTR)
+
+#feature_columns<-c(normalized_quote_names, "draw_prior")
+#feature_columns<-normalized_quote_names[1:3]
+#quotes<-traindata[, feature_columns]
+#testquotes<-testdata[, feature_columns]
+#pca(as.matrix(traindata))
+#cor(as.matrix(X_train))
 metric = c("orthonormalized", "plain", "weighted")
-trans = preProcess(quotes, c("BoxCox", "center", "scale"))
-quotes <- data.frame(trans = predict(trans, quotes))
-ggplot(melt(quotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
+trans = preProcess(as.matrix(X_train), c("BoxCox", "center", "scale"))
+X_train <- data.frame(trans = predict(trans, as.matrix(X_train)))
+#ggplot(melt(quotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
 
-testquotes <- data.frame(trans = predict(trans, testquotes))
-ggplot(melt(testquotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
+X_test <- data.frame(trans = predict(trans, as.matrix(X_test)))
+#ggplot(melt(testquotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
+summary(X_test)
 
-model <- lfda(quotes, traindata$FTR, r=1,  metric = metric, knn = 20)
+#library(mlogit)
+#linmodel <- mlogit(FTR~., data=cbind(X_train, FTR=Y_train$FTR))
 
-rownames(model$T)<-feature_columns
+library(glmnet)
+library(glmnetUtils)
+
+require(doMC)
+registerDoMC(cores=3)
+
+library(doParallel)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+
+
+model.cva.glmnet <- cva.glmnet(FTX~., family = "multinomial", data = cbind(X_train, FTX=Y_train$FTX), alpha = c(0.8, 1), 
+                               parallel = TRUE, outerParallel=cl, type.measure="class")
+                               #type.measure="auc", parallel = TRUE, outerParallel=cl)
+stopCluster(cl)
+
+
+model.cva.glmnet$alpha
+#model.cva.glmnet$modlist
+plot(model.cva.glmnet)
+minlossplot(model.cva.glmnet, cv.type = "min") # "1se"
+minlossplot(model.cva.glmnet, cv.type = "1se") # 
+coef(model.cva.glmnet, alpha=1)
+coef(model.cva.glmnet, alpha=0.8)
+
+
+vnat=coef(model.cva.glmnet, alpha=0.8) 
+vnat=coef(model.cva.glmnet, alpha=0) 
+#vnat=as.matrix(vnat)[,1] 
+df<-data.frame(name=names(vnat), size=abs(vnat), value=vnat) %>% filter(size>0) %>% arrange(-size)
+print(df)
+
+plot(model.cva.glmnet$modlist[[1]]) 
+plot(model.cva.glmnet$modlist[[2]]) 
+plot(model.cva.glmnet$modlist[[3]]) 
+plot(model.cva.glmnet$modlist[[4]]) 
+plot(model.cva.glmnet$modlist[[7]]) 
+model.cva.glmnet$modlist[[7]]$lambda.min
+
+lambda <- 0.01108088
+lambda <- model.cva.glmnet$modlist[[2]]$lambda.min
+
+# lambda <- 0.04075969
+# lambda <- model.cva.glmnet$modlist[[2]]$lambda.1se
+
+print(log(lambda))
+
+lambda<-exp(-4)
+model.glm <- glmnet(FTX~., family = "multinomial", data = cbind(X_train, FTX=Y_train$FTX), alpha = 1)
+
+#model.glm <- glmnet(x = as.matrix(X_train), y=Y_train[,1:2], family = "mgaussian", alpha = 1)
+#str(X_train)
+
+print(model.glm)
+vnat=coef(model.glm, s=lambda) 
+print(Matrix(cbind(seq_along(t(vnat$A))-1, sapply(vnat, function(x) x[,1]))))
+#unlist(vnat)
+#vnat=vnat[,1] 
+#df<-data.frame(name=names(vnat), size=abs(vnat), value=vnat) %>% filter(size>0) %>% arrange(-size)
+#print(head(df, 200))
+#selected_features <- cbind(GS=vnat$GS, GC=vnat$GC)
+selected_features <- sapply(vnat, function(x) x[,1])
+selected_features<-selected_features[rowSums(selected_features)!=0,]
+print(Matrix(selected_features))
+print(data.frame(sort(rowSums(abs(selected_features)), decreasing = T)))
+selected_features<-setdiff(c(rownames(selected_features)), "(Intercept)")
+#selected_features<-setdiff(c(rownames(selected_features), "trans.bwinDraw"), "(Intercept)")
+print(selected_features)
+
+#selected_features<-c("trans.bwinWin","trans.bwinLoss",   "trans.bwinDraw" , "trans.ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget"          
+selected_features<-c("bwinWin","bwinLoss",   "bwinDraw")# , "ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget" 
+
+par(mfrow=c(2,3))
+plot(model.glm, label = TRUE)
+plot(model.glm, xvar = "dev", label = TRUE)
+plot(model.glm, xvar = "lambda", label = TRUE)
+plot(model.glm$df, model.glm$dev.ratio, xlab="model parameters", ylab="%dev", main="%deviance explained", col="blue")
+abline(v=length(selected_features), col="red")
+par(mfrow=c(1,1))
+
+colnames(X_train[,selected_features])
+
+calc_glmnet_cv_scores<-function(model, lambda, X_train, Y_train){
+  pred<-apply(predict(model, newdata=X_train, s=lambda, type="response"), 1, which.max)
+  pred<-model.glm$classnames[pred]
+  Y_train$pred<-pred
+  Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
+                              pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
+  
+  return(c(lambda=lambda, pistor=mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor),
+           sky=mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky),
+         home=mean(pred %in% c("H","2:0")),
+         draw=mean(pred %in% c("D","0:0")),
+         away=mean(pred %in% c("A","0:2"))))
+}
+
+calc_glmnet_cv_scores(model.glm, lambda=0.001, X_train, Y_train)
+calc_glmnet_cv_scores(model.glm, lambda=0.001, X_test, Y_test)
+
+cvtrain<-t(sapply(seq(-11, -2.5, 0.1), function(l) calc_glmnet_cv_scores(model.glm, lambda=exp(l), X_train, Y_train)))
+cvtest<-t(sapply(seq(-11, -2.5, 0.1), function(l) calc_glmnet_cv_scores(model.glm, lambda=exp(l), X_test, Y_test)))
+
+library(reshape2)
+dd <- melt(data.frame(cvtrain, cvtest[,-1]), id=c("lambda"))
+ggplot(dd) + geom_line(aes(x=log(lambda), y=value, colour=variable), lwd=1)
+
+print(data.frame(train=cvtrain, test=cvtest[,-1]))
+
+data.frame(train=cvtrain, test=cvtest[,-1])%>%mutate(loglambda=log(train.lambda))%>%top_n(n = 10, wt = test.pistor)
+data.frame(train=cvtrain, test=cvtest[,-1])%>%mutate(loglambda=log(train.lambda))%>%top_n(n = 10, wt = test.sky)
+print(as.data.frame(cvtrain)%>%summarise(max.pistor=max(pistor), max.sky=max(sky)))
+print(as.data.frame(cvtest)%>%summarise(max.pistor=max(pistor), max.sky=max(sky)))
+
+lambda<-exp(-6.2)
+lambda<-exp(-5.4)
+pred<-apply(predict(model.glm, newdata=X_train, s=lambda, type="response"), 1, which.max)
+pred<-model.glm$classnames[pred]
+table(pred, Y_train$FTX)
+mean(pred == Y_train$FTX)
+
+testpred<-apply(predict(model.glm, newdata=X_test, s=lambda, type="response"), 1, which.max)
+testpred<-model.glm$classnames[testpred]
+table(testpred, Y_test$FTX)
+mean(testpred == Y_test$FTX)
+
+Y_train$pred<-pred
+Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
+                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
+
+Y_test$pred<-testpred
+Y_test<-Y_test %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
+                          pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
+
+mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor)
+mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky)
+
+mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$pistor)
+mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$sky)
+
+
+
+
+
+model <- lfda(as.matrix(X_train[,selected_features]), Y_train$FTR, r=1,  metric = metric, knn = 20)
+
+#model <- lfda(as.matrix(X_train), Y_train$FTR, r=1,  metric = c(), knn = 3)
+
+rownames(model$T)<-selected_features
 print(model$T)
 print(model)
+summary(X_train[,selected_features])
+
+plot(model$Z, col=as.integer(Y_train$FTR)+1)
+points(model$Z, col=pred)
+plot(model$Z[,c(1,3)], col=as.integer(Y_train$FTR)+1)
+plot(model$Z[,c(2,3)], col=as.integer(Y_train$FTR)+1)
+plot(model$Z[,c(1,4)], col=as.integer(Y_train$FTR)+1)
+
+pred<-apply(predict(model, newdata=as.matrix(X_train[,selected_features])), 1, which.max)
+pred<-(ifelse(pred==1, "A", ifelse(pred==2, "H", "D")))
+table(pred, Y_train$FTR)
+mean(pred == Y_train$FTR)
+
+
+ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train[,selected_features]), CV = T)
+ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train), CV = T)
+ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train[,selected_features]), CV = T)
+ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train), CV = T)
+
+table(ldamodel$class, Y_train$FTX)/length(ldamodel$class)*100
+mean(ldamodel$class == Y_train$FTX)
+
+ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train[,selected_features]), CV = F)
+ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train), CV = F)
+ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train[,selected_features]), CV = F)
+#ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train), CV = F)
+plda <- predict(ldamodel, newdata = X_train)
+prop <- ldamodel$svd^2/sum(ldamodel$svd^2)
+print(prop)
+
+dataset <- data.frame(FTR = Y_train$FTR, lda = plda$x, pred=predict(ldamodel, newdata=X_train)$class)
+dataset <- data.frame(FTX = Y_train$FTX, lda = plda$x, pred=predict(ldamodel, newdata=X_train)$class)
+centr <- predict(ldamodel, newdata = data.frame(ldamodel$means))
+
+ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = FTX, shape=pred), size = 1.5, alpha=0.2) + 
+  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
+       y = paste("LD2 (", (prop[2]), ")", sep=""))+
+  scale_colour_brewer(palette = "Set1")+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=10, pch=4)+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=4)
+
+ggplot(dataset) + geom_point(aes(lda.LD3, lda.LD4, colour = FTX, shape=pred), size = 1.5, alpha=0.2) + 
+  labs(x = paste("LD3 (", (prop[3]), ")", sep=""),
+       y = paste("LD4 (", (prop[4]), ")", sep=""))+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD3, y=LD4, colour=FTX), size=10, pch=4)+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD3, y=LD4, colour=FTX), size=4)
+
+ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = pred, shape=FTX), size = 1.5, alpha=0.2) + 
+  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
+       y = paste("LD2 (", (prop[2]), ")", sep=""))+
+  scale_colour_brewer(palette = "Spectral")+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=10, pch=4)+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=4)
+  
+ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD3, colour = pred, shape=FTX), size = 1.5, alpha=0.2) + 
+  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
+       y = paste("LD3 (", (prop[3]), ")", sep=""))+
+  scale_colour_brewer(palette = "Spectral")+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD3, colour=FTX), size=10, pch=4)+
+  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD3, colour=FTX), size=4)
+
+pred<-predict(ldamodel, newdata=X_train)$class
+table(pred, Y_train$FTX)/length(Y_train$FTX)*100
+mean(pred == Y_train$FTX)
+plot(pred, Y_train$FTX)
+
+testpred<-predict(ldamodel, newdata=X_test)$class
+table(testpred, Y_test$FTX)/length(Y_test$FTX)*100
+mean(testpred == Y_test$FTX)
+plot(testpred, Y_test$FTX)
+
+Y_train$pred<-pred
+Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
+                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
+    
+Y_test$pred<-testpred
+Y_test<-Y_test %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
+                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
+
+mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor)
+mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky)
+
+mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$pistor)
+mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$sky)
 
 # plot(model$Z, col=as.integer(thedata$FTR)+1)
 # plot(model$Z[,2:3], col=as.integer(thedata$FTR)+1)
 # plot(model$Z[,c(1,3)], col=as.integer(thedata$FTR)+1)
 # ggplot(data.frame(model$Z, FTR=thedata$FTR), aes(x=X1, fill=FTR))+geom_density(alpha=0.4) #+geom_histogram()
-traindata<-data.frame(traindata, X1=model$Z)
-testdata<-data.frame(testdata, X1=predict(model, testquotes))
+
+
+###########################################################################################################
+
+#selected_features<-c("trans.bwinWin","trans.bwinLoss",   "trans.bwinDraw" , "trans.ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget"          
+selected_features<-c("bwinWin","bwinLoss",   "bwinDraw", "ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget" 
+
+trans = preProcess(as.matrix(X_train), c("BoxCox", "center", "scale"))
+XX_train <- data.frame(trans = predict(trans, as.matrix(X_train)))
+XX_test <- data.frame(trans = predict(trans, as.matrix(X_test)))
+
+Xselected_features<-paste0("trans.",selected_features)
+model <- lfda(as.matrix(XX_train[,Xselected_features]), Y_train$FTR, r=1,  metric = metric, knn = 20)
+rownames(model$T)<-Xselected_features
+print(model$T)
+
+traindata<-traindata%>%dplyr::select(-dplyr::matches("X[0-9]"))
+traindata<-data.frame(traindata, X1=predict(model, XX_train[,Xselected_features]))
+testdata<-testdata%>%dplyr::select(-dplyr::matches("X[0-9]"))
+testdata<-data.frame(testdata, X1=predict(model, XX_test[,Xselected_features]))
+
+
+
+
+model <- lfda(as.matrix(X_train[,selected_features]), Y_train$FTR, r=1,  metric = metric, knn = 20)
+
+#model <- lfda(as.matrix(X_train), Y_train$FTR, r=1,  metric = c(), knn = 3)
+
+rownames(model$T)<-selected_features
+print(model$T)
+
+traindata<-traindata%>%dplyr::select(-dplyr::matches("X[0-9]"))
+traindata<-data.frame(traindata, X1=predict(model, X_train[,selected_features]))
+testdata<-testdata%>%dplyr::select(-dplyr::matches("X[0-9]"))
+testdata<-data.frame(testdata, X1=predict(model, X_test[,selected_features]))
+
+traindata <- traindata%>%mutate(FTHG=GS, FTAG=GC, FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
+testdata <- testdata%>%mutate(FTHG=GS, FTAG=GC, FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
+
 # move HomeWins to high end of scale
 #orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1), X2=median(X2), X3=median(X3))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1:X3), rank)%>%mutate_at(vars(X1:X3), function(x) 2*(x-1.5))%>%filter(FTR=="H")
 orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1), rank)%>%mutate_at(vars(X1), function(x) 2*(x-1.5))%>%filter(FTR=="H")
@@ -393,7 +821,13 @@ testdata$X1<-testdata$X1*orientation$X1
 q<-prepare_plot_data_lfda(traindata)
 qtest<-prepare_plot_data_lfda(testdata)
 
+print(q%>%top_n(1, pistor))
+print(q%>%top_n(1, sky))
+print(qtest%>%top_n(1, pistor))
+print(qtest%>%top_n(1, sky))
 
+
+#traindata$ema_oppCards
 
 print(traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
 print(testdata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
@@ -456,7 +890,7 @@ newdata<-matrix(ncol=3, byrow = T,
 colnames(newdata)<-feature_columns
 
 newdatafile<-"D:/gitrepository/Football/football/TF/quotes_bwin.csv"
-newdatafile<-"quotes_bwin.csv"
+#newdatafile<-"quotes_bwin.csv"
 newdata_df<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
 
 newdata<-as.matrix(newdata_df[, quote_names])
@@ -615,7 +1049,6 @@ ggplot(q, aes(x=hwin, y=away, z=sky, colour=sky, fill=sky, size=sky))+
   geom_contour(binwidth=0.01)+
   geom_text_contour(binwidth=0.01, min.size = 5)
 q %>% arrange(-sky) %>% head(10)
-
 
 ggplot(qtest, aes(x=hwin, y=away, z=sky, colour=sky, fill=sky, size=sky))+
   scale_fill_gradientn(colours = rev(rainbow(10)))+scale_colour_gradientn(colours = rev(rainbow(10)))+
