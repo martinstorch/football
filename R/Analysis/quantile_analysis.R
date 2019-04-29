@@ -15,6 +15,9 @@ library(MASS)
 library(tidyimpute)
 library(na.tools)
 
+newdatafile<-"D:/gitrepository/Football/football/TF/quotes_bwin.csv"
+newdata_df<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
+
 fetch_data<-function(season){
   url <- paste0("http://www.football-data.co.uk/mmz4281/", season, "/D1.csv")
   inputFile <- paste0("BL",season,".csv")
@@ -152,14 +155,14 @@ eval_partition_points<-function(p, thedata){
 train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718")
 test_seasons<-c("1819")
 
-train_seasons<-c("0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
-test_seasons<-c("0405", "0506", "0607", "0708")
-
-train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314")
-test_seasons<-c( "1415", "1516", "1617", "1718", "1819")
-
-train_seasons<-sample(levels(alldata$season), 8)
-test_seasons<-setdiff(levels(alldata$season), train_seasons)
+# train_seasons<-c("0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
+# test_seasons<-c("0405", "0506", "0607", "0708")
+# 
+# train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314")
+# test_seasons<-c( "1415", "1516", "1617", "1718", "1819")
+# 
+# train_seasons<-sample(levels(alldata$season), 8)
+# test_seasons<-setdiff(levels(alldata$season), train_seasons)
 
 quote_names<-c('BWH', 'BWD', 'BWA')
 #quote_names<-c('B365H', 'B365D', 'B365A')
@@ -270,7 +273,7 @@ p_points<-function(pHG, pAG, FTHG, FTAG){
 ###############
 
 point_system<-"pistor"
-#point_system<-"sky"
+point_system<-"sky"
 
 
 newdata<-matrix(ncol=3, byrow = T, 
@@ -286,8 +289,6 @@ newdata<-matrix(ncol=3, byrow = T,
                 ))
 colnames(newdata)<-feature_columns
 
-newdatafile<-"D:/gitrepository/Football/football/TF/quotes_bwin.csv"
-newdata_df<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
 
 newdata<-as.matrix(newdata_df[, quote_names])
 rownames(newdata)<-paste(newdata_df$HomeTeam, newdata_df$AwayTeam, sep="-")
@@ -415,7 +416,7 @@ abline(v=1-testbest1$hwin, col="cornflowerblue", lwd=2)
 trainseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp02=max(cp02))
 testseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp02=max(cp02))
 
-print(data.frame(newdata, train=perc/l, test=testperc/ltest))
+print(data.frame(newdata_df, newdata$X1, train=perc/l, test=testperc/ltest))
 
 
 
