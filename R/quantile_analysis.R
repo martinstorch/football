@@ -1,5 +1,6 @@
 setwd("~/LearningR/Bundesliga/Analysis")
 setwd("c:/users/marti")
+setwd("C:/git/football/TF")
 
 library(metR)
 library(ggExtra)
@@ -74,6 +75,8 @@ normalized_quote_names<-paste0("p", quote_names)
 alldata[,normalized_quote_names]<-1/alldata[,quote_names]
 alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/rowSums(alldata[,normalized_quote_names[1:3]])
 #alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
+
+ggplot(alldata, aes(x=pBWH, y=pBWA, color=FTR))+geom_point(alpha=0.3)
 
 
 #########################################################################################################################

@@ -1811,7 +1811,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1874,8 +1874,8 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      #default="d:/Models/laplace_pistor_bwin",
-      default="d:/Models/laplace_sky_bwin",
+      default="c:/Models/laplace_pistor_bwin",
+      #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
