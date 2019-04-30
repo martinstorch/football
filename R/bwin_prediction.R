@@ -18,22 +18,15 @@ library(tidyimpute)
 library(na.tools)
 library(lubridate)
 library(tidyr)
+library(TTR)
 
 newdatafile<-"D:/gitrepository/Football/football/TF/quotes_bwin.csv"
 #newdatafile<-"quotes_bwin.csv"
 newdata_df<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
-#newdata_df$match<-paste(newdata_df$HomeTeam, newdata_df$AwayTeam, sep="-")
 newdata_df$Date<-dmy(newdata_df$Date)
 newdata<-newdata_df[, c('HomeTeam', 'AwayTeam','Date', 'BWH','BWD','BWA')]
-#colnames(newdata)<-c('BWH','BWD','BWA')
 newdata$isnew<-T
 
-# newquotes <- 1/newdata
-# print(newquotes)
-# print(rowSums(newquotes))
-# #newquotes <- newquotes / rowSums(newquotes)
-# newquotes[,1:3] <- newquotes[,1:3] / rowSums(newquotes[,1:3])
-# #newquotes[,4:6] <- newquotes[,4:6] / rowSums(newquotes[,4:6])
 
 fetch_data<-function(season){
   url <- paste0("http://www.football-data.co.uk/mmz4281/", season, "/D1.csv")
@@ -91,12 +84,10 @@ str(alldata)
 #mean(alldata$HST)/mean(alldata$HS)
 #mean(alldata$AST)/mean(alldata$AS)
 
-alldata0<-alldata
-
 newdata$HomeTeam<-factor(levels(alldata$HomeTeam)[apply(adist(gsub('FC |FSV |Borussia ', '', newdata$HomeTeam), levels(alldata$HomeTeam)), 1, which.min)], levels = levels(alldata$HomeTeam))
 newdata$AwayTeam<-factor(levels(alldata$HomeTeam)[apply(adist(gsub('FC |FSV |Borussia ', '', newdata$AwayTeam), levels(alldata$HomeTeam)), 1, which.min)], levels = levels(alldata$AwayTeam))
 
-alldata<-bind_rows(alldata0, as.data.frame(newdata))
+alldata<-bind_rows(alldata, as.data.frame(newdata))
 
 table(alldata$season, useNA = "ifany")
 alldata$season[is.na(alldata$season)] <- max(as.character(alldata$season), na.rm = T)
@@ -122,37 +113,24 @@ alldata <- alldata %>%
          AR = replace_na(AR, 0)
   )
 
-#alldata<-alldata0
-str(alldata0)
-str(newdata)
-
 quote_names<-c('BWH', 'BWD', 'BWA', 'B365H', 'B365D', 'B365A')
 quote_names<-c('BWH', 'BWD', 'BWA')
 normalized_quote_names<-paste0("p", quote_names)
 
 alldata[,normalized_quote_names]<-1/alldata[,quote_names]
 alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/rowSums(alldata[,normalized_quote_names[1:3]])
-#alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
-
 
 
 #########################################################################################################################
 
-str(alldata)
 tail(alldata, 18)
-tail(alldata0, 18)
 
 
-#data<-rbind(data3[,colnames(data1)], data2, data1)
 teams <- unique(alldata$HomeTeam)
 results <- alldata[,c('HomeTeam', 'AwayTeam', 'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG', 'HTR', 'season', 'round', 'Date', 'dayofweek', 'HS', 'AS', 'HST', 'AST', 
                       'HF', 'AF', 'HC', 'AC', 'HY', 'AY',  'HR',  'AR', normalized_quote_names, 'isnew' )]
 results$season<-as.factor(results$season)
 table(results$FTR , results$season)
-#results$spieltag <- floor((9:(nrow(results)+8))/9)
-#results$round <- ((results$spieltag-1) %% 34) +1
-#results$Date<-as.Date(results$Date, "%d/%m/%y")
-#results$dayofweek<-weekdays(results$Date)
 results$gameindex<-(0:(nrow(results)-1))%%9+1
 teamresults <- data.frame(team=results$HomeTeam, oppTeam=results$AwayTeam, 
                           GS=results$FTHG, GC=results$FTAG, where="Home", round=results$round, season=results$season, 
@@ -184,8 +162,6 @@ teamresults$oppPoints<-ifelse(
   sign(teamresults$GS - teamresults$GC)==1, 0, 
   ifelse(teamresults$GS == teamresults$GC, 1, 3))
 
-library(TTR)
-#install.packages("TTR")
 
 teamresults<-
   teamresults %>%
@@ -352,33 +328,7 @@ teamresults<-
          
   ) 
 
-# teamresults$diffpoints<-teamresults$t_Points*teamresults$t_Matches_total-teamresults$t_oppPoints*teamresults$t_Matches_total
-# library(e1071)
-# 
-# teamresults%>%filter(where=="Home")%>%
-#   mutate(s=paste(season, as.integer((round-1)/17)))%>%
-#   group_by(s)%>%summarise(skew=skewness(t_Points), kurtosis=kurtosis(t_Points), dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC), win=mean(GS>GC), loss=mean(GS<GC))%>%dplyr::select(-s)%>%cor()
-# 
-# teamresults%>%filter(where=="Home")%>%
-#   mutate(s=paste(season, as.integer((round-1)/17)))%>%
-#   group_by(s)%>%summarise(dp=max(t_Points*t_Matches_total), dpmin=min(t_Points*t_Matches_total), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC), win=mean(GS>GC), loss=mean(GS<GC))%>%dplyr::select(-s)%>%cor()
-# 
-# teamresults%>%filter(where=="Home")%>%
-#   mutate(s=paste(season, as.integer((round-1)/6)))%>%
-#   group_by(s)%>%summarise(dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC))%>%dplyr::select(c, draw)%>%plot()
-# 
-# t2<-teamresults%>%filter(where=="Home")%>%
-#   mutate(s=paste(season, as.integer((round-1)/6)))%>%
-#   group_by(s)%>%summarise(dp=sd(diffpoints)-IQR(abs(diffpoints)), c=cor(GS, GC), FTHG=mean(GS), FTAG=mean(GC), draw=mean(GS==GC))%>%dplyr::select(c, draw)
-# 
-# plot(t2$c, type="l")
-# plot(t2$draw, type="l")
-# 
-# 
-
 teamresults<-teamresults[order(teamresults$season, teamresults$round, teamresults$gameindex, teamresults$where),]
-colnames(teamresults)
-(teamresults[9080:9090,c("team", "oppTeam", "where", "t_Rank", "t_oppRank", "t_diffRank" )])
 
 p_points<-function(pHG, pAG, FTHG, FTAG){
   hw<-FTHG>FTAG
@@ -392,15 +342,6 @@ p_points<-function(pHG, pAG, FTHG, FTAG){
   sky <- 2*tendency+3*hit
   return (list(pistor=pistor, sky=sky))
 }
-
-# rankX <- teamresults%>%filter(where=="Home")%>%dplyr::select(team, oppTeam, GS, GC, round, season, gameindex, t_Rank, t_oppRank, t_diffRank)
-# 
-# rankX$pGS<-ifelse(rankX$t_diffRank>0, 2, 1)
-# rankX$pGC<-ifelse(rankX$t_diffRank<0, 2, 1)
-# 
-# tail(rankX, 18)
-
-
 
 qmix_lfda<-function(pwin, ploss, thedata, quotes){
   #ord <- order(quotes[,1], quotes[,2], quotes[,3])
@@ -529,7 +470,7 @@ gridscope<-levels(alldata$season)#[-2]
 
 gridscope<-train_seasons
 traindata <- teamresults%>%filter(season %in% gridscope & where=="Home" & !isnew)
-#traindata <- teamresults%>%filter(!round %in% 10:24)
+#traindata <- teamresults%>%filter(round %in% 10:24)
 #traindata <- alldata%>%filter(HomeTeam!="Bayern Munich" & AwayTeam!="Bayern Munich")
 
 # quotes <- 1/traindata[,quote_names]
@@ -539,14 +480,13 @@ traindata <- teamresults%>%filter(season %in% gridscope & where=="Home" & !isnew
 
 testdata <- teamresults%>%filter(season %in% test_seasons & where=="Home" & !isnew)
 newdata <- teamresults%>%filter(where=="Home" & isnew)
-#testdata <- teamresults%>%filter(round %in% 10:24)
+#testdata <- teamresults%>%filter(!round %in% 10:24)
 #testdata <- alldata%>%filter(HomeTeam=="Bayern Munich" | AwayTeam=="Bayern Munich")
 # testquotes <- 1/testdata[,quote_names]
 # #testquotes <- testquotes / rowSums(testquotes)
 # testquotes[,1:3] <- testquotes[,1:3] / rowSums(testquotes[,1:3])
 # testquotes[,4:6] <- testquotes[,4:6] / rowSums(testquotes[,4:6])
-str(traindata)
-colnames(traindata)
+
 X_train <- traindata%>%dplyr::select(bwinWin:t_diffBothGoals2H_where, -points, -oppPoints, -isnew)
 Y_train <- traindata%>%dplyr::select(GS, GC)%>%mutate(FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
 X_test <- testdata%>%dplyr::select(bwinWin:t_diffBothGoals2H_where, -points, -oppPoints, -isnew)
@@ -567,265 +507,6 @@ Y_test<-Y_test%>%mutate(FTX=FTR) %>%
   
 table(Y_train$FTX)
 table(Y_train$FTR)
-
-#feature_columns<-c(normalized_quote_names, "draw_prior")
-#feature_columns<-normalized_quote_names[1:3]
-#quotes<-traindata[, feature_columns]
-#testquotes<-testdata[, feature_columns]
-#pca(as.matrix(traindata))
-#cor(as.matrix(X_train))
-metric = c("orthonormalized", "plain", "weighted")
-trans = preProcess(as.matrix(X_train), c("BoxCox", "center", "scale"))
-X_train <- data.frame(trans = predict(trans, as.matrix(X_train)))
-#ggplot(melt(quotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
-
-X_test <- data.frame(trans = predict(trans, as.matrix(X_test)))
-X_new <- data.frame(trans = predict(trans, as.matrix(X_new)))
-#ggplot(melt(testquotes))+facet_wrap(variable~.)+geom_histogram(aes(x=value), bins=40)
-summary(X_test)
-
-#library(mlogit)
-#linmodel <- mlogit(FTR~., data=cbind(X_train, FTR=Y_train$FTR))
-
-library(glmnet)
-library(glmnetUtils)
-
-require(doMC)
-registerDoMC(cores=3)
-
-library(doParallel)
-cl <- makeCluster(detectCores())
-registerDoParallel(cl)
-
-
-model.cva.glmnet <- cva.glmnet(FTX~., family = "multinomial", data = cbind(X_train, FTX=Y_train$FTX), alpha = c(0.8, 1), 
-                               parallel = TRUE, outerParallel=cl, type.measure="class")
-                               #type.measure="auc", parallel = TRUE, outerParallel=cl)
-stopCluster(cl)
-
-
-model.cva.glmnet$alpha
-#model.cva.glmnet$modlist
-plot(model.cva.glmnet)
-minlossplot(model.cva.glmnet, cv.type = "min") # "1se"
-minlossplot(model.cva.glmnet, cv.type = "1se") # 
-coef(model.cva.glmnet, alpha=1)
-coef(model.cva.glmnet, alpha=0.8)
-
-
-vnat=coef(model.cva.glmnet, alpha=0.8) 
-vnat=coef(model.cva.glmnet, alpha=0) 
-#vnat=as.matrix(vnat)[,1] 
-df<-data.frame(name=names(vnat), size=abs(vnat), value=vnat) %>% filter(size>0) %>% arrange(-size)
-print(df)
-
-plot(model.cva.glmnet$modlist[[1]]) 
-plot(model.cva.glmnet$modlist[[2]]) 
-plot(model.cva.glmnet$modlist[[3]]) 
-plot(model.cva.glmnet$modlist[[4]]) 
-plot(model.cva.glmnet$modlist[[7]]) 
-model.cva.glmnet$modlist[[7]]$lambda.min
-
-lambda <- 0.01108088
-lambda <- model.cva.glmnet$modlist[[2]]$lambda.min
-
-# lambda <- 0.04075969
-# lambda <- model.cva.glmnet$modlist[[2]]$lambda.1se
-
-print(log(lambda))
-
-lambda<-exp(-4.2)
-model.glm <- glmnet(FTR~., family = "multinomial", data = cbind(X_train, FTR=Y_train$FTR), alpha = 1)
-
-#model.glm <- glmnet(x = as.matrix(X_train), y=Y_train[,1:2], family = "mgaussian", alpha = 1)
-#str(X_train)
-
-print(model.glm)
-vnat=coef(model.glm, s=lambda) 
-print(Matrix(cbind(seq_along(t(vnat$A))-1, sapply(vnat, function(x) x[,1]))))
-#unlist(vnat)
-#vnat=vnat[,1] 
-#df<-data.frame(name=names(vnat), size=abs(vnat), value=vnat) %>% filter(size>0) %>% arrange(-size)
-#print(head(df, 200))
-#selected_features <- cbind(GS=vnat$GS, GC=vnat$GC)
-selected_features <- sapply(vnat, function(x) x[,1])
-selected_features<-selected_features[rowSums(selected_features)!=0,]
-print(Matrix(selected_features))
-print(data.frame(sort(rowSums(abs(selected_features)), decreasing = T)))
-selected_features<-setdiff(c(rownames(selected_features)), "(Intercept)")
-#selected_features<-setdiff(c(rownames(selected_features), "trans.bwinDraw"), "(Intercept)")
-print(selected_features)
-
-#selected_features<-c("trans.bwinWin","trans.bwinLoss",   "trans.bwinDraw" , "trans.ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget"          
-selected_features<-c("bwinWin","bwinLoss",   "bwinDraw")# , "ema_oppCards") #, "trans.t_GS_where",  "trans.t_oppShotstarget" 
-
-par(mfrow=c(2,3))
-plot(model.glm, label = TRUE)
-plot(model.glm, xvar = "dev", label = TRUE)
-plot(model.glm, xvar = "lambda", label = TRUE)
-plot(model.glm$df, model.glm$dev.ratio, xlab="model parameters", ylab="%dev", main="%deviance explained", col="blue")
-abline(v=length(selected_features), col="red")
-par(mfrow=c(1,1))
-
-colnames(X_train[,selected_features])
-
-calc_glmnet_cv_scores<-function(model, lambda, X_train, Y_train){
-  pred<-apply(predict(model, newdata=X_train, s=lambda, type="response"), 1, which.max)
-  pred<-model.glm$classnames[pred]
-  Y_train$pred<-pred
-  Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
-                              pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
-  
-  return(c(lambda=lambda, pistor=mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor),
-           sky=mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky),
-         home=mean(pred %in% c("H","2:0")),
-         draw=mean(pred %in% c("D","0:0")),
-         away=mean(pred %in% c("A","0:2"))))
-}
-
-calc_glmnet_cv_scores(model.glm, lambda=0.001, X_train, Y_train)
-calc_glmnet_cv_scores(model.glm, lambda=0.001, X_test, Y_test)
-
-cvtrain<-t(sapply(seq(-11, -2.5, 0.1), function(l) calc_glmnet_cv_scores(model.glm, lambda=exp(l), X_train, Y_train)))
-cvtest<-t(sapply(seq(-11, -2.5, 0.1), function(l) calc_glmnet_cv_scores(model.glm, lambda=exp(l), X_test, Y_test)))
-
-library(reshape2)
-dd <- melt(data.frame(cvtrain, cvtest[,-1]), id=c("lambda"))
-ggplot(dd) + geom_line(aes(x=log(lambda), y=value, colour=variable), lwd=1)
-
-print(data.frame(train=cvtrain, test=cvtest[,-1]))
-
-data.frame(train=cvtrain, test=cvtest[,-1])%>%mutate(loglambda=log(train.lambda))%>%top_n(n = 10, wt = test.pistor)
-data.frame(train=cvtrain, test=cvtest[,-1])%>%mutate(loglambda=log(train.lambda))%>%top_n(n = 10, wt = test.sky)
-print(as.data.frame(cvtrain)%>%summarise(max.pistor=max(pistor), max.sky=max(sky)))
-print(as.data.frame(cvtest)%>%summarise(max.pistor=max(pistor), max.sky=max(sky)))
-
-lambda<-exp(-6.2)
-lambda<-exp(-5.4)
-pred<-apply(predict(model.glm, newdata=X_train, s=lambda, type="response"), 1, which.max)
-pred<-model.glm$classnames[pred]
-table(pred, Y_train$FTX)
-mean(pred == Y_train$FTX)
-
-testpred<-apply(predict(model.glm, newdata=X_test, s=lambda, type="response"), 1, which.max)
-testpred<-model.glm$classnames[testpred]
-table(testpred, Y_test$FTX)
-mean(testpred == Y_test$FTX)
-
-Y_train$pred<-pred
-Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
-                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
-
-Y_test$pred<-testpred
-Y_test<-Y_test %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
-                          pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
-
-mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor)
-mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky)
-
-mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$pistor)
-mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$sky)
-
-
-
-
-
-model <- lfda(as.matrix(X_train[,selected_features]), Y_train$FTR, r=1,  metric = metric, knn = 20)
-
-#model <- lfda(as.matrix(X_train), Y_train$FTR, r=1,  metric = c(), knn = 3)
-
-rownames(model$T)<-selected_features
-print(model$T)
-print(model)
-summary(X_train[,selected_features])
-
-plot(model$Z, col=as.integer(Y_train$FTR)+1)
-points(model$Z, col=pred)
-plot(model$Z[,c(1,3)], col=as.integer(Y_train$FTR)+1)
-plot(model$Z[,c(2,3)], col=as.integer(Y_train$FTR)+1)
-plot(model$Z[,c(1,4)], col=as.integer(Y_train$FTR)+1)
-
-pred<-apply(predict(model, newdata=as.matrix(X_train[,selected_features])), 1, which.max)
-pred<-(ifelse(pred==1, "A", ifelse(pred==2, "H", "D")))
-table(pred, Y_train$FTR)
-mean(pred == Y_train$FTR)
-
-
-ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train[,selected_features]), CV = T)
-ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train), CV = T)
-ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train[,selected_features]), CV = T)
-ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train), CV = T)
-
-table(ldamodel$class, Y_train$FTX)/length(ldamodel$class)*100
-mean(ldamodel$class == Y_train$FTX)
-
-ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train[,selected_features]), CV = F)
-ldamodel <- lda(FTR ~ ., data=cbind(FTR=Y_train$FTR, X_train), CV = F)
-ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train[,selected_features]), CV = F)
-#ldamodel <- lda(FTX ~ ., data=cbind(FTX=Y_train$FTX, X_train), CV = F)
-plda <- predict(ldamodel, newdata = X_train)
-prop <- ldamodel$svd^2/sum(ldamodel$svd^2)
-print(prop)
-
-dataset <- data.frame(FTR = Y_train$FTR, lda = plda$x, pred=predict(ldamodel, newdata=X_train)$class)
-dataset <- data.frame(FTX = Y_train$FTX, lda = plda$x, pred=predict(ldamodel, newdata=X_train)$class)
-centr <- predict(ldamodel, newdata = data.frame(ldamodel$means))
-
-ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = FTX, shape=pred), size = 1.5, alpha=0.2) + 
-  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
-       y = paste("LD2 (", (prop[2]), ")", sep=""))+
-  scale_colour_brewer(palette = "Set1")+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=10, pch=4)+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=4)
-
-ggplot(dataset) + geom_point(aes(lda.LD3, lda.LD4, colour = FTX, shape=pred), size = 1.5, alpha=0.2) + 
-  labs(x = paste("LD3 (", (prop[3]), ")", sep=""),
-       y = paste("LD4 (", (prop[4]), ")", sep=""))+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD3, y=LD4, colour=FTX), size=10, pch=4)+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD3, y=LD4, colour=FTX), size=4)
-
-ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = pred, shape=FTX), size = 1.5, alpha=0.2) + 
-  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
-       y = paste("LD2 (", (prop[2]), ")", sep=""))+
-  scale_colour_brewer(palette = "Spectral")+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=10, pch=4)+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD2, colour=FTX), size=4)
-  
-ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD3, colour = pred, shape=FTX), size = 1.5, alpha=0.2) + 
-  labs(x = paste("LD1 (", (prop[1]), ")", sep=""),
-       y = paste("LD3 (", (prop[3]), ")", sep=""))+
-  scale_colour_brewer(palette = "Spectral")+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD3, colour=FTX), size=10, pch=4)+
-  geom_point(data=data.frame(centr$x, FTX=rownames(centr$x)), aes(x=LD1, y=LD3, colour=FTX), size=4)
-
-pred<-predict(ldamodel, newdata=X_train)$class
-table(pred, Y_train$FTX)/length(Y_train$FTX)*100
-mean(pred == Y_train$FTX)
-plot(pred, Y_train$FTX)
-
-testpred<-predict(ldamodel, newdata=X_test)$class
-table(testpred, Y_test$FTX)/length(Y_test$FTX)*100
-mean(testpred == Y_test$FTX)
-plot(testpred, Y_test$FTX)
-
-Y_train$pred<-pred
-Y_train<-Y_train %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
-                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
-    
-Y_test$pred<-testpred
-Y_test<-Y_test %>% mutate(pFTHG=ifelse(pred %in% c('H','D','A'),  1+(pred=="H"), strtoi(substr(as.character(pred), 1, 1))),
-                            pFTAG=ifelse(pred %in% c('H','D','A'),  1+(pred=="A"), strtoi(substr(as.character(pred), 3, 3))))
-
-mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$pistor)
-mean(p_points(Y_train$pFTHG, Y_train$pFTAG, Y_train$GS, Y_train$GC)$sky)
-
-mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$pistor)
-mean(p_points(Y_test$pFTHG, Y_test$pFTAG, Y_test$GS, Y_test$GC)$sky)
-
-# plot(model$Z, col=as.integer(thedata$FTR)+1)
-# plot(model$Z[,2:3], col=as.integer(thedata$FTR)+1)
-# plot(model$Z[,c(1,3)], col=as.integer(thedata$FTR)+1)
-# ggplot(data.frame(model$Z, FTR=thedata$FTR), aes(x=X1, fill=FTR))+geom_density(alpha=0.4) #+geom_histogram()
 
 
 ###########################################################################################################
@@ -873,22 +554,7 @@ X2_train<-cbind(X_train, XX_train)
 X2_test<-cbind(X_test, XX_test)
 X2_new<-cbind(X_new, XX_new)
 
-# Xselected_features<-paste0("trans.",selected_features)
-# model <- lfda(as.matrix(XX_train[,Xselected_features]), Y_train$FTR, r=1,  metric = metric, knn = 20)
-# rownames(model$T)<-Xselected_features
-# print(model$T)
-# 
-# traindata<-traindata%>%dplyr::select(-dplyr::matches("X[0-9]"))
-# traindata<-data.frame(traindata, X1=predict(model, XX_train[,Xselected_features]))
-# testdata<-testdata%>%dplyr::select(-dplyr::matches("X[0-9]"))
-# testdata<-data.frame(testdata, X1=predict(model, XX_test[,Xselected_features]))
-# 
-# 
-
-
 model <- lfda(X2_train[,selected_features], Y_train$FTR, r=1,  metric = metric, knn = 20)
-
-#model <- lfda(as.matrix(X_train), Y_train$FTR, r=1,  metric = c(), knn = 3)
 
 rownames(model$T)<-selected_features
 print(model$T)
@@ -899,9 +565,6 @@ testdata<-testdata%>%dplyr::select(-dplyr::matches("X[0-9]"))
 testdata<-data.frame(testdata, X1=predict(model, X2_test[,selected_features]))
 newdata<-newdata%>%dplyr::select(-dplyr::matches("X[0-9]"))
 newdata<-data.frame(newdata, X1=predict(model, X2_new[,selected_features]))
-
-str(X2_test)
-str(testdata)
 
 
 traindata <- traindata%>%mutate(FTHG=GS, FTAG=GC, FTR=factor(ifelse(GS>GC, "H", ifelse(GS<GC, "A", "D"))))
@@ -939,29 +602,31 @@ plot(q$sky, qtest$sky)
 
 print(traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
 print(testdata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A")))
-ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+facet_grid(FTR~.)+geom_histogram(bins=40)
-#ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+geom_histogram(bins=40)
-
-ggplot(traindata, aes(y=X1, color=FTR)) +geom_boxplot()+ coord_flip()
-ggplot(traindata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
-# ggplot(traindata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=40)
-# ggplot(traindata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
-# ggplot(traindata, aes(x=X1, y=X3, colour=FTR))+geom_point(alpha=0.4)
-
-# plot(FTR~X2, data=traindata, main="Train Data")
-# plot(FTR~X2, data=testdata, main="Test Data")
-# plot(FTR~X3, data=traindata, main="Train Data")
-# plot(FTR~X3, data=testdata, main="Test Data")
-
-
-ggplot(testdata, aes(x=X1, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
-ggplot(testdata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
-# ggplot(testdata, aes(x=X2, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
-# ggplot(testdata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
-# ggplot(testdata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
-# ggplot(testdata, aes(x=X1, y=X3, colour=FTR))+geom_point(alpha=0.4)
-
-#ggplot(alldata, aes(shape=FTR, y=log(BWA), x=log(BWH), col=-log(BWD)))+scale_colour_gradientn(colours = rev(rainbow(10)))+geom_point(alpha=0.2)
+if (F) {
+  ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+facet_grid(FTR~.)+geom_histogram(bins=40)
+  #ggplot(traindata, aes(x=X1, fill=FTR, group=FTR))+geom_histogram(bins=40)
+  
+  ggplot(traindata, aes(y=X1, color=FTR)) +geom_boxplot()+ coord_flip()
+  ggplot(traindata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
+  # ggplot(traindata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=40)
+  # ggplot(traindata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
+  # ggplot(traindata, aes(x=X1, y=X3, colour=FTR))+geom_point(alpha=0.4)
+  
+  # plot(FTR~X2, data=traindata, main="Train Data")
+  # plot(FTR~X2, data=testdata, main="Test Data")
+  # plot(FTR~X3, data=traindata, main="Train Data")
+  # plot(FTR~X3, data=testdata, main="Test Data")
+  
+  
+  ggplot(testdata, aes(x=X1, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
+  ggplot(testdata, aes(x = FTR, y=X1, color=FTR)) + geom_violin(draw_quantiles = c(0.1, 0.25, 0.5, 0.75, 0.9), trim=F)+ coord_flip()
+  # ggplot(testdata, aes(x=X2, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
+  # ggplot(testdata, aes(x=X3, fill=FTR))+geom_density(alpha=0.4) +geom_histogram(bins=20)
+  # ggplot(testdata, aes(x=X1, y=X2, colour=FTR))+geom_point(alpha=0.4)
+  # ggplot(testdata, aes(x=X1, y=X3, colour=FTR))+geom_point(alpha=0.4)
+  
+  #ggplot(alldata, aes(shape=FTR, y=log(BWA), x=log(BWH), col=-log(BWD)))+scale_colour_gradientn(colours = rev(rainbow(10)))+geom_point(alpha=0.2)
+}
 
 p_points<-function(pHG, pAG, FTHG, FTAG){
   hw<-FTHG>FTAG
@@ -979,37 +644,7 @@ p_points<-function(pHG, pAG, FTHG, FTAG){
 ###############
 
 point_system<-"pistor"
-point_system<-"sky"
-
-
-# newdata<-matrix(ncol=3, byrow = T, 
-#                 c(2.2, 3.4, 3.3,
-#                   3.3, 3.4, 2.2,
-#                   2.35, 3.6, 2.85,
-#                   1.8, 3.7, 4.5,
-#                   1.9, 3.6, 4.1,
-#                   1.36, 5.25, 8.25,
-#                   1.53, 4.6, 5.5,
-#                   3.7, 4.25, 1.85,
-#                   2.1, 3.6, 3.4
-#                 ))
-# colnames(newdata)<-feature_columns
-# 
-# 
-# if (F){
-#   newquotes<-as.matrix(tail(alldata%>%dplyr::select(feature_columns), 9))
-# }  
-# 
-# 
-# newquotes <- data.frame(trans = predict(trans, newquotes))
-
-# newdata<-data.frame(X1=predict(model, newquotes))
-# newdata$X1<-newdata$X1*orientation$X1
-
-# newdata<-data.frame(X1=predict(model, newquotes))
-# newdata$X1<-newdata$X1*orientation$X1
-# newdata$X2<-newdata$X2*orientation$X2
-# newdata$X3<-newdata$X3*orientation$X3
+#point_system<-"sky"
 
 l <- nrow(traindata)
 plot(seq_along(traindata$X1)/l, sort(traindata$X1), axes=F, col="forestgreen", pch=".", type="l", ylim=range(traindata$X1)*1.3)
@@ -1111,12 +746,11 @@ abline(v=1-testbest1$hwin, col="cornflowerblue", lwd=2)
 trainseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp02=max(cp02))
 testseq%>%summarise(ep=mean(ep), cp1=max(cp1), cp2=max(cp2), cp20=max(cp20), cp02=max(cp02))
 
-print(data.frame(newdata%>%dplyr::select(team, oppTeam, X1), train=perc/l, test=testperc/ltest))
+print(data.frame(newdata%>%dplyr::select(team, oppTeam, X1), train=perc/l, test=testperc/ltest, X2_new[,selected_features]))
 
 
 
-
-
+################################################################################################################################
 
 
 
