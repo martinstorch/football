@@ -1407,7 +1407,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           poisson_column_weights[:,:,0:4] *3,
           poisson_column_weights[:,:,4:16],
           poisson_column_weights[:,:,16:21] *3,
-          poisson_column_weights[:,:,21:],
+          poisson_column_weights[:,:,21:-2],
           ], axis=2)
       
       # do not include null sequence positions into the loss
@@ -1434,9 +1434,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_ae_loss_ops = create_poisson_correlation_metrics(outputs=all_outputs, t_labels=all_labels, mode=mode, mask = all_masks, section="autoencoder")
       
       l_ae_loglike_poisson = \
-          sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,(-ncol-2):-2], log_input=decode_t1) + \
-          sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,(-ncol-2):-2], log_input=decode_t2) + \
-          sequence_len_mask(match_history_t12_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,(-ncol-2):-2], log_input=decode_t12)
+          sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:-2], log_input=decode_t1[:,:,:-2]) + \
+          sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,-ncol:-2], log_input=decode_t2[:,:,:-2]) + \
+          sequence_len_mask(match_history_t12_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,-ncol:-2], log_input=decode_t12[:,:,:-2])
       l_ae_loglike_poisson = tf.reduce_sum(l_ae_loglike_poisson, axis=1)
       l_ae_loglike_poisson *= poisson_column_weights
       l_ae_loglike_poisson /= m_total
@@ -1524,7 +1524,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           ], axis=1)
       l_loglike_poisson *= poisson_column_weights
 
-      l_xg_mse = tf.expand_dims(t_weight, axis=1) * tf.losses.mean_squared_error(labels=t_labels[:,:-2], predictions=outputs[:,:-2])
+      l_xg_mse = tf.expand_dims(t_weight, axis=1) * tf.losses.mean_squared_error(labels=t_labels[:,-2:], predictions=outputs[:,-2:])
       l_xg_mse  *= poisson_column_weights * \
           tf.cast(tf.logical_not(tf.equal(0.0, t_labels[:,-2:-1])), tf.float32) * \
           tf.cast(tf.logical_not(tf.equal(0.0, t_labels[:,-1:  ])), tf.float32)
@@ -1580,7 +1580,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss = tf.reduce_mean(l_loglike_poisson)
       
       l_xg_mse = tf.reduce_sum(l_xg_mse, axis=1)
-      loss = tf.reduce_mean(l_xg_mse)
+      loss += tf.reduce_mean(l_xg_mse)
       
       loss += 3.1*tf.reduce_mean(l_softmax_1h) 
       loss += 30.3*tf.reduce_mean(l_softmax_2h) 
