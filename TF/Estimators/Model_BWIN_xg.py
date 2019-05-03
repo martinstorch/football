@@ -716,7 +716,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print(X)
           X = deconv_layer(X, "deconv1", 28, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
           #print(X)
-          X = deconv_layer(X, "deconv2", 30, output_channels=46, keep_prob=1.0, activation=None)        
+          X = deconv_layer(X, "deconv2", 30, output_channels=48, keep_prob=1.0, activation=None)        
           #print(X)
           decoded = X
         return (hidden), decoded
@@ -1396,6 +1396,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
   
   def create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, t_labels, mode ):
       ncol = int(t_labels.shape[1])
+      print("ncol", ncol)
       maxseqlen = int(features["match_history_t1"].shape[1])
       match_history_t1_seqlen =  10*features['newgame'][:,0]
       match_history_t2_seqlen =  10*features['newgame'][:,2]
@@ -1432,16 +1433,30 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                tf.reshape(m12, [-1,ncol])], axis=0) 
       eval_ae_loss_ops = create_poisson_correlation_metrics(outputs=all_outputs, t_labels=all_labels, mode=mode, mask = all_masks, section="autoencoder")
       
-      
       l_ae_loglike_poisson = \
-          sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,-ncol:], log_input=decode_t1) + \
-          sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,-ncol:], log_input=decode_t2) + \
-          sequence_len_mask(match_history_t12_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,-ncol:], log_input=decode_t12)
+          sequence_len_mask(match_history_t1_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t1"][:,:,(-ncol-2):-2], log_input=decode_t1) + \
+          sequence_len_mask(match_history_t2_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t2"][:,:,(-ncol-2):-2], log_input=decode_t2) + \
+          sequence_len_mask(match_history_t12_seqlen) * tf.nn.log_poisson_loss(targets=features["match_history_t12"][:,:,(-ncol-2):-2], log_input=decode_t12)
       l_ae_loglike_poisson = tf.reduce_sum(l_ae_loglike_poisson, axis=1)
       l_ae_loglike_poisson *= poisson_column_weights
       l_ae_loglike_poisson /= m_total
       loss += tf.reduce_mean(l_ae_loglike_poisson)
+      
+      l_ae_xg_mse = \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t1"][:,:,-2:-1])), tf.float32) * \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t1"][:,:,-1:  ])), tf.float32) * \
+          sequence_len_mask(match_history_t1_seqlen) * tf.losses.mean_squared_error(labels=features["match_history_t1"][:,:,-2:], predictions=decode_t1[:,:,-2:]) + \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t2"][:,:,-2:-1])), tf.float32) * \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t2"][:,:,-1:  ])), tf.float32) * \
+          sequence_len_mask(match_history_t2_seqlen) * tf.losses.mean_squared_error(labels=features["match_history_t2"][:,:,-2:], predictions=decode_t2[:,:,-2:]) + \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t12"][:,:,-2:-1])), tf.float32) * \
+          tf.cast(tf.logical_not(tf.equal(0.0, features["match_history_t12"][:,:,-1:  ])), tf.float32) * \
+          sequence_len_mask(match_history_t12_seqlen) * tf.losses.mean_squared_error(labels=features["match_history_t12"][:,:,-2:], predictions=decode_t12[:,:,-2:])
+      l_ae_xg_mse = tf.reduce_sum(l_ae_xg_mse, axis=1)
+      loss += tf.reduce_mean(l_ae_xg_mse)
+    
       eval_ae_loss_ops.update(collect_summary("losses", "l_ae_loglike_poisson", mode, tensor=l_ae_loglike_poisson))
+      eval_ae_loss_ops.update(collect_summary("losses", "l_ae_xg_mse", mode, tensor=l_ae_xg_mse))
       return eval_ae_loss_ops, loss 
 
   def create_losses_RNN(outputs, sp_logits, cond_probs, t_labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops):
@@ -1499,16 +1514,21 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_weight_total = tf.reduce_mean(t_weight)
       t_weight = t_weight / t_weight_total
 
-      l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels, log_input=outputs)
+      l_loglike_poisson = tf.expand_dims(t_weight, axis=1) * tf.nn.log_poisson_loss(targets=t_labels[:,:-2], log_input=outputs[:,:-2])
       poisson_column_weights = tf.ones(shape=[1, t_labels.shape[1]], dtype=t_weight.dtype)
       poisson_column_weights = tf.concat([
           poisson_column_weights[:,0:4] *3,
           poisson_column_weights[:,4:16],
           poisson_column_weights[:,16:21] *3,
-          poisson_column_weights[:,21:],
+          poisson_column_weights[:,21:-2],
           ], axis=1)
       l_loglike_poisson *= poisson_column_weights
-    
+
+      l_xg_mse = tf.expand_dims(t_weight, axis=1) * tf.losses.mean_squared_error(labels=t_labels[:,:-2], predictions=outputs[:,:-2])
+      l_xg_mse  *= poisson_column_weights * \
+          tf.cast(tf.logical_not(tf.equal(0.0, t_labels[:,-2:-1])), tf.float32) * \
+          tf.cast(tf.logical_not(tf.equal(0.0, t_labels[:,-1:  ])), tf.float32)
+      
       l_softmax_1h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs_1h*7+gc_1h, logits=h1_logits)
       l_softmax_2h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs*7+gc, logits=h2_logits)
       p_full    = tf.one_hot(gs*7+gc, 49, dtype=t_weight.dtype)
@@ -1558,6 +1578,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       l_loglike_poisson = tf.reduce_sum(l_loglike_poisson, axis=1)
       loss = tf.reduce_mean(l_loglike_poisson)
+      
+      l_xg_mse = tf.reduce_sum(l_xg_mse, axis=1)
+      loss = tf.reduce_mean(l_xg_mse)
       
       loss += 3.1*tf.reduce_mean(l_softmax_1h) 
       loss += 30.3*tf.reduce_mean(l_softmax_2h) 
@@ -1666,6 +1689,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #tf.summary.scalar("loss", loss)
       
       eval_metric_ops = reg_eval_metric_ops
+      
+      eval_metric_ops.update(collect_summary("losses", "l_xg_mse", mode, tensor=l_xg_mse))
       eval_metric_ops.update(collect_summary("losses", "l_loglike_poisson", mode, tensor=l_loglike_poisson))
       eval_metric_ops.update(collect_summary("losses", "l_softmax_1h", mode, tensor=l_softmax_1h))
       eval_metric_ops.update(collect_summary("losses", "l_softmax_2h", mode, tensor=l_softmax_2h))

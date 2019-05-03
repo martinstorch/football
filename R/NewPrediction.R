@@ -23,6 +23,7 @@ predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
 predictions_file<-"d:\\Models\\new_predictions_df.csv"
 predictions_file<-"d:\\Models\\laplace_pistor_bwin//new_predictions_df.csv"
+predictions_file<-"d:\\Models\\laplace_pistor_bwin2//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
