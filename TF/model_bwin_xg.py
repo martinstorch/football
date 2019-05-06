@@ -38,7 +38,7 @@ from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import Model_BWIN as themodel
+from Estimators import Model_BWIN_xg as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -79,6 +79,7 @@ def download_data(model_dir, season, skip_download):
     """Maybe downloads training data and returns train and test file names."""
     file_name = model_dir + "/" + season + ".csv"
     ensure_dir(file_name)
+    print(file_name)
     if (not skip_download):    
   #    urllib.request.urlretrieve(
   #        "http://217.160.223.109/mmz4281/"+season+"/D1.csv",
@@ -183,7 +184,28 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
   all_data.append(new_data)
 
   all_data = pd.concat(all_data , ignore_index=True, sort=False)
+
+  expected_goals= load_file(model_dir, "xgoals.csv")
+  team_mapping= load_file(model_dir, "xg_team_mapping.csv")
+  print(team_mapping)
+  
+  expected_goals = expected_goals.merge(team_mapping, on="HomeTeam")
+  expected_goals = expected_goals.merge(team_mapping, left_on="AwayTeam", right_on="HomeTeam")
+  
+  # transform xHG, xAG
+  expected_goals["xtHG"] = ((expected_goals.xHG**0.4-1)/0.4-0.3842818)/0.7156743
+  expected_goals["xtAG"] = ((expected_goals.xAG**0.4-1)/0.4-0.3842818)/0.7156743+0.4551
+  
+  expected_goals.season = (expected_goals.season % 100)*101+1
+  expected_goals.season = expected_goals.season.astype(str) 
+  expected_goals.drop(columns=['HomeTeam_x', 'HomeTeam_y', 'AwayTeam', 'Unnamed: 0_x', 'Unnamed: 0_y'], axis=1, inplace=True)
+  expected_goals.rename(columns={'HomeTeamStd_x':'HomeTeam', 'HomeTeamStd_y':'AwayTeam', 'season':'Season'}, inplace=True)
+  
+  all_data = all_data.merge(expected_goals, how="left", on=["HomeTeam", "AwayTeam", "Season", "FTHG", "FTAG"], suffixes=('', '_xg'))
   all_data = all_data.fillna(0)
+
+  print(all_data.columns)
+  print({k:all_data[k].dtype for k in all_data.columns})  
   
   teamnames.extend(all_data["HomeTeam"].tolist())
   teamnames.extend(all_data["AwayTeam"].tolist())
@@ -278,6 +300,8 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df1['B365_0'] = 1/df_data["B365D"]
   df1['G25'] = 1/df_data["BbMx>2.5"]-1/df_data["BbMx<2.5"]
   
+  df1["xG1"] = df_data["xtHG"]
+  df1["xG2"] = df_data["xtAG"]
     
   df2 = pd.DataFrame()
   df2["Team1"] = df_data["AwayTeam"]
@@ -298,6 +322,9 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   df2['B365_0'] = 1/df_data["B365D"]
   df2['G25'] = 1/df_data["BbMx>2.5"]-1/df_data["BbMx<2.5"]
   
+  df2["xG1"] = df_data["xtAG"]
+  df2["xG2"] = df_data["xtHG"]
+
   columns = [c[1:] for c in COLS[::2]]
 #  feature_column_names_fixed = ["Team1", "Team2", "Where", "Season", "Train"]
   label_column_names = []
@@ -397,8 +424,24 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   label_column_names += ["zScore"+s for s in final_score_enum]
   print(Counter(features["zGameFinalScore"]))
   for s in final_score_enum :
-    features["zScore"+s] =  [1 if r==s else 0 for r in features["zGameFinalScore"]]  
+    if s=="0:0":
+      features["zScore"+s] =  [1 if g=="0:0" else 0 for g in features["zGameFinalScore"]]  
+    else:
+      g1=int(s[0])
+      g2=int(s[2])
+  #    print(g1, g2)
+  #    print(features[["zGameFinalScore", "T1_GHT", "T2_GHT"]][-36:-18:2])
+      matches1H = [1 if g1<=t1 and g2<=t2 else 0 for t1, t2 in zip(features["T1_GHT"], features["T2_GHT"])]
+      matches2H = [1 if t11<=g1 and g1<=t12 and t21<=g2 and g2<=t22 else 0 for t11, t21, t12, t22 in zip(features["T1_GHT"], features["T2_GHT"], features["T1_GFT"], features["T2_GFT"])]
+      features["zScore"+s] =  [1 if m1==1 or m2==1 else 0 for m1, m2 in zip(matches1H, matches2H)]  
+  #    print(features["zScore"+s][-36:-18:2])
+  #    print(matches1H[-36:-18:2])
+  #    print(matches2H[-36:-18:2])
 
+#  print(features.iloc[-20])  
+#  print(features.iloc[-21])  
+#  print(features.iloc[-22])  
+#  print(features.iloc[-23])  
   # derived feature >3 goals
   features["FTG4"] = [1 if t1+t2>=4 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
   label_column_names += ["FTG4"]
@@ -450,7 +493,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   if use_bwin_statistics:
     feature_column_names += ["BW1", "BW0", "BW2"]
 
-  use_betbrain_goals = True
+  use_betbrain_goals = False
   if use_betbrain_goals:
     feature_column_names += ["G25"]
   
@@ -578,6 +621,9 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   mh2 = np.array(mh2.tolist(), dtype=np.int16)
   mh12 = np.array(mh12.tolist(), dtype=np.int16)
   
+  # append expected goals as last label columns 
+  label_column_names.extend(["xG1", "xG2"])
+
   print(label_column_names) 
   print(feature_column_names) 
   print(features[label_column_names].mean()) 
@@ -1868,7 +1914,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/laplace_pistor_bwin2",
+      default="d:/Models/xg_bwin_pistor2",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
