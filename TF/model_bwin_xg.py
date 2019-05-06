@@ -424,8 +424,24 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   label_column_names += ["zScore"+s for s in final_score_enum]
   print(Counter(features["zGameFinalScore"]))
   for s in final_score_enum :
-    features["zScore"+s] =  [1 if r==s else 0 for r in features["zGameFinalScore"]]  
+    if s=="0:0":
+      features["zScore"+s] =  [1 if g=="0:0" else 0 for g in features["zGameFinalScore"]]  
+    else:
+      g1=int(s[0])
+      g2=int(s[2])
+  #    print(g1, g2)
+  #    print(features[["zGameFinalScore", "T1_GHT", "T2_GHT"]][-36:-18:2])
+      matches1H = [1 if g1<=t1 and g2<=t2 else 0 for t1, t2 in zip(features["T1_GHT"], features["T2_GHT"])]
+      matches2H = [1 if t11<=g1 and g1<=t12 and t21<=g2 and g2<=t22 else 0 for t11, t21, t12, t22 in zip(features["T1_GHT"], features["T2_GHT"], features["T1_GFT"], features["T2_GFT"])]
+      features["zScore"+s] =  [1 if m1==1 or m2==1 else 0 for m1, m2 in zip(matches1H, matches2H)]  
+  #    print(features["zScore"+s][-36:-18:2])
+  #    print(matches1H[-36:-18:2])
+  #    print(matches2H[-36:-18:2])
 
+#  print(features.iloc[-20])  
+#  print(features.iloc[-21])  
+#  print(features.iloc[-22])  
+#  print(features.iloc[-23])  
   # derived feature >3 goals
   features["FTG4"] = [1 if t1+t2>=4 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
   label_column_names += ["FTG4"]
@@ -477,7 +493,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   if use_bwin_statistics:
     feature_column_names += ["BW1", "BW0", "BW2"]
 
-  use_betbrain_goals = True
+  use_betbrain_goals = False
   if use_betbrain_goals:
     feature_column_names += ["G25"]
   
@@ -1898,7 +1914,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/xg_bwin_pistor",
+      default="d:/Models/xg_bwin_pistor2",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",

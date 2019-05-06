@@ -138,3 +138,93 @@ print(quotes_bwin)
 #print("Done")
 #
 #
+
+import ssl
+
+context = ssl.create_default_context()
+der_certs = context.get_ca_certs(binary_form=True)
+pem_certs = [ssl.DER_cert_to_PEM_cert(der) for der in der_certs]
+
+with open('wincacerts.pem', 'w') as outfile:
+    for pem in pem_certs:
+        outfile.write(pem + '\n')
+
+#print(pem_certs)
+        
+url = "https://www.betbrain.de/football/germany/"
+#html_content = request.urlopen(url, context=ssl.SSLContext()).read()
+html_content = request.urlopen(url).read()
+
+with open("betbrain.html", "wb+") as f:
+  f.write(html_content)
+ 
+#text_content1 = html_content.decode('unicode_escape')  # Converts bytes to unicode
+#with open("books_utf8.html", "w+") as f:
+#  f.write(text_content1)
+
+soup = BeautifulSoup(html_content, 'html.parser')
+
+over = []
+under = []
+overavg = []
+underavg = []
+comparison = []
+hometeams = []
+awayteams = []
+urls = []
+matchdates = []
+matchtimes = []
+
+sections = soup.find_all(string="Unter")
+for s in sections:
+  header = s.find_parent('h3', class_="TheDayTitle")
+  matchlist = header.find_next_sibling("ol", class_="TheMatches")
+  
+  matches= matchlist.find_all('ol', attrs={'class':'ThreeWay'})
+
+  for m in matches:
+    out1 = m.find("li", attrs={'class':'Outcome1'}).find("a")
+    q_over = out1.find("span", attrs={'class':'Odds'}).get_text()
+    q_overavg = out1.find("span", attrs={'class':'AverageOdds'}).get_text()[1:-1]
+      
+    out3 = m.find("li", attrs={'class':'Outcome3'}).find("a")
+    q_under = out3.find("span", attrs={'class':'Odds'}).get_text()
+    q_underavg = out3.find("span", attrs={'class':'AverageOdds'}).get_text()[1:-1]
+  
+    out2 = m.find("li", attrs={'class':'Outcome2'})
+    q_comparison= out2.find("span", attrs={'class':'Param'}).get_text()
+  
+    over.append(q_over.replace(",", "."))
+    under.append(q_under.replace(",", "."))
+    overavg.append(q_overavg.replace(",", "."))
+    underavg.append(q_underavg.replace(",", "."))
+    comparison.append(q_comparison)
+
+    md = out1.find_parent("ol", class_="ThreeWay").find_previous_sibling("div", class_="MatchDetails")
+    q_match = md.div.a.span.text.split(" - ")
+    hometeams.append(q_match[0])
+    awayteams.append(q_match[1])
+    urls.append(md.a["href"])
+    matchdate = md.find("span", attrs={"class":"DateTime", "itemprop":"startDate"}).get_text()
+    md = matchdate.split(' ')
+    matchdates.append(md[0])
+    matchtimes.append(md[1])
+    
+overunder_df = pd.DataFrame({
+  "Date": matchdates,
+  "Time": matchtimes,
+  "HomeTeam": hometeams,
+  "AwayTeam": awayteams,
+  "Over": over,
+  "Param": comparison,
+  "Under": under,
+  "OverAvg": overavg,
+  "UnderAvg": underavg,
+  "URL": urls,
+})
+print(overunder_df)
+
+overunder_df["margin"] = 1/overunder_df.Over.astype(float)+1/overunder_df.Under.astype(float)
+overunder_df["marginavg"] = 1/overunder_df.OverAvg.astype(float)+1/overunder_df.UnderAvg.astype(float)
+
+

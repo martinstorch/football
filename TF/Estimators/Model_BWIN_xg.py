@@ -2045,8 +2045,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       
       with tf.variable_scope("sp"):
-          #predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp", apply_point_scheme=False)
-          predictions = create_quantile_scheme_prediction(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp")
+          predictions = create_hierarchical_predictions(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp", apply_point_scheme=False)
+          #predictions = create_quantile_scheme_prediction(outputs, sp_logits, t_is_home_bool, tc, mode, prefix="sp")
       
         #predictions = create_predictions(outputs, sp_logits, t_is_home_bool, tc)
       predictions = apply_prefix(predictions, "sp/")
