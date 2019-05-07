@@ -38,7 +38,7 @@ from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import Model_BWIN_xg as themodel
+from Estimators import Model_BWIN_xg_sp as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -1336,6 +1336,8 @@ def plot_checkpoints(df, predictions):
   for prefix in themodel.prefix_list: 
     prefix_df = df.loc[df.Prefix==prefix[:-1]]
     s = random.sample(range(len(prefix_df)), 1)[0]
+    print(prefix, s)
+    print({k:v.shape for k,v in predictions.items()})
     sample_preds = {k:v[s] for k,v in predictions.items()}
     plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
     s = random.sample(range(len(prefix_df)), 1)[0]
@@ -1853,8 +1855,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1911,7 +1913,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/xg_bwin_pistor2",
+      default="d:/Models/xg_sp_bwin_pistor",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1935,9 +1937,9 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      default="train",
+      #default="train",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"
