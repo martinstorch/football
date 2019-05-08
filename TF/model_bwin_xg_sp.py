@@ -699,6 +699,7 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
     default_color = "darkmagenta"
 
   sp = pred[prefix+"p_pred_12"]
+  #print(sp)
   spt = pred[prefix+"ev_points"]
   gs = min(gs,6.0)
   gc = min(gc,6.0)
@@ -1796,7 +1797,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   if modes == "static":
     static_probabilities(model_data)    
   elif "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, train_X=None, train_y=None)
+    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array)
   elif modes == "train": 
     train_model(model_data, train_steps)
   elif modes == "train_eval": 
@@ -1937,9 +1938,10 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
+      default="train",
       #default="eval",
-      default="predict",
+      #default="predict",
+      #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"

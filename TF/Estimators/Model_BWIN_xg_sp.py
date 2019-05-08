@@ -218,7 +218,7 @@ def create_laplacian_loss(p_pred_12, alpha=1.0):
   lp = tf.matmul(p_pred_12, laplm)
   laplacian_loss = (lp ** 2) / 2
   laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
-  laplacian_loss = alpha * tf.reduce_mean(laplacian_loss, name="laplacian") 
+  laplacian_loss = tf.multiply(alpha, tf.reduce_mean(laplacian_loss), name="laplacian") 
   ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
 
 #def add_weight_noise(X, stddev_factor):  
@@ -799,27 +799,27 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       X0 = tf.where(t_is_home_bool, X0H, X0A)    
       
-      if False:
+      if True:
         with tf.variable_scope("Layer1"):
-          X1,Z1 = build_dense_layer(X, 128, mode, 
-                                    regularizer = l2_regularizer(scale=3.3), 
+          X1,Z1 = build_dense_layer(X, 16, mode, 
+                                    regularizer = l2_regularizer(scale=0.3), 
                                     keep_prob=0.85, 
                                     batch_norm=True, 
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops)
         
         with tf.variable_scope("Layer2"):
-          X2,Z2 = build_dense_layer(X1, 128, mode, 
+          X2,Z2 = build_dense_layer(X1, 16, mode, 
                                     add_term = X0*40.0, 
-                                    regularizer = l2_regularizer(scale=3.3), 
+                                    regularizer = l2_regularizer(scale=0.3), 
                                     keep_prob=0.85, 
                                     batch_norm=True, 
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops, 
                                     batch_scale=False)
 
-      X = X0 # shortcut connection bypassing two non-linear activation functions
-      #X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+      #X = X0 # shortcut connection bypassing two non-linear activation functions
+      X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
       
 #      with tf.variable_scope("Layer3"):
 #        #X = tf.stop_gradient(X)
@@ -838,7 +838,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       with tf.variable_scope("Softpoints"):
         with tf.variable_scope("WDL"):
           sp_logits_1,_ = build_dense_layer(X, 3, mode, 
-                                        regularizer = l2_regularizer(scale=0.200002), # 2.0
+                                        regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 13, mode, 
@@ -1521,6 +1521,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     sp_logits_2_masked_act = (sp_logits_2 + 10.0)*t_actual_GF_mask
     sp_logits_2_masked_pred = (sp_logits_2 + 10.0)*t_pred_GF_mask
+    # normalize active logits
+    sp_logits_2_masked_pred = sp_logits_2_masked_pred / tf.reduce_sum(sp_logits_2_masked_pred, axis=1, keepdims=True)
+    
     l_gdiff = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=sp_labels_2, logits=sp_logits_2_masked_act, name="sp_GD_loss")
     pred_GDiff = tf.argmax(sp_logits_2_masked_pred, axis=1, name="pred_GDiff")
     
@@ -1529,6 +1532,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     sp_logits_3_masked_act = (sp_logits_3 + 10.0)*t_actual_FS_mask
     sp_logits_3_masked_pred = (sp_logits_3 + 10.0)*t_pred_FS_mask
+    # normalize active logits
+    sp_logits_3_masked_pred = sp_logits_3_masked_pred / tf.reduce_sum(sp_logits_3_masked_pred, axis=1, keepdims=True)
+    
     l_gfull = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=sp_labels_3, logits=sp_logits_3_masked_act, name="sp_FS_loss")
     #pred_FS = tf.argmax((sp_logits_3 + 10.0)*t_pred_FS_mask, axis=1, name="pred_FS")
     
@@ -1543,13 +1549,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     eval_metric_ops.update(collect_summary("losses", "l_gfull", mode, tensor=l_gfull))
     
     p_pred_WDL = tf.nn.softmax(sp_logits_1, axis=1)
-    p_pred_GDiff = tf.nn.softmax(sp_logits_2_masked_pred, axis=1)
-    p_pred_FS = tf.nn.softmax(sp_logits_3_masked_pred, axis=1)
+    p_pred_GDiff = tf.nn.softmax(sp_logits_2, axis=1) * tf.matmul(p_pred_WDL, t_expand_WDL_GDiff_mask)
+    p_pred_GDiff = p_pred_GDiff / tf.reduce_sum(p_pred_GDiff, axis=1, keepdims=True)
+    p_pred_FS = tf.nn.softmax(sp_logits_3, axis=1) * tf.matmul(p_pred_GDiff, t_expand_GDiff_FS_mask)
+    p_pred_FS = p_pred_FS / tf.reduce_sum(p_pred_FS, axis=1, keepdims=True)
     
     t_zero_mask = tf.transpose(tf.stack([[1.0 if (i // 7) == 0 or np.mod(i, 7) == 0 else 0.0  for i in range(49)]], name="t_zero_mask"))
 
     p_pred_zero = tf.matmul(p_pred_FS, t_zero_mask)
 
+    apply_poisson_summary(p_pred_FS, t_is_home_bool, tc, predictions)
+    
     predictions.update({
       "p_pred_win":p_pred_WDL[:,2], 
       "p_pred_draw":p_pred_WDL[:,1], 
@@ -1560,6 +1570,31 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       "p_pred_loss3":p_pred_GDiff[:,3], 
       "p_pred_zero":p_pred_zero, 
     })
+
+    # add laplacian loss to sp_logits_2, to make sure that GDiff=0 estimate fits properly in range between -1 and +1
+    laplacian_matrix_GDiff = [[-1 if abs(i-j)==1 else 2 if i==j else 0 for i in range(13)] for j in range(13)]   
+    t_laplacian_matrix_GDiff = tf.constant(laplacian_matrix_GDiff, dtype=tf.float32)
+
+    lp = tf.matmul(sp_logits_2, t_laplacian_matrix_GDiff)
+    laplacian_loss = (lp ** 2) / 2
+    laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
+    laplacian_loss = tf.multiply(0.1, tf.reduce_mean(laplacian_loss), name="laplacian_gdiff") 
+    ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
+
+    # apply laplacian regularization to upper right diagonal of the final score matrix, in order to given 0:6 and 6:0 and proper value    
+    laplacian_matrix_FS =  [[-1 if abs(i-i2+j-j2)==1 and abs(i-i2-j+j2)==1 and (i+j>=5) and (i2+j2>=5) else \
+         2 if (i,j)==(i2,j2) and (i,j) in [(0,6), (6,0), (6,6), (5,0), (0,5), (1,4), (4,1), (2,3), (3,2)] else \
+         3 if (i,j)==(i2,j2) and (i==6 or j==6) else \
+         4 if (i,j)==(i2,j2) and (i+j>=5) and (i2+j2>=5) else \
+         0 
+         for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]   
+    t_laplacian_matrix_FS = tf.constant(laplacian_matrix_FS, dtype=tf.float32)
+
+    lp = tf.matmul(sp_logits_3, t_laplacian_matrix_FS)
+    laplacian_loss = (lp ** 2) / 2
+    laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
+    laplacian_loss = tf.multiply(0.001, tf.reduce_mean(laplacian_loss), name="laplacian_fs") 
+    ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
 
     return predictions, loss
 
@@ -2175,7 +2210,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       cp1_predictions = create_predictions(outputs, h1_logits, t_is_home_bool, tc, False)
       predictions.update(apply_prefix(cp1_predictions, "cp1/"))
 
-      avg_logits = sp_logits[2] + h2_logits # averaging of sp and cp strategies in logit space
+      avg_logits = tf.log(predictions["sp/p_pred_12"]) + h2_logits # averaging of sp and cp strategies in logit space
       with tf.variable_scope("av"):
 #        avg_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, False)
 #        avg_pred = create_fixed_scheme_prediction_new(avg_predictions["p_pred_12"], t_is_home_bool, mode)
