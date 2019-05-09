@@ -13,7 +13,7 @@ from tensorflow.python.framework import ops
 #from tensorflow.python.ops import math_ops
 #from tensorflow.python.ops import nn_ops
 #from tensorflow.python.ops.losses import losses
-from tensorflow.contrib.layers import l2_regularizer
+from tensorflow.contrib.layers import l2_regularizer, l1_regularizer
 from tensorflow.contrib.metrics import f1_score
 from tensorflow.metrics import precision, recall
 
@@ -633,7 +633,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        rnn_histograms()
       def conv_layer(X, name, output_channels, keep_prob=1.0):
         X = tf.layers.conv1d(X,
-                  filters=output_channels, kernel_size=3, strides=1,
+                  filters=output_channels, kernel_size=5, strides=1,
                   padding='valid',
                   data_format='channels_last',
                   dilation_rate=1,
@@ -672,7 +672,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def deconv_layer(X, name, output_width, output_channels, keep_prob=1.0, stride=1, activation=tf.nn.sigmoid):
         #print("input", X)
         W = tf.get_variable(name=name+"W", dtype=X.dtype,
-                            shape=[3, output_channels, int(X.shape[2])],
+                            shape=[5, output_channels, int(X.shape[2])],
                             regularizer = l2_regularizer(scale=0.01), 
                             initializer=tf.contrib.layers.xavier_initializer(uniform=False),
             )
@@ -696,7 +696,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def auto_encoder(X):
         with tf.variable_scope("enc"):
           X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
+          #print(X)
+          X = avg_pool(X, name="avgpool")
+          #print(X)
           X = conv_layer(X, name="conv2", output_channels=24, keep_prob=1.0)
+          #print(X)
           X = avg_pool(X, name="avgpool")
           #print(X)
           shape_after_pooling = tf.shape(X)
@@ -705,7 +709,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print(X)
           if mode == tf.estimator.ModeKeys.TRAIN:  
             X = tf.nn.dropout(X, keep_prob=0.98)
-          hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
+          hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l1_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
           #print("hidden", hidden)
         
         with tf.variable_scope("dec"):
@@ -714,9 +718,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print(X)
           X = tf.reshape(X, shape_after_pooling )
           #print(X)
-          X = deconv_layer(X, "deconv1", 28, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
+          X = deconv_layer(X, "deconv1", 12, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
           #print(X)
-          X = deconv_layer(X, "deconv2", 30, output_channels=48, keep_prob=1.0, activation=None)        
+          X = deconv_layer(X, "deconv2", 28, output_channels=48, keep_prob=1.0, activation=None, stride=2)        
           #print(X)
           decoded = X
         return (hidden), decoded
@@ -729,6 +733,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           match_history_t2, decode_t2 = auto_encoder(match_history_t2)
         with tf.variable_scope("CNN_12"):
           match_history_t12, decode_t12 = auto_encoder(match_history_t12)
+
+        with tf.variable_scope("Combine"):
+          X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
+          print(match_history_t1)
+          print(X)
+      else:
+        X = features_newgame
+
+
         
 #      with tf.variable_scope("CNN_1"):
 #        match_history_t1 = conv_layer(match_history_t1, name="conv1", output_channels=32, keep_prob=0.9)
@@ -761,9 +774,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      match_history_t2 = tf.stop_gradient(match_history_t2)
 #      match_history_t12 = tf.stop_gradient(match_history_t12)
       
-      with tf.variable_scope("Combine"):
-        #X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
-        X = features_newgame
         
 #      with tf.variable_scope("Layer0H"):
 #          X0H,Z0H = build_dense_layer(X, 128, mode, 
@@ -782,16 +792,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #                                    eval_metric_ops=eval_metric_ops)
 
       with tf.variable_scope("Layer0H"):
-          X0H,Z0H = build_dense_layer(X, 16, mode, 
-                                    regularizer = l2_regularizer(scale=0.1), # 100.0
+          X0H,Z0H = build_dense_layer(X, 32, mode, 
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, 
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer0A"):
-          X0A,Z0A = build_dense_layer(X, 16, mode, 
-                                    regularizer = l2_regularizer(scale=0.1), # 100.0
+          X0A,Z0A = build_dense_layer(X, 32, mode, 
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, 
                                     activation=None, 
@@ -799,27 +809,28 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       X0 = tf.where(t_is_home_bool, X0H, X0A)    
       
-      if True:
+      if False:
         with tf.variable_scope("Layer1"):
-          X1,Z1 = build_dense_layer(X, 16, mode, 
-                                    regularizer = l2_regularizer(scale=0.3), 
+          X1,Z1 = build_dense_layer(X, 32, mode, 
+                                    regularizer = l2_regularizer(scale=3.3), 
                                     keep_prob=0.85, 
                                     batch_norm=True, 
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops)
         
         with tf.variable_scope("Layer2"):
-          X2,Z2 = build_dense_layer(X1, 16, mode, 
+          X2,Z2 = build_dense_layer(X1, 32, mode, 
                                     add_term = X0*40.0, 
-                                    regularizer = l2_regularizer(scale=0.3), 
+                                    regularizer = l2_regularizer(scale=3.3), 
                                     keep_prob=0.85, 
                                     batch_norm=True, 
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops, 
                                     batch_scale=False)
 
-      #X = X0 # shortcut connection bypassing two non-linear activation functions
-      X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+        X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+      else:
+        X = X0 # shortcut connection bypassing two non-linear activation functions
       
 #      with tf.variable_scope("Layer3"):
 #        #X = tf.stop_gradient(X)
@@ -841,7 +852,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
-          sp_logits_2,_ = build_dense_layer(X, 13, mode, 
+          sp_logits_2,_ = build_dense_layer(X, 11, mode, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
@@ -854,7 +865,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=1.2002), #2.0
+                                regularizer = l2_regularizer(scale=2.2002), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
@@ -1497,11 +1508,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       gc = tf.minimum(t_goals_2,6)
     
     sp_labels_1 = 1+tf.sign(gs-gc)
-    sp_labels_2 = 6+gs-gc
+    sp_labels_2 = tf.maximum(0, tf.minimum(10, 5+gs-gc))
     sp_labels_3 = gs*7+gc
     
-    t_expand_WDL_GDiff_mask = tf.constant([[i<6 for i in range(13)], [i==6 for i in range(13)], [i>6 for i in range(13)]], dtype=tf.float32, name="t_expand_WDL_GDiff_mask")
-    t_expand_GDiff_FS_mask = tf.constant([[ 1.0 if (j//7-np.mod(j,7))==(i-6) else 0.0 for j in range(49)] for i in range(13)], dtype=tf.float32, name="t_expand_GDiff_FS_mask")
+    t_expand_WDL_GDiff_mask = tf.constant([[i<5 for i in range(11)], [i==5 for i in range(11)], [i>5 for i in range(11)]], dtype=tf.float32, name="t_expand_WDL_GDiff_mask")
+    t_expand_GDiff_FS_mask = tf.constant([[ 1.0 if (j//7-np.mod(j,7))==(i-5) or (j==6 and i==0) or (j==42 and i==10) else 0.0 for j in range(49)] for i in range(11)], dtype=tf.float32, name="t_expand_GDiff_FS_mask")
 
     l_factor = tf.where(t_is_home_bool,
                                      point_scheme[3][0]*t_is_home_win_bool_f + 
@@ -1522,18 +1533,18 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     sp_logits_2_masked_act = (sp_logits_2 + 10.0)*t_actual_GF_mask
     sp_logits_2_masked_pred = (sp_logits_2 + 10.0)*t_pred_GF_mask
     # normalize active logits
-    sp_logits_2_masked_pred = sp_logits_2_masked_pred / tf.reduce_sum(sp_logits_2_masked_pred, axis=1, keepdims=True)
+    #sp_logits_2_masked_pred = sp_logits_2_masked_pred / tf.reduce_sum(sp_logits_2_masked_pred, axis=1, keepdims=True)
     
     l_gdiff = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=sp_labels_2, logits=sp_logits_2_masked_act, name="sp_GD_loss")
     pred_GDiff = tf.argmax(sp_logits_2_masked_pred, axis=1, name="pred_GDiff")
     
-    t_actual_FS_mask = tf.matmul(tf.one_hot(sp_labels_2, 13), t_expand_GDiff_FS_mask, name="t_actual_FS_mask")           
-    t_pred_FS_mask   = tf.matmul(tf.one_hot(pred_GDiff , 13), t_expand_GDiff_FS_mask, name="t_pred_FS_mask")           
+    t_actual_FS_mask = tf.matmul(tf.one_hot(sp_labels_2, 11), t_expand_GDiff_FS_mask, name="t_actual_FS_mask")           
+    t_pred_FS_mask   = tf.matmul(tf.one_hot(pred_GDiff , 11), t_expand_GDiff_FS_mask, name="t_pred_FS_mask")           
     
     sp_logits_3_masked_act = (sp_logits_3 + 10.0)*t_actual_FS_mask
     sp_logits_3_masked_pred = (sp_logits_3 + 10.0)*t_pred_FS_mask
     # normalize active logits
-    sp_logits_3_masked_pred = sp_logits_3_masked_pred / tf.reduce_sum(sp_logits_3_masked_pred, axis=1, keepdims=True)
+    #sp_logits_3_masked_pred = sp_logits_3_masked_pred / tf.reduce_sum(sp_logits_3_masked_pred, axis=1, keepdims=True)
     
     l_gfull = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=sp_labels_3, logits=sp_logits_3_masked_act, name="sp_FS_loss")
     #pred_FS = tf.argmax((sp_logits_3 + 10.0)*t_pred_FS_mask, axis=1, name="pred_FS")
@@ -1572,7 +1583,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     })
 
     # add laplacian loss to sp_logits_2, to make sure that GDiff=0 estimate fits properly in range between -1 and +1
-    laplacian_matrix_GDiff = [[-1 if abs(i-j)==1 else 2 if i==j else 0 for i in range(13)] for j in range(13)]   
+    laplacian_matrix_GDiff = [[-1 if abs(i-j)==1 else 2 if i==j else 0 for i in range(11)] for j in range(11)]   
     t_laplacian_matrix_GDiff = tf.constant(laplacian_matrix_GDiff, dtype=tf.float32)
 
     lp = tf.matmul(sp_logits_2, t_laplacian_matrix_GDiff)
@@ -1581,20 +1592,21 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     laplacian_loss = tf.multiply(0.1, tf.reduce_mean(laplacian_loss), name="laplacian_gdiff") 
     ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
 
-    # apply laplacian regularization to upper right diagonal of the final score matrix, in order to given 0:6 and 6:0 and proper value    
-    laplacian_matrix_FS =  [[-1 if abs(i-i2+j-j2)==1 and abs(i-i2-j+j2)==1 and (i+j>=5) and (i2+j2>=5) else \
-         2 if (i,j)==(i2,j2) and (i,j) in [(0,6), (6,0), (6,6), (5,0), (0,5), (1,4), (4,1), (2,3), (3,2)] else \
-         3 if (i,j)==(i2,j2) and (i==6 or j==6) else \
-         4 if (i,j)==(i2,j2) and (i+j>=5) and (i2+j2>=5) else \
-         0 
-         for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]   
-    t_laplacian_matrix_FS = tf.constant(laplacian_matrix_FS, dtype=tf.float32)
-
-    lp = tf.matmul(sp_logits_3, t_laplacian_matrix_FS)
-    laplacian_loss = (lp ** 2) / 2
-    laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
-    laplacian_loss = tf.multiply(0.001, tf.reduce_mean(laplacian_loss), name="laplacian_fs") 
-    ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
+    if False:
+      # apply laplacian regularization to upper right diagonal of the final score matrix, in order to given 0:6 and 6:0 and proper value    
+      laplacian_matrix_FS =  [[-1 if abs(i-i2+j-j2)==1 and abs(i-i2-j+j2)==1 and (i+j>=5) and (i2+j2>=5) else \
+           2 if (i,j)==(i2,j2) and (i,j) in [(0,6), (6,0), (6,6), (5,0), (0,5), (1,4), (4,1), (2,3), (3,2)] else \
+           3 if (i,j)==(i2,j2) and (i==6 or j==6) else \
+           4 if (i,j)==(i2,j2) and (i+j>=5) and (i2+j2>=5) else \
+           0 
+           for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]   
+      t_laplacian_matrix_FS = tf.constant(laplacian_matrix_FS, dtype=tf.float32)
+  
+      lp = tf.matmul(sp_logits_3, t_laplacian_matrix_FS)
+      laplacian_loss = (lp ** 2) / 2
+      laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
+      laplacian_loss = tf.multiply(0.001, tf.reduce_mean(laplacian_loss), name="laplacian_fs") 
+      ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
 
     return predictions, loss
 

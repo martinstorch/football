@@ -33,6 +33,8 @@ import numpy as np
 #np.set_printoptions(threshold=50)
 from datetime import datetime
 import os
+from threading import Event
+import signal
 
 from six.moves import urllib
 import tensorflow as tf
@@ -573,7 +575,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   
   #batches1 = [features[features["Team1"]==t].copy() for t in teamnames]
   #batches2 = [features[features["Team2"]==t].copy() for t in teamnames]
-  steps = 30
+  steps = 28
   
   batches1 = [features[features["Team1_index"]==t].index for t in range(len(teamnames))]
   batches2 = [features[features["Team2_index"]==t].index for t in range(len(teamnames))]
@@ -1338,7 +1340,7 @@ def plot_checkpoints(df, predictions):
     prefix_df = df.loc[df.Prefix==prefix[:-1]]
     s = random.sample(range(len(prefix_df)), 1)[0]
     print(prefix, s)
-    print({k:v.shape for k,v in predictions.items()})
+    #print({k:v.shape for k,v in predictions.items()})
     sample_preds = {k:v[s] for k,v in predictions.items()}
     plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
     s = random.sample(range(len(prefix_df)), 1)[0]
@@ -1545,8 +1547,11 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
 
   saver = tf.train.Saver()
   cps_done = []
+  for sig in ('TERM', 'INT'):
+      signal.signal(getattr(signal, 'SIG'+sig), quit);
+  exit_ = Event()
   with tf.Session() as sess:
-    while True:
+    while not exit_.is_set():
       if len(cps)>0:
         for cp, global_step in zip(cps.checkpoint, cps.global_step):
           print(cp)
@@ -1562,7 +1567,7 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
         cps_done.extend(cps.global_step)
         print("cps_done", cps_done)
       else:
-        time.sleep(10)
+        exit_.wait(10)
       cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
       #print("cps2", cps2)
       cps = cps2.loc[~cps2.global_step.isin(cps_done)]
@@ -1822,11 +1827,11 @@ def main(_):
     
     if FLAGS.target_system=="Pistor":
         # Pistor
-        target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
+        target_distr={  "cp":[(5, 15, 30), 20, (20, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                         "pg2":[(2, 20, 48), 15, (11, 3, 1), (20, 20, 80)],
-                        "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                        "av":[(5, 15, 30), 15, (25, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
         # Sky
@@ -1914,7 +1919,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/xg_sp_bwin_pistor",
+      default="d:/Models/xg_sp_bwin_pistor2",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
