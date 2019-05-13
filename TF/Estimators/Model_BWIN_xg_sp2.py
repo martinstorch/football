@@ -515,7 +515,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         match_history_t12 = features['match_history_t12']
         
         f_date_round = features_newgame[:,4+2*teams_count : 4+2*teams_count+2]
-        suppress_team_names = True
+        suppress_team_names = False
         if suppress_team_names:
           features_newgame = tf.concat([features_newgame[:,0:4], features_newgame[:,4+2*teams_count:]], axis=1)
           match_history_t1 = tf.concat([match_history_t1[:,:,0:2], match_history_t1[:,:,2+2*teams_count:]], axis=2)
@@ -726,7 +726,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         return (hidden), decoded
         #return tf.stop_gradient(hidden), decoded
       
-      if True:
+      if False:
         with tf.variable_scope("CNN_1"):
           match_history_t1, decode_t1 = auto_encoder(match_history_t1)
         with tf.variable_scope("CNN_2"):
@@ -795,7 +795,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           X0H,Z0H = build_dense_layer(X, 32, mode, 
                                     regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
-                                    batch_norm=True, 
+                                    batch_norm=True, # True
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
@@ -803,13 +803,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           X0A,Z0A = build_dense_layer(X, 32, mode, 
                                     regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
-                                    batch_norm=True, 
+                                    batch_norm=True, # True
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
       X0 = tf.where(t_is_home_bool, X0H, X0A)    
       
-      if True:
+      if False:
         with tf.variable_scope("Layer1"):
           X1,Z1 = build_dense_layer(X, 32, mode, 
                                     regularizer = l1_regularizer(scale=0.2), 
@@ -870,7 +870,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
 
-      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round , decode_t1, decode_t2, decode_t12 
+      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round #, decode_t1, decode_t2, decode_t12 
         
   def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False):
     with tf.variable_scope("Prediction"):
@@ -2186,8 +2186,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       t_is_home_bool = tf.equal(features["newgame"][:,1] , 1)
       graph_outputs = buildGraph(features, labels, mode, params, t_is_home_bool)
-      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12  = graph_outputs
-      #outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round  = graph_outputs
+      #outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round, decode_t1, decode_t2, decode_t12  = graph_outputs
+      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, f_date_round  = graph_outputs
 #      t_is_train_bool = tf.equal(features["Train"] , True)
 
       def apply_prefix(predictions, prefix):
@@ -2336,8 +2336,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     eval_loss_ops, loss = create_losses_RNN(outputs, sp_loss, cond_probs, labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
     eval_metric_ops.update(eval_loss_ops)
     
-    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
-    eval_metric_ops.update(eval_ae_loss_ops)
+#    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
+#    eval_metric_ops.update(eval_ae_loss_ops)
     
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "z_points" in k })
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "is_tendency" in k })
