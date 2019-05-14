@@ -809,26 +809,27 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       X0 = tf.where(t_is_home_bool, X0H, X0A)    
       
-      if False:
+      if True:
         with tf.variable_scope("Layer1"):
           X1,Z1 = build_dense_layer(X, 32, mode, 
-                                    regularizer = l1_regularizer(scale=0.2), 
-                                    keep_prob=0.95, 
+                                    regularizer = l1_regularizer(scale=0.6), 
+                                    keep_prob=1.0, #0.95, 
                                     batch_norm=False, # True
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops)
         
         with tf.variable_scope("Layer2"):
           X2,Z2 = build_dense_layer(X1, 32, mode, 
-                                    add_term = X0*2.0, 
-                                    regularizer = l1_regularizer(scale=0.1), 
-                                    keep_prob=0.95, 
+                                    #add_term = X0*2.0, 
+                                    regularizer = l1_regularizer(scale=0.3), 
+                                    keep_prob=1.0, #0.95, 
                                     batch_norm=False, # True
                                     activation=tanhStochastic, 
                                     eval_metric_ops=eval_metric_ops, 
                                     batch_scale=False)
 
-        X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+        #X = 0.55*X2 + X0 # shortcut connection bypassing two non-linear activation functions
+        X = X0 
       else:
         X = X0 # shortcut connection bypassing two non-linear activation functions
       
@@ -852,19 +853,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
-          sp_logits_2,_ = build_dense_layer(X, 11, mode, 
+          sp_logits_2,_ = build_dense_layer(X+X2, 11, mode, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
-          sp_logits_3,_ = build_dense_layer(X, 49, mode, 
+          sp_logits_3,_ = build_dense_layer(X2, 49, mode, 
                                         #regularizer = None, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
       with tf.variable_scope("Poisson"):
-        outputs,Z = build_dense_layer(X, output_size, mode, 
+        outputs,Z = build_dense_layer(X+0.1*X2, output_size, mode, 
                                 regularizer = l2_regularizer(scale=2.2002), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
@@ -1735,8 +1736,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       l_xg_mse = tf.reduce_sum(l_xg_mse, axis=1)
       loss += tf.reduce_mean(l_xg_mse)
       
-      loss += 13.1*tf.reduce_mean(l_softmax_1h) 
-      loss += 130.3*tf.reduce_mean(l_softmax_2h) 
+      loss += 50*tf.reduce_mean(l_softmax_1h) # 13
+      loss += 500*tf.reduce_mean(l_softmax_2h) # 130
       
       t_win_mask = tf.stack([1.0 if i // 7 > np.mod(i, 7) else 0.0  for i in range(49)], name="t_win_mask")
       t_loss_mask = tf.stack([1.0 if i // 7 < np.mod(i, 7) else 0.0  for i in range(49)], name="t_loss_mask")
@@ -2255,7 +2256,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       for k,v in segmentation_strategies.items():
         with tf.variable_scope(k):
           if v=="cp2":
-            segm_pred = create_fixed_scheme_prediction_new(predictions[k+"/p_pred_12"], t_is_home_bool, mode)
+            #segm_pred = create_fixed_scheme_prediction_new(predictions[k+"/p_pred_12"], t_is_home_bool, mode)
+            segm_pred = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode, prefix=v, p_pred_12 = predictions[k+"/p_pred_12"], apply_point_scheme=True)
+            segm_pred = segm_pred["pred"] 
           else:
             segm_pred = create_quantile_scheme_prediction(outputs, predictions[k+"/p_pred_12"], t_is_home_bool, tc, mode, prefix=v)
             segm_pred = segm_pred["pred"] 
@@ -2501,5 +2504,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                     keep_checkpoint_max=max_to_keep,
                                     log_step_count_steps=100),
                                 #warm_start_from = tf.estimator.WarmStartSettings(ckpt_to_initialize_from="D:/Models/conv1_auto_pistor4", vars_to_warm_start=[".*CNN.*", ".*PointMax.*", ".*Softpoints.*", ".*Poisson.*", ".*cp.*"])
+                                #warm_start_from = tf.estimator.WarmStartSettings(ckpt_to_initialize_from="D:/Models/xg_sp_bwin_pistor2", vars_to_warm_start=[".*CNN.*"])
+                              
                               )
 

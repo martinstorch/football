@@ -7,6 +7,17 @@ Created on Fri Dec 14 09:05:44 2018
 from bs4 import BeautifulSoup
 import pandas as pd
 from urllib import request
+
+import ssl
+
+context = ssl.create_default_context()
+der_certs = context.get_ca_certs(binary_form=True)
+pem_certs = [ssl.DER_cert_to_PEM_cert(der) for der in der_certs]
+
+with open('wincacerts.pem', 'w') as outfile:
+    for pem in pem_certs:
+        outfile.write(pem + '\n')
+
 #url = 'http://coordinated-tray.surge.sh'
 url='https://sports.bwin.com/de/sports/4/43/wetten/bundesliga#leagueIds=43&sportId=4'
 html_content = request.urlopen(url).read()

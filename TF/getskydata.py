@@ -10,27 +10,46 @@ import pandas as pd
 #from urllib3 
 import requests
 import re
-baseurl='https://allegegenpistor.wdr2.de'
+baseurl='https://6erpack.sky.de'
 import os
 
 os.chdir("D:/gitrepository/Football/football/TF")
-
-def login():
-  session = requests.Session() 
-  response = session.post(baseurl, data = {
-      'login' : '1',
-      'username': 'TCSNet',
-      'password': 'Rebekka95'
-      })
-  
-  print(response.headers)
-  return session
 
 def load_page(session, url, params):
   print(url, params)
   page = session.get(url, params=params)
   return page.content
     
+
+def login():
+  session = requests.Session()
+#  session.auth=('martin.storch@tcs.com', 'Rebekka95')
+  response = session.get(baseurl)
+  
+  html_content = load_page(session, baseurl+'/konto/login', {})
+    
+  soup = BeautifulSoup(html_content, 'html.parser')
+  token = soup.find('input', attrs={'type':'hidden', 'name':'_csrf_token'})
+  csrf_token = token["value"]
+  print(csrf_token )
+
+  response = session.post(baseurl+"/konto/login", 
+      data = {
+      'email': 'martin.storch@tcs.com',
+      'password': 'Rebekka95',
+      '_csrf_token':csrf_token 
+      }, 
+      allow_redirects=True)
+  
+  print(response.headers)
+  print(response.url)
+  print(response.history)
+  print(response.cookies)
+  #print(response.content)
+  print(response)
+  return session
+
+
 def collect_bet_results(session, maxround=34):
   rounds=[]
   round_from=[]
@@ -128,41 +147,45 @@ def collect_bet_results(session, maxround=34):
   })
   return   pistor_data
 
-def collect_ranking(session, maxpages=1):
+def collect_ranking(session, type_, values=[0]):
   ranks=[]
   names=[]
   userids=[]
   points=[]
+  fullhit=[]
+  tendency=[]
   
-  for i in range(1,maxpages+1):
-    html_content = load_page(session, baseurl+'/spielstand_einzel.php', params={'page':i})
+  for v in values:
+    url = baseurl+'/rangliste/'+type_
+    if type_ != 'saison':
+      url += '/'+str(v)
+    html_content = load_page(session, url, params={'leaderboard_scroll':'true'})
     
     soup = BeautifulSoup(html_content, 'html.parser')
-    start = soup.find('h3', attrs={'class':'ressort'})
+    start = soup.find('div', attrs={'class':'leagues'})
     
-    table = start.find_next_sibling('table')
-    prev_rank = 0
-    for tr in table.find('tbody').find_all('tr'):
+    for tr in start.find_all('tr', attrs={"class":"leaderboard__row leaderboard__row--non-winner"}):
       td = tr.find_all('td')
-      rank = td[0].text.strip().replace('.', '')
-      if rank=='':
-        rank=prev_rank
-      else:
-        rank=int(rank)
-      ranks.append(rank)
-      prev_rank = rank
+      rank = td[1].text.strip()
+      if rank=='' and td[1].find('span', attrs={'class':'super6-winning-player'})!=None:
+        rank='1'
+      ranks.append(int(rank))
 
-      points.append(int(td[2].text.strip()))
+      fullhit.append(int(td[4].text.strip()))
+      tendency.append(int(td[3].text.strip()))
+      points.append(int(td[5].text.strip()))
       
-      link = td[1].find('a')
+      link = td[2].find('a')
       names.append(link.text.strip())
-      userids.append(link["href"].split("=")[1])
+      userids.append(link["href"].split("/")[-1])
     
   ranking_data = pd.DataFrame({
     'Rank':ranks,
     'Name':names,
     'Userid':userids,
-    'Points':points
+    'Points':points,
+    'Fullhit':fullhit,
+    'Tendency':tendency
   })
   return ranking_data
 
@@ -239,15 +262,18 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
 
 
 session = login()
+collect_ranking(session, 'saison') 
+collect_ranking(session, 'spieltag', range(1, 3)) 
+type_, values=[0])
 pistor_data = collect_bet_results(session, maxround=3)
 print(pistor_data)
 ranking_data = collect_ranking(session, 3060)
-ranking_data.to_csv("pistor_ranking_data.csv", encoding = "utf-8", index=True)
+ranking_data.to_csv("sky_ranking_data.csv", encoding = "utf-8", index=True)
 print(ranking_data)
 
-ranking_data = pd.read_csv("pistor_ranking_data.csv", encoding = "utf-8")
+ranking_data = pd.read_csv("sky_ranking_data.csv", encoding = "utf-8")
 
-all_user_data = pd.read_csv("user_tipps.csv", encoding = "utf-8")
+all_user_data = pd.read_csv("sky_user_tipps.csv", encoding = "utf-8")
 
 user_data_sp = collect_user_tipps(session, roundfrom=33, roundto=33, userid=10) # Sven Pistor
 user_data_ms = collect_user_tipps(session, roundfrom=33, roundto=33, userid=218206) # ich
@@ -259,9 +285,9 @@ for i,userid in enumerate(ranking_data.Userid.iloc[1007:2000]):
   user_data = collect_user_tipps(session, roundfrom=1, roundto=33, userid=userid)
   all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
   if i%50==0:
-    all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
+    all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
 
-all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
+all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
 
 
 #pistor_data.to_csv("pistor_data.csv", encoding = "utf-8", index=False)
