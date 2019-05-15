@@ -154,7 +154,8 @@ def collect_ranking(session, type_, values=[0]):
   points=[]
   fullhit=[]
   tendency=[]
-  
+  kind=[]
+  rounds=[]
   for v in values:
     url = baseurl+'/rangliste/'+type_
     if type_ != 'saison':
@@ -178,8 +179,12 @@ def collect_ranking(session, type_, values=[0]):
       link = td[2].find('a')
       names.append(link.text.strip())
       userids.append(link["href"].split("/")[-1])
-    
+      kind.append(type_)
+      rounds.append(v)
+      
   ranking_data = pd.DataFrame({
+    'Type':kind,
+    'Round':rounds,
     'Rank':ranks,
     'Name':names,
     'Userid':userids,
@@ -193,6 +198,7 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
 
   rounds=[]
   users=[]
+  names=[]
   hometeams=[]
   awayteams=[]
   FTHGs=[]
@@ -200,55 +206,56 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
   myFTHGs=[]
   myFTAGs=[]
   myPoints=[]
-  
   for i in range(roundfrom, roundto+1):
-    html_content = load_page(session, baseurl+'/user_tipps.php', params={'spieltag':i, 'id':userid})
+    url = baseurl+'/ergebnisse/spieltag/'+str(i)+'/benutzer/'+str(userid)
+    html_content = load_page(session, url, {})
     
     soup = BeautifulSoup(html_content, 'html.parser')
-    spieltag = soup.find('h3', attrs={'class':'ressort'})
-    table = spieltag.find_next_sibling('table')
+#    spieltag = soup.find('h3', attrs={'class':'ressort'})
+    header = soup.find('div', attrs={"id":"round-select"})
+    name = header.find('div', attrs={'class':'text--h1'})
+    if name is None:
+      name = "TCSNet"
+    else:
+      name = name.text.strip()
     
-    for tr in table.find('tbody').find_all('tr'):
-      td = tr.find_all('td')
-      match = td[0].text.strip()
-      hometeam, awayteam = match.split(' : ')
+    table = soup.find('div', attrs={'class':'predictions'})
+    
+    for tr in table.find_all('div', attrs={'class':'match-details'}):
+      td = tr.find_all('div')
+      hometeam = td[0].find('p', class_="team-name").text.strip()
+      awayteam = td[-1].find('p', class_="team-name").text.strip()
       hometeams.append(hometeam)
       awayteams.append(awayteam)
-      FTR = td[1].text.strip()
-      FTHG, FTAG = FTR.split(':')
+
+      scores = tr.find_all('div', class_="score--full-time")
+      
+      FTHG = scores[-2].text.strip()
+      FTAG = scores[-1].text.strip()
       FTHGs.append(int(FTHG))
       FTAGs.append(int(FTAG))
     
-      FTR = td[2].text.strip()
-      FTHG, FTAG = FTR.split(':')
+      #FTR = td[2].text.strip()
+      FTHG = scores[0].text.strip()
+      FTAG = scores[1].text.strip()
       myFTHGs.append(int(FTHG) if FTHG!="-" else None)
       myFTAGs.append(int(FTAG) if FTAG!="-" else None)
-      points = td[3].text.strip()
+      
+      points = tr.find_next_sibling('div', class_="pill--red")
+      if points is None:
+        points = "0"
+      else:
+        points = points.text.strip().split(" ")[0]
       myPoints.append(int(points) if points!="-" else None)
       
       rounds.append(i)
       users.append(userid)
+      names.append(name)
       
-    bonus = table.find('tfoot').find_all('tr')[0]
-    if bonus.find('td').text.strip() in ["Extra-Punkt für Pistor-Bezwinger:", "Pistor schlägt 2/3:"]:
-      myBonus = int(bonus.find_all('td')[1].text)
-    else:
-      myBonus = 0
-    
-    hometeams.append("Bonus")
-    awayteams.append("Bonus")
-    FTHGs.append(-1)
-    FTAGs.append(-1)
-    myFTHGs.append(-1)
-    myFTAGs.append(-1)
-    myPoints.append(myBonus)
-    rounds.append(i)
-    users.append(userid)
-    
-  
-  pistor_data = pd.DataFrame({
+  sky_data = pd.DataFrame({
     'Round':rounds,
     'Userid':users,
+    'Username':names,
     'HomeTeam':hometeams,
     'AwayTeam':awayteams,
     'FTHG':FTHGs,
@@ -257,30 +264,27 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
     'uFTAG':myFTAGs,
     'uPoints':myPoints,
   })
-  return   pistor_data
+  return   sky_data
 
 
 
 session = login()
-collect_ranking(session, 'saison') 
-collect_ranking(session, 'spieltag', range(1, 3)) 
-type_, values=[0])
-pistor_data = collect_bet_results(session, maxround=3)
-print(pistor_data)
-ranking_data = collect_ranking(session, 3060)
-ranking_data.to_csv("sky_ranking_data.csv", encoding = "utf-8", index=True)
-print(ranking_data)
+r1 = collect_ranking(session, 'saison') 
+r2 = collect_ranking(session, 'spieltag', range(1, 34))
+r3 = collect_ranking(session, 'monat', [8,9,10,11,12,1,2,3,4,5])
 
-ranking_data = pd.read_csv("sky_ranking_data.csv", encoding = "utf-8")
+all_rankings = pd.concat([r1, r2, r3], axis=0, ignore_index=True)
 
+
+all_rankings.to_csv("sky_ranking_data.csv", encoding = "utf-8", index=True)
+print(all_rankings)
+
+all_rankings = pd.read_csv("sky_ranking_data.csv", encoding = "utf-8")
+
+all_user_data = pd.DataFrame()
 all_user_data = pd.read_csv("sky_user_tipps.csv", encoding = "utf-8")
 
-user_data_sp = collect_user_tipps(session, roundfrom=33, roundto=33, userid=10) # Sven Pistor
-user_data_ms = collect_user_tipps(session, roundfrom=33, roundto=33, userid=218206) # ich
-
-all_user_data = pd.concat([user_data_ms, user_data_sp, all_user_data], axis=0, ignore_index=True)
-
-for i,userid in enumerate(ranking_data.Userid.iloc[1007:2000]):
+for i,userid in enumerate(all_rankings.Userid.unique()):
   print(i)
   user_data = collect_user_tipps(session, roundfrom=1, roundto=33, userid=userid)
   all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)

@@ -812,7 +812,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       if True:
         with tf.variable_scope("Layer1"):
           X1,Z1 = build_dense_layer(X, 32, mode, 
-                                    regularizer = l1_regularizer(scale=0.6), 
+                                    regularizer = l1_regularizer(scale=0.2), 
                                     keep_prob=1.0, #0.95, 
                                     batch_norm=False, # True
                                     activation=tanhStochastic, 
@@ -821,7 +821,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         with tf.variable_scope("Layer2"):
           X2,Z2 = build_dense_layer(X1, 32, mode, 
                                     #add_term = X0*2.0, 
-                                    regularizer = l1_regularizer(scale=0.3), 
+                                    regularizer = l1_regularizer(scale=0.1), 
                                     keep_prob=1.0, #0.95, 
                                     batch_norm=False, # True
                                     activation=tanhStochastic, 
@@ -853,7 +853,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
-          sp_logits_2,_ = build_dense_layer(X+X2, 11, mode, 
+          sp_logits_2,_ = build_dense_layer(X2, 11, mode, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
@@ -1363,7 +1363,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = predictions)
           predictions = calc_probabilities(p_pred_12, predictions)
           
-          if True:
+          if False:
             # try fixed scheme based on probabilities
             pred = create_fixed_scheme_prediction_new(p_pred_12, t_is_home_bool, mode)
             predictions.update({"pred":pred})
@@ -1486,9 +1486,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
   def create_hierarchical_losses_and_predictions(sp_logits, t_labels, features, t_is_home_bool, mode, tc, eval_metric_ops):
     
     sp_logits_1, sp_logits_2, sp_logits_3 = sp_logits    
-    sp_logits_1 = tf.clip_by_value(sp_logits_1, -10, 10)
-    sp_logits_2 = tf.clip_by_value(sp_logits_2, -10, 10)
-    sp_logits_3 = tf.clip_by_value(sp_logits_3, -10, 10)
+    sp_logits_1 = tf.clip_by_value(sp_logits_1, -10000, 1e10)
+    sp_logits_2 = tf.clip_by_value(sp_logits_2, -10000, 1e10)
+    sp_logits_3 = tf.clip_by_value(sp_logits_3, -10000, 1e10)
     
     with tf.variable_scope("Prediction"):
       tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
@@ -1531,8 +1531,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     t_actual_GF_mask = tf.matmul(tf.one_hot(sp_labels_1, 3), t_expand_WDL_GDiff_mask, name="t_actual_GF_mask")           
     t_pred_GF_mask   = tf.matmul(tf.one_hot(pred_WDL   , 3), t_expand_WDL_GDiff_mask, name="t_pred_GF_mask")           
     
-    sp_logits_2_masked_act = (sp_logits_2 + 10.0)*t_actual_GF_mask
-    sp_logits_2_masked_pred = (sp_logits_2 + 10.0)*t_pred_GF_mask
+    sp_logits_2_masked_act = (sp_logits_2 + 10000.0)*t_actual_GF_mask
+    sp_logits_2_masked_pred = (sp_logits_2 + 10000.0)*t_pred_GF_mask
     # normalize active logits
     #sp_logits_2_masked_pred = sp_logits_2_masked_pred / tf.reduce_sum(sp_logits_2_masked_pred, axis=1, keepdims=True)
     
@@ -1542,8 +1542,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     t_actual_FS_mask = tf.matmul(tf.one_hot(sp_labels_2, 11), t_expand_GDiff_FS_mask, name="t_actual_FS_mask")           
     t_pred_FS_mask   = tf.matmul(tf.one_hot(pred_GDiff , 11), t_expand_GDiff_FS_mask, name="t_pred_FS_mask")           
     
-    sp_logits_3_masked_act = (sp_logits_3 + 10.0)*t_actual_FS_mask
-    sp_logits_3_masked_pred = (sp_logits_3 + 10.0)*t_pred_FS_mask
+    sp_logits_3_masked_act = (sp_logits_3 + 10000.0)*t_actual_FS_mask
+    sp_logits_3_masked_pred = (sp_logits_3 + 10000.0)*t_pred_FS_mask
     # normalize active logits
     #sp_logits_3_masked_pred = sp_logits_3_masked_pred / tf.reduce_sum(sp_logits_3_masked_pred, axis=1, keepdims=True)
     
@@ -1553,8 +1553,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     predictions = create_predictions(sp_logits_3_masked_pred, sp_logits_3_masked_pred, t_is_home_bool, tc, use_max_points=False)
 
     loss = tf.reduce_mean(2*l_tendency)  
-    loss += tf.reduce_mean(1.0*l_gdiff)  
-    loss += tf.reduce_mean(0.5*l_gfull)  
+    loss += tf.reduce_mean(100.0*l_gdiff)  
+    loss += tf.reduce_mean(50.5*l_gfull)  
 
     eval_metric_ops.update(collect_summary("losses", "l_tendency", mode, tensor=l_tendency))
     eval_metric_ops.update(collect_summary("losses", "l_gdiff", mode, tensor=l_gdiff))
@@ -2339,8 +2339,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     eval_loss_ops, loss = create_losses_RNN(outputs, sp_loss, cond_probs, labels, features, predictions, t_is_home_bool, mode, tc, t_is_home_win_bool , t_is_home_loss_bool, eval_metric_ops)
     eval_metric_ops.update(eval_loss_ops)
     
-#    eval_ae_loss_ops, loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
+#    eval_ae_loss_ops, ae_loss = create_autoencoder_losses(loss, decode_t1, decode_t2, decode_t12, features, labels, mode)  
 #    eval_metric_ops.update(eval_ae_loss_ops)
+#    loss += ae_loss
     
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "z_points" in k })
     eval_metric_ops.update({"summary/"+k:v for k,v in eval_metric_ops.items() if "is_tendency" in k })
