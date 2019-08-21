@@ -33,12 +33,14 @@ import numpy as np
 #np.set_printoptions(threshold=50)
 from datetime import datetime
 import os
+from threading import Event
+import signal
 
 from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import Model_BWIN_xg as themodel
+from Estimators import Model_BWIN_xg_sp as themodel
 from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
@@ -168,10 +170,10 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
   new_data["BWD"] = new_quotes.loc[0:newdata_count, "BWD"]
   new_data["BWA"] = new_quotes.loc[0:newdata_count, "BWA"]
 
-#  new_g25= load_file(model_dir, "quotes_G25.csv")
-#  print(new_g25)
-#  new_data["BbMx>2.5"] = new_g25.loc[0:newdata_count, "BbMx>2.5"]
-#  new_data["BbMx<2.5"] = new_g25.loc[0:newdata_count, "BbMx<2.5"]
+  new_g25= load_file(model_dir, "quotes_G25.csv")
+  print(new_g25)
+  new_data["BbMx>2.5"] = new_g25.loc[0:newdata_count, "BbMx>2.5"]
+  new_data["BbMx<2.5"] = new_g25.loc[0:newdata_count, "BbMx<2.5"]
 
   print(new_data)
 #  if DEVELOPER_MODE:
@@ -573,7 +575,7 @@ def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
   
   #batches1 = [features[features["Team1"]==t].copy() for t in teamnames]
   #batches2 = [features[features["Team2"]==t].copy() for t in teamnames]
-  steps = 30
+  steps = 28
   
   batches1 = [features[features["Team1_index"]==t].index for t in range(len(teamnames))]
   batches2 = [features[features["Team2_index"]==t].index for t in range(len(teamnames))]
@@ -699,6 +701,7 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
     default_color = "darkmagenta"
 
   sp = pred[prefix+"p_pred_12"]
+  #print(sp)
   spt = pred[prefix+"ev_points"]
   gs = min(gs,6.0)
   gc = min(gc,6.0)
@@ -1336,6 +1339,8 @@ def plot_checkpoints(df, predictions):
   for prefix in themodel.prefix_list: 
     prefix_df = df.loc[df.Prefix==prefix[:-1]]
     s = random.sample(range(len(prefix_df)), 1)[0]
+    print(prefix, s)
+    #print({k:v.shape for k,v in predictions.items()})
     sample_preds = {k:v[s] for k,v in predictions.items()}
     plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
     s = random.sample(range(len(prefix_df)), 1)[0]
@@ -1542,8 +1547,11 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
 
   saver = tf.train.Saver()
   cps_done = []
+  for sig in ('TERM', 'INT'):
+      signal.signal(getattr(signal, 'SIG'+sig), quit);
+  exit_ = Event()
   with tf.Session() as sess:
-    while True:
+    while not exit_.is_set():
       if len(cps)>0:
         for cp, global_step in zip(cps.checkpoint, cps.global_step):
           print(cp)
@@ -1559,7 +1567,7 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
         cps_done.extend(cps.global_step)
         print("cps_done", cps_done)
       else:
-        time.sleep(10)
+        exit_.wait(10)
       cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
       #print("cps2", cps2)
       cps = cps2.loc[~cps2.global_step.isin(cps_done)]
@@ -1794,7 +1802,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   if modes == "static":
     static_probabilities(model_data)    
   elif "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, train_X=None, train_y=None)
+    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array)
   elif modes == "train": 
     train_model(model_data, train_steps)
   elif modes == "train_eval": 
@@ -1819,11 +1827,11 @@ def main(_):
     
     if FLAGS.target_system=="Pistor":
         # Pistor
-        target_distr={  "cp":[(5, 20, 35), 15, (15, 8, 2), (20, 20, 80)],
+        target_distr={  "cp":[(5, 15, 30), 20, (20, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                         "pg2":[(2, 20, 48), 15, (11, 3, 1), (20, 20, 80)],
-                        "av":[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)],
+                        "av":[(5, 15, 30), 15, (25, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
         # Sky
@@ -1848,13 +1856,13 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=False, 
+      default=True, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1911,7 +1919,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/xg_bwin_pistor2",
+      default="d:/Models/xg_sp_bwin_pistor2",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1938,6 +1946,7 @@ if __name__ == "__main__":
       default="train",
       #default="eval",
       #default="predict",
+      #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
       help="What to do"

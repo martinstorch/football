@@ -44,7 +44,7 @@ def upgrade_estimator_model(model_dir, model, features, labels):
   checkpoint = saver.latest_checkpoint(model_dir)
   print("Checkpoint = {}".format(checkpoint))
   tf.Variable(global_step, trainable=False, name='global_step')
-  model._call_model_fn(features, labels, tf.estimator.ModeKeys.TRAIN)
+  model._call_model_fn(features, labels, tf.estimator.ModeKeys.TRAIN, model.config)
   with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
   #    sv = tf.train.Saver(max_to_keep=50)  
