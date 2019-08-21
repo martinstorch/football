@@ -168,10 +168,10 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, skip_download):
   new_data["BWD"] = new_quotes.loc[0:newdata_count, "BWD"]
   new_data["BWA"] = new_quotes.loc[0:newdata_count, "BWA"]
 
-  new_g25= load_file(model_dir, "quotes_G25.csv")
-  print(new_g25)
-  new_data["BbMx>2.5"] = new_g25.loc[0:newdata_count, "BbMx>2.5"]
-  new_data["BbMx<2.5"] = new_g25.loc[0:newdata_count, "BbMx<2.5"]
+#  new_g25= load_file(model_dir, "quotes_G25.csv")
+#  print(new_g25)
+#  new_data["BbMx>2.5"] = new_g25.loc[0:newdata_count, "BbMx>2.5"]
+#  new_data["BbMx<2.5"] = new_g25.loc[0:newdata_count, "BbMx<2.5"]
 
   print(new_data)
 #  if DEVELOPER_MODE:
@@ -1851,7 +1851,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(

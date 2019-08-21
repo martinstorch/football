@@ -39,18 +39,25 @@ git pull https://github.com/martinstorch/football
 
 python model_laplacian.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=c:\Models\laplace_sky2 
 python model_laplacian.py --modes=train --train_steps=30000 --target_system=Pistor --model_dir=c:\Models\laplace_pistor
+
+python model_bwin_xg.py --modes=train --train_steps=20000 --target_system=Sky --model_dir=c:\Models\xg_bwin_sky 
+python model_bwin_xg.py --modes=train --train_steps=20000 --target_system=Pistor --model_dir=c:\Models\xg_bwin_pistor
+
+#python model_bwin.py --modes=train --train_steps=20000 --target_system=Sky --model_dir=c:\Models\laplace_bwin_sky 
+#python model_bwin.py --modes=train --train_steps=20000 --target_system=Pistor --model_dir=c:\Models\laplace_bwin_pistor
+
+
  
-python model_laplacian.py --modes=predict --checkpoints=61000: --target_system=Sky --model_dir=c:\Models\laplace_sky2 
-python model_laplacian.py --modes=predict --checkpoints=532000: --target_system=Pistor --model_dir=c:\Models\laplace_pistor
+ping -n 3600 localhost> nul 
+python model_laplacian.py --modes=predict --checkpoints=121000: --target_system=Sky --model_dir=c:\Models\laplace_sky2 
+python model_laplacian.py --modes=predict --checkpoints=592000: --target_system=Pistor --model_dir=c:\Models\laplace_pistor
+python model_bwin_xg.py --modes=predict --checkpoints=20000: --target_system=Sky --model_dir=c:\Models\xg_bwin_sky 
+python model_bwin_xg.py --modes=predict --checkpoints=20000: --target_system=Pistor --model_dir=c:\Models\xg_bwin_pistor
+
+#python model_bwin.py --modes=predict --checkpoints=20000: --target_system=Sky --model_dir=c:\Models\laplace_bwin_sky 
+#python model_bwin.py --modes=predict --checkpoints=20000: --target_system=Pistor --model_dir=c:\Models\laplace_bwin_pistor
 
 
-
-python model_bwin.py --modes=train --train_steps=20000 --target_system=Sky --model_dir=c:\Models\laplace_bwin_sky 
-python model_bwin.py --modes=train --train_steps=20000 --target_system=Pistor --model_dir=c:\Models\laplace_bwin_pistor
-
-python model_bwin.py --modes=predict --checkpoints=1: --target_system=Sky --model_dir=c:\Models\laplace_bwin_sky 
-python model_bwin.py --modes=predict --checkpoints=1: --target_system=Pistor --model_dir=c:\Models\laplace_bwin_pistor
-
-python model_bwin.py --modes=eval --checkpoints=1: --target_system=Sky --model_dir=c:\Models\laplace_bwin_sky 
-python model_bwin.py --modes=eval --checkpoints=1: --target_system=Pistor --model_dir=c:\Models\laplace_bwin_pistor
+python model_bwin_xg.py --modes=eval --checkpoints=1: --target_system=Sky --model_dir=c:\Models\xg_bwin_sky 
+python model_bwin_xg.py --modes=eval --checkpoints=20000: --target_system=Pistor --model_dir=c:\Models\xg_bwin_pistor
 
