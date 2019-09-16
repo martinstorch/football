@@ -42,7 +42,7 @@ fetch_data<-function(season){
   data<-read.csv(inputFile)
   data[is.na(data<-data)]<-0
   data$season<-season
-  print(str(data))
+  #print(str(data))
   if ("HFKC" %in% colnames(data))
   {
     data$HF<-data$HFKC

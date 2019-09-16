@@ -1856,7 +1856,7 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_download", type=bool,
-      default=True, 
+      default=False, 
       help="Use input files in model_dir without downloading"
   )
   parser.add_argument(
@@ -1942,8 +1942,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      #default="static",
-      default="train",
+      default="static",
+      #default="train",
       #default="eval",
       #default="predict",
       #default="upgrade",

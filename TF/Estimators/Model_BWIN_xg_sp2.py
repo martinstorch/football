@@ -853,19 +853,19 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
-          sp_logits_2,_ = build_dense_layer(X2, 11, mode, 
+          sp_logits_2,_ = build_dense_layer(X+X2, 11, mode, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
-          sp_logits_3,_ = build_dense_layer(X2, 49, mode, 
+          sp_logits_3,_ = build_dense_layer(X+X2, 49, mode, 
                                         #regularizer = None, 
                                         regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
       with tf.variable_scope("Poisson"):
-        outputs,Z = build_dense_layer(X+0.1*X2, output_size, mode, 
+        outputs,Z = build_dense_layer(X+0.0*X2, output_size, mode, 
                                 regularizer = l2_regularizer(scale=2.2002), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
@@ -1553,8 +1553,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     predictions = create_predictions(sp_logits_3_masked_pred, sp_logits_3_masked_pred, t_is_home_bool, tc, use_max_points=False)
 
     loss = tf.reduce_mean(2*l_tendency)  
-    loss += tf.reduce_mean(100.0*l_gdiff)  
-    loss += tf.reduce_mean(50.5*l_gfull)  
+    loss += tf.reduce_mean(1.0*l_gdiff)  
+    loss += tf.reduce_mean(0.5*l_gfull)  
 
     eval_metric_ops.update(collect_summary("losses", "l_tendency", mode, tensor=l_tendency))
     eval_metric_ops.update(collect_summary("losses", "l_gdiff", mode, tensor=l_gdiff))

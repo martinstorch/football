@@ -50,102 +50,6 @@ def login():
   return session
 
 
-def collect_bet_results(session, maxround=34):
-  rounds=[]
-  round_from=[]
-  round_to=[]
-  hometeams=[]
-  awayteams=[]
-  FTHGs=[]
-  FTAGs=[]
-  myFTHGs=[]
-  myFTAGs=[]
-  pistorFTHGs=[]
-  pistorFTAGs=[]
-  myPoints=[]
-  pistorPoints=[]
-  
-  
-  for i in range(1,maxround+1):
-    html_content = load_page(session, baseurl+'#goToSpieltagsergebnisse', params={'spieltag':i})
-    
-    soup = BeautifulSoup(html_content, 'html.parser')
-    start = soup.find('a', attrs={'class':'hidden', 'name':'goToSpieltagsergebnisse'})
-    
-    spieltag = start.find_next_sibling('h3')
-    print(spieltag.text.strip())
-    m = re.search(r'(\d+)\. Spieltag \((\d+\.\d+\.) - (\d+\.\d+\.\d+)\)', spieltag.text.strip())
-    sp_id, sp_from, sp_to = m.groups()
-    sp_id = int(sp_id)
-    
-    table = spieltag.find_next_sibling('table')
-    
-    for tr in table.find('tbody').find_all('tr'):
-      td = tr.find_all('td')
-      match = td[0].text.strip()
-      hometeam, awayteam = match.split(' : ')
-      hometeams.append(hometeam)
-      awayteams.append(awayteam)
-      FTR = td[1].text.strip()
-      FTHG, FTAG = FTR.split(':')
-      FTHGs.append(int(FTHG))
-      FTAGs.append(int(FTAG))
-    
-      FTR = td[2].text.strip()
-      FTHG, FTAG = FTR.split(':')
-      pistorFTHGs.append(int(FTHG))
-      pistorFTAGs.append(int(FTAG))
-    
-      FTR = td[4].text.strip()
-      FTHG, FTAG = FTR.split(':')
-      myFTHGs.append(int(FTHG))
-      myFTAGs.append(int(FTAG))
-    
-      pistorPoints.append(int(td[3].text.strip()))
-      myPoints.append(int(td[5].text.strip()))
-      
-      rounds.append(sp_id)
-      round_from.append(sp_from)
-      round_to.append(sp_to)
-      
-    pistorBonus = int(table.find('tfoot').find_all('tr')[1].find_all('td')[1].text)
-    myBonus     = int(table.find('tfoot').find_all('tr')[0].find_all('td')[3].text)
-    
-    hometeams.append("Bonus")
-    awayteams.append("Bonus")
-    FTHGs.append(-1)
-    FTAGs.append(-1)
-    
-    pistorFTHGs.append(-1)
-    pistorFTAGs.append(-1)
-    
-    myFTHGs.append(-1)
-    myFTAGs.append(-1)
-    
-    pistorPoints.append(pistorBonus)
-    myPoints.append(myBonus)
-    
-    rounds.append(sp_id)
-    round_from.append(sp_from)
-    round_to.append(sp_to)
-    
-  
-  pistor_data = pd.DataFrame({
-    'Round':rounds,
-    'DateFrom':round_from,
-    'DateTo':round_to,
-    'HomeTeam':hometeams,
-    'AwayTeam':awayteams,
-    'FTHG':FTHGs,
-    'FTAG':FTAGs,
-    'myFTHG':myFTHGs,
-    'myFTAG':myFTAGs,
-    'myPoints':myPoints,
-    'psFTHG':pistorFTHGs,
-    'psFTAG':pistorFTAGs,
-    'psPoints':pistorPoints,
-  })
-  return   pistor_data
 
 def collect_ranking(session, type_, values=[0]):
   ranks=[]
@@ -194,7 +98,7 @@ def collect_ranking(session, type_, values=[0]):
   })
   return ranking_data
 
-def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
+def collect_user_tipps(session, userid, roundfrom=1, roundto=34, early_stop=False):
 
   rounds=[]
   users=[]
@@ -206,6 +110,7 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
   myFTHGs=[]
   myFTAGs=[]
   myPoints=[]
+  missed_counter = 0
   for i in range(roundfrom, roundto+1):
     url = baseurl+'/ergebnisse/spieltag/'+str(i)+'/benutzer/'+str(userid)
     html_content = load_page(session, url, {})
@@ -238,6 +143,13 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
       #FTR = td[2].text.strip()
       FTHG = scores[0].text.strip()
       FTAG = scores[1].text.strip()
+      if FTHG=="-":
+        missed_counter = missed_counter-1
+      else:
+        missed_counter = missed_counter+1
+      if early_stop and missed_counter<0:
+        return pd.DataFrame()
+      
       myFTHGs.append(int(FTHG) if FTHG!="-" else None)
       myFTAGs.append(int(FTAG) if FTAG!="-" else None)
       
@@ -270,29 +182,55 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
 
 session = login()
 r1 = collect_ranking(session, 'saison') 
-r2 = collect_ranking(session, 'spieltag', range(1, 34))
+r2 = collect_ranking(session, 'spieltag', range(1, 35))
 r3 = collect_ranking(session, 'monat', [8,9,10,11,12,1,2,3,4,5])
 
 all_rankings = pd.concat([r1, r2, r3], axis=0, ignore_index=True)
 
 
-all_rankings.to_csv("sky_ranking_data.csv", encoding = "utf-8", index=True)
+all_rankings.to_csv("sky_ranking_data_final.csv", encoding = "utf-8", index=True)
 print(all_rankings)
 
 all_rankings = pd.read_csv("sky_ranking_data.csv", encoding = "utf-8")
 
 all_user_data = pd.DataFrame()
 all_user_data = pd.read_csv("sky_user_tipps.csv", encoding = "utf-8")
+known_users = all_user_data.Userid.unique()
 
 for i,userid in enumerate(all_rankings.Userid.unique()):
-  print(i)
-  user_data = collect_user_tipps(session, roundfrom=1, roundto=33, userid=userid)
-  all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
-  if i%50==0:
-    all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
+  if int(userid) not in known_users:
+    print(i)
+    user_data = collect_user_tipps(session, roundfrom=1, roundto=34, userid=userid)
+    all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
+    if i%50==0:
+      all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
 
 all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
 
+session = login()
+
+known_users = all_user_data.Userid.unique()
+len(known_users)
+j=1
+for i,userid in enumerate(range(30000,40000)):
+  if userid not in known_users:
+    user_data = collect_user_tipps(session, roundfrom=1, roundto=34, userid=userid, early_stop=True)
+    if user_data.shape[0]>0:
+      j=j+1
+      all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
+      if j%100==0:
+        all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
+    print(i,j)
+
+all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
+
+for i,userid in enumerate(known_users):
+  print(i)
+  user_data = collect_user_tipps(session, roundfrom=34, roundto=34, userid=userid, early_stop=True)
+  all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
+  if i%500==0:
+    all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
+all_user_data.to_csv("sky_user_tipps.csv", encoding = "utf-8", index=False)
 
 #pistor_data.to_csv("pistor_data.csv", encoding = "utf-8", index=False)
 
