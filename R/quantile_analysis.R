@@ -77,7 +77,7 @@ alldata[,normalized_quote_names]<-1/alldata[,quote_names]
 alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/rowSums(alldata[,normalized_quote_names[1:3]])
 #alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
 
-ggplot(alldata, aes(x=pBWH, y=pBWA, color=FTR))+geom_point(alpha=0.3)
+ggplot(alldata, aes(x=pBWH, y=pBWA, color=FTR))+facet_wrap(aes(season))+geom_point(alpha=0.3)
 
 
 #########################################################################################################################
@@ -159,14 +159,14 @@ eval_partition_points<-function(p, thedata){
 train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718")
 test_seasons<-c("1819")
 
-train_seasons<-c("0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
-test_seasons<-c("0405", "0506", "0607", "0708")
-
-train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314")
-test_seasons<-c( "1415", "1516", "1617", "1718", "1819")
-
-train_seasons<-sample(levels(alldata$season), 8)
-test_seasons<-setdiff(levels(alldata$season), train_seasons)
+# train_seasons<-c("0809", "0910", "1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
+# test_seasons<-c("0405", "0506", "0607", "0708")
+# 
+# train_seasons<-c("0405", "0506", "0607", "0708", "0809", "0910", "1011", "1112", "1213", "1314")
+# test_seasons<-c( "1415", "1516", "1617", "1718", "1819")
+# 
+# train_seasons<-sample(levels(alldata$season), 8)
+# test_seasons<-setdiff(levels(alldata$season), train_seasons)
 
 quote_names<-c('BWH', 'BWD', 'BWA')
 #quote_names<-c('B365H', 'B365D', 'B365A')
