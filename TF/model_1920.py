@@ -72,7 +72,7 @@ point_scheme_sky = [[5,5,5], [2,2,2], [2,2,2], [2.60, 3.38, 2.66], [285/9/27, 24
 
 point_scheme = point_scheme_pistor
 
-SEQ_LENGTH = 10
+SEQ_LENGTH = 12
 TIMESERIES_COL = 'rawdata'
 
 
@@ -89,494 +89,41 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   
   all_data["Train"]=is_train.values
   all_data["Test"]=is_test.values
-  
-  teamnames = team_mapping.Teamname
-  
-  all_seasons = sorted(set(train_seasons + test_seasons))
-  all_data.iloc[0]
-  for s in all_seasons:
-    all_data.
-      newdata = download_data(model_dir, s, skip_download) 
-    replace_teamnames(newdata, s)
-    newdata["Train"]=(s in train_seasons)
-    newdata["Test"]=(s in test_seasons)
-    newdata["Predict"]=False
-    all_data.append(newdata)
+  all_labels["Train"]=is_train.values
+  all_labels["Test"]=is_test.values
+  all_features["Train"]=is_train.values
+  all_features["Test"]=is_test.values
+  all_labels["Predict"] = all_data["Predict"]
+  all_features["Predict"] = all_data["Predict"]
+  teamnames = team_mapping.Teamname.tolist()
 
-  new_data = load_file(model_dir, "NewGames.csv")
-  new_data["Season"]= "1819"
+  return all_data, all_labels, all_features, teamnames, team_mapping
 
-  print(new_data.shape)  
-#  teamnames.extend(new_data["HomeTeam"].tolist())
-#  teamnames.extend(new_data["AwayTeam"].tolist())
+def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
+  
+  all_data["gameindex"]=all_data.index
 
-  new_quotes= load_file(model_dir, "quotes_bwin.csv")
-  print(new_quotes)
+  mh1 = [all_data.groupby("Team1_index").gameindex.shift(i) for i in range(SEQ_LENGTH, 0, -1)]
+  mh1 = np.stack(mh1, axis=1)
+  all_data["mh1len"] = np.sum(~pd.isna(mh1), axis=1)
+  mh1[np.isnan(mh1)]=-1
+  mh1 = mh1.astype(np.int16)
   
-  newdata_count = max(new_data.shape[0], new_quotes.shape[0])
-  new_data["BWH"] = new_quotes.loc[0:newdata_count, "BWH"]
-  new_data["BWD"] = new_quotes.loc[0:newdata_count, "BWD"]
-  new_data["BWA"] = new_quotes.loc[0:newdata_count, "BWA"]
-
-  new_g25= load_file(model_dir, "quotes_G25.csv")
-  print(new_g25)
-  new_data["BbMx>2.5"] = new_g25.loc[0:newdata_count, "BbMx>2.5"]
-  new_data["BbMx<2.5"] = new_g25.loc[0:newdata_count, "BbMx<2.5"]
-
-  print(new_data)
-#  if DEVELOPER_MODE:
-#    train_data = train_data[0:9]
-#    test_data = test_data[0:9]
+  mh2 = [all_data.groupby("Team2_index").gameindex.shift(i) for i in range(SEQ_LENGTH, 0, -1)]
+  mh2 = np.stack(mh2, axis=1)
+  all_data["mh2len"] = np.sum(~pd.isna(mh2), axis=1)
+  mh2[np.isnan(mh2)]=-1
+  mh2 = mh2.astype(np.int16)
   
-  new_data["Predict"]=True
-  new_data["Train"]=False
-  new_data["Test"]=False
-  all_data.append(new_data)
-
-  all_data = pd.concat(all_data , ignore_index=True, sort=False)
-
-  expected_goals= load_file(model_dir, "xgoals.csv")
-  team_mapping= load_file(model_dir, "xg_team_mapping.csv")
-  print(team_mapping)
+  mh12 = [all_data.groupby(["Team1_index","Team2_index"]).gameindex.shift(i) for i in range(SEQ_LENGTH, 0, -1)]
+  mh12 = np.stack(mh12, axis=1)
+  all_data["mh12len"] = np.sum(~pd.isna(mh12), axis=1)
+  mh12[np.isnan(mh12)]=-1
+  mh12 = mh12.astype(np.int16)
   
-  expected_goals = expected_goals.merge(team_mapping, on="HomeTeam")
-  expected_goals = expected_goals.merge(team_mapping, left_on="AwayTeam", right_on="HomeTeam")
-  
-  # transform xHG, xAG
-  expected_goals["xtHG"] = ((expected_goals.xHG**0.4-1)/0.4-0.3842818)/0.7156743
-  expected_goals["xtAG"] = ((expected_goals.xAG**0.4-1)/0.4-0.3842818)/0.7156743+0.4551
-  
-  expected_goals.season = (expected_goals.season % 100)*101+1
-  expected_goals.season = expected_goals.season.astype(str) 
-  expected_goals.drop(columns=['HomeTeam_x', 'HomeTeam_y', 'AwayTeam', 'Unnamed: 0_x', 'Unnamed: 0_y'], axis=1, inplace=True)
-  expected_goals.rename(columns={'HomeTeamStd_x':'HomeTeam', 'HomeTeamStd_y':'AwayTeam', 'season':'Season'}, inplace=True)
-  
-  all_data = all_data.merge(expected_goals, how="left", on=["HomeTeam", "AwayTeam", "Season", "FTHG", "FTAG"], suffixes=('', '_xg'))
-  all_data = all_data.fillna(0)
-
-  print(all_data.columns)
-  print({k:all_data[k].dtype for k in all_data.columns})  
-  
-  teamnames.extend(all_data["HomeTeam"].tolist())
-  teamnames.extend(all_data["AwayTeam"].tolist())
-  print(Counter(teamnames))
-  teamnames = np.unique(teamnames).tolist()
-
-  #print(all_data[["HomeTeam", "AwayTeam", "BWH", "BWD", "BWA"]])  
-  
-  return all_data, teamnames
-
-# combine home and away versions of the same match to a single sample in dim 0. 
-def encode_home_away_matches(x):
-  return x
-  x_new =  np.stack((x[0::2], x[1::2]), axis=-1)
-  return x_new
-    
-# split samples into home and away versions of the same match using the last dimension 
-def decode_home_away_matches(x):
-  return x
-  s = list(x.shape)
-  #print(s)
-  r = len(s) # rank
-  if r <=1:
-    return x
-  #x_new = np.rollaxis(x, axis=r-1, start=1) # last dimension becomes second dim
-  x_new = np.rollaxis(x, axis=0, start=r-1) # first dimension becomes second last 
-  new_shape = s[1:-1]+[s[0]*s[-1]]
-#  print(new_shape)
-#  print(x_new.shape)
-  x_new = np.reshape(x_new, new_shape)
-  x_new = np.rollaxis(x_new, axis=-1, start=0) # last dimension becomes first
-  return x_new
-    
-def decode_dict(d):
-  return ({k:decode_home_away_matches(v) for k,v in d.items()})
-
-def decode_list(l):
-  return ([decode_home_away_matches(x) for x in l])
-
-def decode_array(a):
-  return decode_home_away_matches(a)
-
-def decode_predictions(x):
-  return x
-  pred = []
-  for l in x: 
-    pred.append({k:np.rollaxis(v, -1, 0) for k,v in l.items()})
-  predictions = pred
-  pred = []
-  for l in predictions: 
-    pred.append({k:v[0] for k,v in l.items()}) 
-    pred.append({k:v[1] for k,v in l.items()}) 
-  return pred
-
-def build_features(df_data, teamnames, mode=tf.estimator.ModeKeys.TRAIN):
-#  if mode==tf.estimator.ModeKeys.TRAIN:
-#    df_data = df_data[df_data["Train"]==True].copy()
-  
-  print("Build features - {}".format(mode))
-  print(df_data.shape) 
-  
-  team_encoder = preprocessing.LabelEncoder()
-  team_encoder.fit(teamnames)
-
-  print(df_data["Date"].tail(18))
-  df_data["Date"] = df_data["Date"].str.replace("2018","18").str.replace("2019","19")
-  print(df_data["Date"].tail(18))
-  df_data["Date"]= [(datetime.strptime(dt, '%d/%m/%y').toordinal()-734138) for dt in df_data["Date"]]
-  df_data.sort_values("Date").reset_index(drop=True)
-  
-  df_data.rename(columns={
-      'FTHG': 'HGFT', 'FTAG': 'AGFT',
-      'HTHG': 'HGHT', 'HTAG': 'AGHT'
-      }, inplace=True)
-
-  df1 = pd.DataFrame()
-  df1["Team1"] = df_data["HomeTeam"]
-  df1["Team2"] = df_data["AwayTeam"]
-  df1["Where"] = 1
-  df1['OpponentGoals'] = df_data["AGFT"]
-  df1['OwnGoals'] = df_data["HGFT"]
-  df1['HomeTeam'] = df1["Team1"]
-  df1['Season'] = df_data["Season"]
-  df1["Train"] = df_data["Train"]
-  df1["Date"]= df_data["Date"]
-
-  df1['BW1'] = 1/df_data["BWH"]
-  df1['BW2'] = 1/df_data["BWA"]
-  df1['BW0'] = 1/df_data["BWD"]
-  df1['B365_1'] = 1/df_data["B365H"]
-  df1['B365_2'] = 1/df_data["B365A"]
-  df1['B365_0'] = 1/df_data["B365D"]
-  df1['G25'] = 1/df_data["BbMx>2.5"]-1/df_data["BbMx<2.5"]
-  
-  df1["xG1"] = df_data["xtHG"]
-  df1["xG2"] = df_data["xtAG"]
-    
-  df2 = pd.DataFrame()
-  df2["Team1"] = df_data["AwayTeam"]
-  df2["Team2"] = df_data["HomeTeam"]
-  df2["Where"] = 0
-  df2['OpponentGoals'] = df_data["HGFT"]
-  df2['OwnGoals'] = df_data["AGFT"]
-  df2['HomeTeam'] = df1["Team2"]
-  df2['Season'] = df_data["Season"]
-  df2["Train"] = df_data["Train"]
-  df2["Date"]= df_data["Date"]
-
-  df2['BW2'] = 1/df_data["BWH"]
-  df2['BW1'] = 1/df_data["BWA"]
-  df2['BW0'] = 1/df_data["BWD"]
-  df2['B365_2'] = 1/df_data["B365H"]
-  df2['B365_1'] = 1/df_data["B365A"]
-  df2['B365_0'] = 1/df_data["B365D"]
-  df2['G25'] = 1/df_data["BbMx>2.5"]-1/df_data["BbMx<2.5"]
-  
-  df2["xG1"] = df_data["xtAG"]
-  df2["xG2"] = df_data["xtHG"]
-
-  columns = [c[1:] for c in COLS[::2]]
-#  feature_column_names_fixed = ["Team1", "Team2", "Where", "Season", "Train"]
-  label_column_names = []
-  for colname in columns:
-    homecol="H"+colname
-    awaycol="A"+colname
-    df1["T1_"+colname] = df_data[homecol].astype(int)
-    df1["T2_"+colname] = df_data[awaycol].astype(int)
-    df2["T1_"+colname] = df_data[awaycol].astype(int)
-    df2["T2_"+colname] = df_data[homecol].astype(int)
-    label_column_names += ["T1_"+colname, "T2_"+colname]
-
-  lb1 = pd.DataFrame()
-  lb1['Goals'] = df_data["HGFT"]
-  lb2 = pd.DataFrame()
-  lb2['Goals'] = df_data["AGFT"]
-  lb1.index=lb1.index*2
-  lb2.index=lb1.index+1
-  labels = pd.concat([lb1,lb2], ignore_index=False)
-  labels = labels.sort_index()
-  
-  df1.index=df1.index*2
-  df2.index=df1.index+1
-  features = pd.concat([df1,df2], ignore_index=False )
-  features = features.sort_index()
-
-  print(features[["BW1", "BW0", "BW2"]])
-  #print(features[["B365_1", "B365_0", "B365_2"]])
-  print(np.sum(features[["BW1", "BW0", "BW2"]], axis=1))
-  # normalized Bet&Win probabilities
-  bwsum = np.sum(features[["BW1", "BW0", "BW2"]], axis=1).values
-  b365sum = np.sum(features[["B365_1", "B365_0", "B365_2"]], axis=1).values
-  features["BW1"] /= bwsum
-  features["BW0"] /= bwsum
-  features["BW2"] /= bwsum
-  features["B365_1"] /= b365sum 
-  features["B365_0"] /= b365sum 
-  features["B365_2"] /= b365sum 
-  
-  # derived feature 2nd half goals
-  features["T1_GH2"] = features["T1_GFT"] - features["T1_GHT"]
-  features["T2_GH2"] = features["T2_GFT"] - features["T2_GHT"]
-  label_column_names += ["T1_GH2", "T2_GH2"]
-  columns += ["GH2"]
-
-  features["t1cards"] = features["T1_R"]+0.25*features["T1_Y"]
-  features["t2cards"] = features["T2_R"]+0.25*features["T2_Y"]
-
-  print(features[["BW1", "BW0", "BW2"]])
-  #print(features[["B365_1", "B365_0", "B365_2"]])
-  
-  # derived feature full time win/loss/draw
-  features["zGameResult"] = [np.sign(x1-x2) for x1,x2 in zip(features["T1_GFT"], features["T2_GFT"])]
-  features["zGameHTResult"] = [np.sign(x1-x2) for x1,x2 in zip(features["T1_GHT"], features["T2_GHT"])]
-  features["zGameHT2Result"] = [np.sign(x1-x2) for x1,x2 in zip(features["T1_GH2"], features["T2_GH2"])]
-  features["zGameFinalScore"] = [str(x1)+":"+str(x2) for x1,x2 in zip(features["T1_GFT"], features["T2_GFT"])]
-  features["zGamePoints1"] = [x+1 if x<=0 else 3 for x in features["zGameResult"]]
-  features["zGamePoints2"] = [1-x if x>=0 else 3 for x in features["zGameResult"]]
-  
-  # feature scaling
-  features["T1_S"] /= 15.0
-  features["T2_S"] /= 15.0
-  features["T1_ST"] /= 5.0
-  features["T2_ST"] /= 5.0
-  features["T1_F"] /= 15.0
-  features["T2_F"] /= 15.0
-  features["T1_C"] /= 5.0
-  features["T2_C"] /= 5.0
-  features["Date"] /= 1000.0
-  
-  gr = pd.get_dummies(features["zGameResult"])
-  col_names = ['Loss', 'Draw', 'Win']
-  gr.columns = col_names
-  features = pd.concat([features, gr], axis=1)
-  label_column_names += col_names
-
-  # derived feature half-time win/loss/draw
-  gr2 = pd.get_dummies(features["zGameHTResult"])
-  col_names = ['HTLoss', 'HTDraw', 'HTWin']
-  gr2.columns = col_names
-  features = pd.concat([features, gr2], axis=1)
-  label_column_names += col_names
-
-  gr2h = pd.get_dummies(features["zGameHT2Result"])
-  col_names = ['HT2Loss', 'HT2Draw', 'HT2Win']
-  gr2h.columns = col_names
-  features = pd.concat([features, gr2h], axis=1)
-  label_column_names += col_names
-  
-  features["Team1_index"] = team_encoder.transform(features["Team1"])
-  features["Team2_index"] = team_encoder.transform(features["Team2"])
-  
-
-  final_score_enum = ["0:3", "1:3", "0:2", "1:2", "0:1", "0:0", "1:1", "1:0", "2:1", "2:0", "3:1", "3:0", "2:2", "3:2", "2:3", "3:3"]
-  final_score_encoder = preprocessing.LabelBinarizer(sparse_output=False)
-  final_score_encoder.fit_transform(final_score_enum)
-  label_column_names += ["zScore"+s for s in final_score_enum]
-  print(Counter(features["zGameFinalScore"]))
-  for s in final_score_enum :
-    g1=int(s[0])
-    g2=int(s[2])
-  #    print(g1, g2)
-  #    print(features[["zGameFinalScore", "T1_GHT", "T2_GHT"]][-36:-18:2])
-    matches1H = [1 if g1<=t1 and g2<=t2 else 0 for t1, t2 in zip(features["T1_GHT"], features["T2_GHT"])]
-    matches2H = [1 if t11<=g1 and g1<=t12 and t21<=g2 and g2<=t22 else 0 for t11, t21, t12, t22 in zip(features["T1_GHT"], features["T2_GHT"], features["T1_GFT"], features["T2_GFT"])]
-    features["zScore"+s] =  [(1 if m1==1 or m2==1 else 0)+(1 if fs==s else 0) for m1, m2, fs in zip(matches1H, matches2H, features["zGameFinalScore"])]  
-  #    print(features["zScore"+s][-36:-18:2])
-  #    print(matches1H[-36:-18:2])
-  #    print(matches2H[-36:-18:2])
-
-#  print(features.iloc[-20])  
-#  print(features.iloc[-21])  
-#  print(features.iloc[-22])  
-#  print(features.iloc[-23])  
-  # derived feature >3 goals
-  features["FTG4"] = [1 if t1+t2>=4 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
-  label_column_names += ["FTG4"]
-  features["FTG0"] = [1 if t1==0 or t2==0 else 0 for t1,t2 in zip(features["T1_GFT"], features["T2_GFT"])]
-  label_column_names += ["FTG0"]
-  features["HTG0"] = [1 if t1==0 or t2==0 else 0 for t1,t2 in zip(features["T1_GHT"], features["T2_GHT"])]
-  label_column_names += ["HTG0"]
-  
-  gt1 = features.groupby(["Season", "Team1_index"])
-  gt2 = features.groupby(["Season", "Team2_index"])
-  gt1w = features.groupby(["Season", "Team1_index","Where"])
-  gt2w = features.groupby(["Season", "Team2_index","Where"])
-  
-  features["t1games"] = gt1.cumcount()
-  features["t2games"] = gt2.cumcount()
-  features["roundsleft"] = 34-features["t1games"]
-  features["t1goals"] = (gt1["OwnGoals"].cumsum()-features["OwnGoals"])/(features["t1games"]+2)
-  features["t2goals"] = (gt2["OpponentGoals"].cumsum()-features["OpponentGoals"])/(features["t2games"]+2)
-  features["t12goals"] = features["t1goals"] - features["t2goals"]
-  features.loc[features["t1games"]==0, "t1goals"] = 1.45
-  features.loc[features["t2games"]==0, "t2goals"] = 1.45
-  features["t1points"] = gt1["zGamePoints1"].cumsum()-features["zGamePoints1"]
-  features["t2points"] = gt2["zGamePoints2"].cumsum()-features["zGamePoints2"]
-  features["t1rank"] = features.groupby(["Season", "t1games"])["t1points"].rank(ascending=False)
-  features["t2rank"] = features.groupby(["Season", "t2games"])["t2points"].rank(ascending=False)
-  features["t1rank6_attention"] = [np.exp(-0.1*np.square(x-6)) for x in features["t1rank"]]   
-  features["t2rank6_attention"] = [np.exp(-0.1*np.square(x-6)) for x in features["t2rank"]]
-  features["t1rank16_attention"] = [np.exp(-0.1*np.square(x-16)) for x in features["t1rank"]]   
-  features["t2rank16_attention"] = [np.exp(-0.1*np.square(x-16)) for x in features["t2rank"]]
-
-  features["t1cards_ema"] = gt1.t1cards.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
-  features["t2cards_ema"] = gt2.t2cards.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
-  features.fillna(0,  inplace=True)
-  
-  features["t1games_where"] = gt1w.cumcount()
-  features["t2games_where"] = gt2w.cumcount()
-
-  feature_column_names = ["Date", "t1games", "t1dayssince", "t2dayssince", "roundsleft"]
-  feature_column_names += ["t1points", "t2points", "t1rank", "t2rank", 
-                           "t1rank6_attention", "t2rank6_attention", "t1rank16_attention", "t2rank16_attention",
-                           "t1cards_ema", "t2cards_ema"]
-  
-#  print(features[["Date", "t1games", "t1points", "t2points", "t1rank", "t2rank", 
-#                           "t1cards", "t2cards",
-#                           "t1cards_ema", "t2cards_ema",
-#                           "Team1", "Team2"]])
-
-  use_bwin_statistics = True
-  if use_bwin_statistics:
-    feature_column_names += ["BW1", "BW0", "BW2"]
-
-  use_betbrain_goals = False
-  if use_betbrain_goals:
-    feature_column_names += ["G25"]
-  
-  for colname in columns:
-    features["T1_CUM_T1_"+colname] = (gt1["T1_"+colname].cumsum()-features["T1_"+colname])/(features["t1games"]+2)
-    features["T2_CUM_T2_"+colname] = (gt2["T2_"+colname].cumsum()-features["T2_"+colname])/(features["t2games"]+2)
-    features["T1_CUM_T1_W_"+colname] = (gt1w["T1_"+colname].cumsum()-features["T1_"+colname])/(features["t1games_where"]+1)
-    features["T2_CUM_T2_W_"+colname] = (gt2w["T2_"+colname].cumsum()-features["T2_"+colname])/(features["t2games_where"]+1)
-    features["T1_CUM_T2_"+colname] = (gt2["T1_"+colname].cumsum()-features["T1_"+colname])/(features["t1games"]+2)
-    features["T2_CUM_T1_"+colname] = (gt1["T2_"+colname].cumsum()-features["T2_"+colname])/(features["t2games"]+2)
-    features["T1_CUM_T2_W_"+colname] = (gt2w["T1_"+colname].cumsum()-features["T1_"+colname])/(features["t1games_where"]+1)
-    features["T2_CUM_T1_W_"+colname] = (gt1w["T2_"+colname].cumsum()-features["T2_"+colname])/(features["t2games_where"]+1)
-    features["T12_CUM_T1_"+colname] = features["T1_CUM_T1_"+colname] - features["T2_CUM_T1_"+colname]
-    features["T12_CUM_T1_W_"+colname] = features["T1_CUM_T1_W_"+colname] - features["T2_CUM_T1_W_"+colname]
-    features["T21_CUM_T2_"+colname] = features["T2_CUM_T2_"+colname] - features["T1_CUM_T2_"+colname]
-    features["T21_CUM_T2_W_"+colname] = features["T2_CUM_T2_W_"+colname] - features["T1_CUM_T2_W_"+colname]
-    features["T12_CUM_T12_"+colname] = features["T1_CUM_T1_"+colname] - features["T2_CUM_T2_"+colname]
-    features["T12_CUM_T12_W_"+colname] = features["T1_CUM_T1_W_"+colname] - features["T2_CUM_T2_W_"+colname]
-    features["T1221_CUM_"+colname] = features["T12_CUM_T1_"+colname] - features["T21_CUM_T2_"+colname]
-    features["T1221_CUM_W_"+colname] = features["T12_CUM_T1_W_"+colname] - features["T21_CUM_T2_W_"+colname]
-    features.loc[features["t1games"]==0, "T1_CUM_T1_"+colname] = features.loc[features["t1games"]>0, "T1_CUM_T1_"+colname].mean()
-    features.loc[features["t2games"]==0, "T2_CUM_T2_"+colname] = features.loc[features["t2games"]>0, "T2_CUM_T2_"+colname].mean()
-    features.loc[features["t1games_where"]==0, "T1_CUM_T1_W_"+colname] = features.loc[features["t1games_where"]>0, "T1_CUM_T1_W_"+colname].mean()
-    features.loc[features["t2games_where"]==0, "T2_CUM_T2_W_"+colname] = features.loc[features["t2games_where"]>0, "T2_CUM_T2_W_"+colname].mean()
-    features.loc[features["t1games"]==0, "T1_CUM_T2_"+colname] = features.loc[features["t1games"]>0, "T1_CUM_T2_"+colname].mean()
-    features.loc[features["t2games"]==0, "T2_CUM_T1_"+colname] = features.loc[features["t2games"]>0, "T2_CUM_T1_"+colname].mean()
-    features.loc[features["t1games_where"]==0, "T1_CUM_T2_W_"+colname] = features.loc[features["t1games_where"]>0, "T1_CUM_T2_W_"+colname].mean()
-    features.loc[features["t2games_where"]==0, "T2_CUM_T1_W_"+colname] = features.loc[features["t2games_where"]>0, "T2_CUM_T1_W_"+colname].mean()
-    feature_column_names += ["T1_CUM_T1_"+colname, "T2_CUM_T2_"+colname,
-                             "T1_CUM_T1_W_"+colname, "T2_CUM_T2_W_"+colname,
-                             "T1_CUM_T2_"+colname, "T2_CUM_T1_"+colname,
-                             "T1_CUM_T2_W_"+colname, "T2_CUM_T1_W_"+colname,
-                             "T12_CUM_T1_"+colname, "T12_CUM_T1_W_"+colname,
-                             "T21_CUM_T2_"+colname, "T21_CUM_T2_W_"+colname,
-                             "T12_CUM_T12_"+colname, "T12_CUM_T12_W_"+colname,
-                             "T1221_CUM_"+colname, "T1221_CUM_W_"+colname]
-    
-  for colname in ['Win', 'HTWin', 'Loss', 'HTLoss', 'Draw', 'HTDraw']:
-    features["T1_CUM_T1_"+colname] = (gt1[colname].cumsum()-features[colname])/(features["t1games"]+2)
-    features["T2_CUM_T2_"+colname] = (gt2[colname].cumsum()-features[colname])/(features["t2games"]+2)
-    features["T1_CUM_T1_W_"+colname] = (gt1w[colname].cumsum()-features[colname])/(features["t1games_where"]+1)
-    features["T2_CUM_T2_W_"+colname] = (gt2w[colname].cumsum()-features[colname])/(features["t2games_where"]+1)
-    features.loc[features["t1games"]==0, "T1_CUM_T1_"+colname] = features.loc[features["t1games"]>0, "T1_CUM_T1_"+colname].mean()
-    features.loc[features["t2games"]==0, "T2_CUM_T2_"+colname] = features.loc[features["t2games"]>0, "T2_CUM_T2_"+colname].mean()
-    features.loc[features["t1games_where"]==0, "T1_CUM_T1_W_"+colname] = features.loc[features["t1games_where"]>0, "T1_CUM_T1_W_"+colname].mean()
-    features.loc[features["t2games_where"]==0, "T2_CUM_T2_W_"+colname] = features.loc[features["t2games_where"]>0, "T2_CUM_T2_W_"+colname].mean()
-    feature_column_names += ["T1_CUM_T1_"+colname, "T2_CUM_T2_"+colname,
-                             "T1_CUM_T1_W_"+colname, "T2_CUM_T2_W_"+colname]
-
+  label_column_names = all_labels.columns
   
   
-  # feature scaling
-  features["t1games"] /= 34.0
-  features["t2games"] /= 34.0
-  features["roundsleft"] /= 34.0
-  # build feature such that winter games near mid-season can be distinguished from summer. Likelyhood of draw results increases in mid-season ...
-  features["t1games"] = (features["t1games"]-0.5)**2
-
-  gt1_total = features.groupby(["Team1_index"])
-  gt2_total = features.groupby(["Team2_index"])
-  
-  features["t1games_total"] = gt1_total.cumcount()
-  features["t2games_total"] = gt2_total.cumcount()
-  
-  team_onehot_encoder = preprocessing.LabelBinarizer(sparse_output=False)
-  team_onehot_encoder .fit_transform(teamnames)
-  team1oh = team_onehot_encoder.transform(features["Team1"])
-  team2oh = team_onehot_encoder.transform(features["Team2"])
-  teamsoh = np.concatenate([team1oh, team2oh], axis=1)
-  
-  features["t1dayssince"] = [d-features.loc[(features["Team1_index"]==t)&(features["t1games_total"]==i-1), "Date"] for t,d,i in zip(features["Team1_index"],features["Date"],features["t1games_total"])]
-  features["t1dayssince"] = [x.iloc[0] if len(x)==1 else 0.0 for x in features["t1dayssince"]]
-  
-  features["t2dayssince"] = [d-features.loc[(features["Team2_index"]==t)&(features["t2games_total"]==i-1), "Date"] for t,d,i in zip(features["Team2_index"],features["Date"],features["t2games_total"])]
-  features["t2dayssince"] = [x.iloc[0] if len(x)==1 else 0.0 for x in features["t2dayssince"]]
-  
-#  print(features[["Team1", "t1games_total", "Date", "t1dayssince", "Where"]])
-#  print(features[["Team2", "t2games_total", "Date", "t2dayssince", "Where"]])
-  
-  
-  #batches1 = [features[features["Team1"]==t].copy() for t in teamnames]
-  #batches2 = [features[features["Team2"]==t].copy() for t in teamnames]
-  steps = 28
-  
-  batches1 = [features[features["Team1_index"]==t].index for t in range(len(teamnames))]
-  batches2 = [features[features["Team2_index"]==t].index for t in range(len(teamnames))]
-  
-  #batches2 = [features[features["Team2"]==t].index for t in teamnames]
-  features["gameindex"]=features.index
-  
-  batches1 = features.groupby("Team1_index").gameindex.apply(list)
-  batches2 = features.groupby("Team2_index").gameindex.apply(list)
-  batches12 = features.groupby(["Team1_index","Team2_index"]).gameindex.apply(list)
-  
-  mh1 = batches1.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  mh2 = batches2.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  mh12 = batches12.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  # flatten nested lists
-  mh1 = mh1.apply(pd.Series).stack().reset_index(drop=True) 
-  mh2 = mh2.apply(pd.Series).stack().reset_index(drop=True) 
-  mh12 = mh12.apply(pd.Series).stack().reset_index(drop=True)  
-  
-  # split tuples 
-  mh1 = mh1.apply(pd.Series)
-  mh2 = mh2.apply(pd.Series)
-  mh12 = mh12.apply(pd.Series)
-  
-  # use first column as index, keep second column as series, then sort by index
-  mh1 = mh1.set_index(mh1.columns[0])[1].sort_index()
-  mh2 = mh2.set_index(mh2.columns[0])[1].sort_index()
-  mh12 = mh12.set_index(mh12.columns[0])[1].sort_index()
-  
-  features["mh1len"]=mh1.apply(len)  
-  features["mh2len"]=mh2.apply(len)  
-  features["mh12len"]=mh12.apply(len)  
-  
-#  print(features["mh1len"])
-  
-  # left padding with -1 
-  mh1 = mh1.map(lambda x: [-1]*(steps-len(x))+x)
-  mh2 = mh2.map(lambda x: [-1]*(steps-len(x))+x)
-  mh12 = mh12.map(lambda x: [-1]*(steps-len(x))+x)
-  
-  mh1 = np.array(mh1.tolist(), dtype=np.int16)
-  mh2 = np.array(mh2.tolist(), dtype=np.int16)
-  mh12 = np.array(mh12.tolist(), dtype=np.int16)
-  
-  # append expected goals as last label columns 
-  label_column_names.extend(["xG1", "xG2"])
-
-  print(label_column_names) 
-  print(feature_column_names) 
-  print(features[label_column_names].mean()) 
-  
-  print("features.gameindex.values", features.gameindex.values)
-
   tn = len(teamnames)
   #lc = len(label_column_names)
   fc = len(feature_column_names)
@@ -1302,7 +849,7 @@ def plot_checkpoints(df, predictions):
   plot_point_summary(df)
     
 
-def get_input_data(model_dir, train_data, test_data, skip_download):
+def get_input_data(model_dir, train_data, test_data, data_dir):
   my_file = Path(model_dir+'/features_built.dmp')
   if my_file.is_file():  
     tic = time.time()
@@ -1311,7 +858,7 @@ def get_input_data(model_dir, train_data, test_data, skip_download):
     toc = time.time()
     print("Loading features - elapsed time = {}".format(toc-tic))
   else:
-    all_data, teamnames = get_train_test_data(model_dir, train_data, test_data, skip_download)
+    all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir)
     features_arrays, labels_array, team_onehot_encoder, label_column_names = build_features(all_data.copy(), teamnames)
   
     data = (all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names)
