@@ -5,6 +5,7 @@ library(glmnet)
 library(glmnetUtils)
 library(dplyr)
 library(ggplot2)
+library(mpath)
 
 data <- read.csv("../TF/data/full_data.csv")
 
@@ -74,8 +75,10 @@ print(lm(FTAG~xAG, data=data))
 
 data <- read.csv("../TF/data/all_features.csv")
 labels <- read.csv("../TF/data/all_labels.csv")
+teamdata <- read.csv("../TF/data/teams_onehot.csv")
 
 labels<-labels[data$Predict=="False",]
+teamdata<-teamdata[data$Predict=="False",]
 data<-data[data$Predict=="False",]
 
 #labels<-labels[data$Where==1,]
@@ -87,9 +90,15 @@ data$t2dayssince <-data$t2dayssince*1000
 label <- labels$T1_GFT; family="poisson"
 
 label <- labels$T1_GFT==labels$T2_GFT; family="binomial"
+label <- factor(sign(labels$T1_GFT-labels$T2_GFT)); family="multinomial"
+label <- labels$T1_GFT-labels$T2_GFT; family="gaussian"
+
 model<-glmnet(label~., data=cbind(data[,-c(2:6)], label=label), family = family, alpha=1)
 
+model<-glmregNB(label~., data=cbind(data[,-c(2:6)], label=label), trace=T, nlambda=5)
+
 plot(model)
+coef(model)
 #coef(model, s=exp(-1))
 #coef(model, s=exp(-8))
 
@@ -99,11 +108,22 @@ plot(data$Date, col=seasons)
 
 cvfit = cv.glmnet(label~., data=cbind(scale(data[,-c(2:6)]), label=label, foldid=seasons), family = family, alpha=0.9)
 
+cvfit<-cv.glmregNB(label~., data=cbind(data[,-c(2:6)], label=label, foldid=seasons), parallel=T, n.cores=3)
+
 cvfit = cv.glmnet(label~., data=cbind(data, label=label, foldid=seasons), family = family, alpha=0.8)
 
 plot(cvfit)
 print(log(cvfit$lambda.min))
 print(log(cvfit$lambda.1se))
+
+c<-as.data.frame(as.matrix(do.call(cBind, coef(cvfit, s="lambda.min"))))
+colnames(c)<-levels(label)
+c2<-as.data.frame(as.matrix(do.call(cBind, coef(cvfit, s="lambda.1se"))))
+colnames(c2)<-levels(label)
+print(c[rowSums(c)!=0,])
+print(c2[rowSums(c2)!=0,])
+min(cvfit$cvm)
+
 
 c<-as.data.frame(as.matrix(coef(cvfit, s="lambda.min")))
 c2<-as.data.frame(as.matrix(coef(cvfit, s="lambda.1se")))
@@ -124,9 +144,23 @@ mean(labels$T2_GFT[data$Where==1])
 
 
 
+library("party")
+model.cf <- cforest(label ~ ., data = cbind(data[,-c(2:6)], label=label), control = cforest_unbiased(mtry = 4, ntree = 1000))
+#varimp(model.cf, conditional = TRUE, threshold = 1.0 - 1e-25)
+vi <- varimp(model.cf, conditional = FALSE, mincriterion = 0.05)
+print(vi[order(vi)])
+dotchart(tail(vi[order(vi)], 50))
+
+vidf<-data.frame(name=names(vi), vi)%>%arrange(vi)
+write.csv(vidf, "../TF/data/Draw_vi_1000_4.csv", row.names = F)
 
 
 
+cforestImpPlot <- function(x) {
+  cforest_importance <<- v <- varimp(x)
+  dotchart(v[order(v)])
+}
+cforestImpPlot(model.cf)
 
 
 ggplot(cbind(data, label=label), aes(x=t1dayssince, fill=label))+geom_histogram(binwidth=1)
@@ -152,3 +186,83 @@ table(data$roundsleft)
 plot(labels$T1_GFT~roundsleft, data=data) 
 
 label
+
+
+data.pca <- prcomp(cbind(data[,-c(2:6)], teamdata), center = TRUE,scale. = TRUE)
+summary(data.pca)
+plot(data.pca$sdev)
+plot(summary(data.pca)$importance[2,])
+plot(summary(data.pca)$importance[3,])
+
+data.sc <- scale((cbind(data[,-c(2:6)], teamdata)), center= data.pca$center)
+data.pred <- data.sc %*% data.pca$rotation
+data.pred <- data.pred[,1:170]
+
+
+
+library(lfda)
+library(caret)
+library(RColorBrewer)
+library("colorspace")
+
+metric = c("orthonormalized", "plain", "weighted")
+# trans = preProcess(data, c("BoxCox", "center", "scale"))
+# transdata <- data.frame(trans = predict(trans, data))
+# 
+# 
+# #testquotes <- data.frame(trans = predict(trans, testquotes))
+
+label <- labels$T2_GFT#+labels$T2_GFT;
+
+mylabel<-ifelse(label<(-3), -3, ifelse(label>5, 5, label))
+
+model <- lfda(data.pred, mylabel, r=10,  metric = metric, knn = 5)
+
+reduced_data<-predict(model, data.pred)
+colors <- rainbow_hcl(length(unique(mylabel)))
+colors <- diverge_hsv(length(unique(mylabel)))
+colors <- heat_hcl(length(unique(mylabel)))
+cl <- colors[mylabel+1]
+plot(reduced_data[,c(2,1)], col=cl)
+plot(reduced_data[,c(2,3)], col=cl)
+plot(reduced_data[,c(4,3)], col=cl)
+plot(reduced_data[,c(4,5)], col=cl)
+plot(reduced_data[,c(6,5)], col=cl)
+plot(reduced_data[,c(6,3)], col=cl)
+plot(reduced_data[,c(5,3)], col=cl)
+
+plot(reduced_data[,c(9,10)], col=cl)
+plot(reduced_data[,c(9,8)], col=cl)
+plot(reduced_data[,c(7,8)], col=cl)
+plot(reduced_data[,c(7,6)], col=cl)
+plot(reduced_data[,c(3,10)], col=cl)
+plot(reduced_data[,c(4,9)], col=cl)
+
+
+
+
+
+
+length(label)
+dim(reduced_data)
+
+
+traindata<-data.frame(traindata, X1=model$Z)
+testdata<-data.frame(testdata, X1=predict(model, testquotes))
+# move HomeWins to high end of scale
+#orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1), X2=median(X2), X3=median(X3))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1:X3), rank)%>%mutate_at(vars(X1:X3), function(x) 2*(x-1.5))%>%filter(FTR=="H")
+orientation<-traindata%>%group_by(FTR)%>%summarise(X1=median(X1))%>%filter(FTR %in% c("H", "A"))%>%mutate_at(vars(X1), rank)%>%mutate_at(vars(X1), function(x) 2*(x-1.5))%>%filter(FTR=="H")
+print(orientation)
+traindata$X1<-traindata$X1*orientation$X1
+testdata$X1<-testdata$X1*orientation$X1
+# traindata$X2<-traindata$X2*orientation$X2
+# traindata$X3<-traindata$X3*orientation$X3
+# testdata$X2<-testdata$X2*orientation$X2
+# testdata$X3<-testdata$X3*orientation$X3
+
+q<-prepare_plot_data_lfda(traindata)
+qtest<-prepare_plot_data_lfda(testdata)
+
+
+
+
