@@ -10,7 +10,7 @@ import re
 import json
 from urllib import request
 
-season_list=[2014, 2015, 2016, 2017, 2018]
+season_list=[2014, 2015, 2016, 2017, 2018, 2019]
 
 def load_expected_goals(season):
   season=str(season)
