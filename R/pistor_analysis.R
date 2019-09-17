@@ -107,16 +107,18 @@ ggplot(data)+geom_mosaic(aes(x=product(psPoints, myPoints), fill=factor(myPoints
 
 
 
-rankingdatafile<-"D:/gitrepository/Football/football/TF/pistor_ranking_data.csv"
+rankingdatafile<-"D:/gitrepository/Football/football/TF/pistor_ranking_data_final.csv"
 rankdata<-read.csv(rankingdatafile, sep = ",", encoding = "utf-8")
 summary(rankdata)
 hist(rankdata$Points, breaks=50)
 qqnorm(rankdata$Points)
+plot(rankdata$Points)
 plot(rankdata$Points[1:10000])
-abline(h=263)
+abline(h=275)
+abline(v=3819)
 
 rankdata  %>% filter(substr(Name,1,3)=="TCS")
-rankdata  %>% filter(Points==263)
+rankdata  %>% filter(Points==275)
 rankdata  %>% filter(Userid==218206)
 
 #rankdata$Name[rankdata$Userid==218206]<-"TCSNet"
@@ -125,6 +127,7 @@ plot(rankdata$Points[1:100])
 
 usertippsdatafile<-"D:/gitrepository/Football/football/TF/user_tipps.csv"
 userdata<-read.csv(usertippsdatafile, sep = ",", encoding = "utf-8")
+userdata<-unique(userdata)
 #summary(userdata)
 
 all_user_data<-userdata%>%left_join(rankdata)
@@ -162,7 +165,11 @@ tgf<-all_user_data%>%
             gdiff=mean(uPoints>1, na.rm=T),
             full=mean(uPoints>2, na.rm=T)) 
 tgf %>% filter(Rank > 1000)
-ggplot(tgf, aes(x=tendency, y=gdiff, z=full, col=full))+geom_point()+scale_color_continuous(high = "red", low="green")
+tgf %>% filter(Userid==218206)
+
+ggplot(tgf, aes(x=tendency, y=gdiff, z=full, col=full))+geom_point()+scale_color_continuous(high = "red", low="green")+
+  geom_point(data=tgf %>% filter(Userid==218206), aes(x=tendency, y=gdiff, col=full), size=5, alpha=0.3)
+
 ggplot(tgf, aes(x=tendency, y=gdiff, z=full, col=full))+geom_point()+geom_jitter(height = 0.01, width=0.01)+scale_color_continuous(high = "red", low="green")
 
 ggplot(tgf, aes(x=tendency))+geom_histogram(bins=50)
@@ -211,6 +218,25 @@ ggplot(t1, aes(x=FTG, fill=t))+geom_bar(aes(weight=Freq), position="dodge")
 pointdist<-all_user_data%>%mutate(color=uPoints, mpoints=uPoints)
 pointdist_missed<-all_user_data%>%mutate(color=0, mpoints=1.5-uPoints)
 pointdist<-rbind(pointdist, pointdist_missed)
+
+ggplot(pointdist)+ #%>%filter(Userid%in%c(218206, 18070)))+
+  geom_mosaic(aes(x=product(FTAG, FTHG ), fill=factor(color), weight=mpoints), offset=0.003, color="black")+
+  scale_fill_manual(values = c('white', 'orange', 'forestgreen', 'red2'))
+
+gridExtra::grid.arrange(
+  ggplot(pointdist%>%mutate(fill=factor(ifelse(uPoints==0, sign(FTHG-FTAG)-3, color))))+
+    geom_mosaic(aes(x=product(uFTAG, uFTHG), 
+                    fill=fill, 
+                    weight=mpoints), offset=0.003, color="black")+
+    scale_fill_manual(values = c("bisque", 'darkseagreen2', 'lightblue2', 'white', 'orange', 'red2'))
+  ,
+  ggplot(pointdist%>%filter(Userid==218206)%>%mutate(fill=factor(ifelse(uPoints==0, sign(FTHG-FTAG)-3, color))))+
+    geom_mosaic(aes(x=product(uFTAG, uFTHG), 
+                    fill=fill, 
+                    weight=mpoints), offset=0.003, color="black")+
+    scale_fill_manual(values = c("bisque", 'darkseagreen2', 'lightblue2', 'white', 'orange', 'red2'))
+  , ncol = 1, nrow = 2)
+
 
 ggplot(pointdist%>%filter(Userid%in%c(218206, 10)|X<=7))+
 facet_wrap(aes(paste(Name, Userid, Points)))+

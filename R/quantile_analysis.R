@@ -1,6 +1,7 @@
 setwd("~/LearningR/Bundesliga/Analysis")
 setwd("c:/users/marti")
 setwd("C:/git/football/TF")
+setwd("d:/gitrepository/Football/football/TF")
 
 library(metR)
 library(ggExtra)
@@ -8,7 +9,7 @@ library(ggplot2)
 library(ggpmisc)
 
 seasons<-c("0001", "0102", "0203", "0304", "0405","0506","0607", "0708","0809","0910","1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
-seasons<-c("0405","0506","0607", "0708","0809","0910","1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819")
+seasons<-c("0405","0506","0607", "0708","0809","0910","1011", "1112", "1213", "1314", "1415", "1516", "1617", "1718", "1819", "1920")
 
 library(dplyr)
 library(reshape2)

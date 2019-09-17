@@ -4,6 +4,7 @@ Created on Fri Dec 14 09:05:44 2018
 
 @author: 811087
 """
+
 from bs4 import BeautifulSoup
 import pandas as pd
 #from urllib import request
@@ -241,25 +242,40 @@ def collect_user_tipps(session, userid, roundfrom=1, roundto=34):
 session = login()
 pistor_data = collect_bet_results(session, maxround=3)
 print(pistor_data)
-ranking_data = collect_ranking(session, 3060)
-ranking_data.to_csv("pistor_ranking_data.csv", encoding = "utf-8", index=True)
+ranking_data = collect_ranking(session, 3063)
+ranking_data.to_csv("pistor_ranking_data_final.csv", encoding = "utf-8", index=True)
 print(ranking_data)
 
-ranking_data = pd.read_csv("pistor_ranking_data.csv", encoding = "utf-8")
+ranking_data = pd.read_csv("pistor_ranking_data_final.csv", encoding = "utf-8")
 
 all_user_data = pd.read_csv("user_tipps.csv", encoding = "utf-8")
+
+current_data = all_user_data.groupby("Userid").Round.max()
+
+for userid,maxround in zip(current_data.index, current_data):
+  print(userid, maxround)
+  user_data = collect_user_tipps(session, roundfrom=maxround+1, roundto=34, userid=userid)
+  all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
+  if userid%50==0:
+    all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
+
+all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
+
+known_users = all_user_data.Userid.unique()
+len(known_users)
 
 user_data_sp = collect_user_tipps(session, roundfrom=33, roundto=33, userid=10) # Sven Pistor
 user_data_ms = collect_user_tipps(session, roundfrom=33, roundto=33, userid=218206) # ich
 
 all_user_data = pd.concat([user_data_ms, user_data_sp, all_user_data], axis=0, ignore_index=True)
 
-for i,userid in enumerate(ranking_data.Userid.iloc[1007:2000]):
-  print(i)
-  user_data = collect_user_tipps(session, roundfrom=1, roundto=33, userid=userid)
-  all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
-  if i%50==0:
-    all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
+for i,userid in enumerate(ranking_data.Userid.iloc[6000:10000]):
+  if userid not in known_users:
+    print(i)
+    user_data = collect_user_tipps(session, roundfrom=1, roundto=34, userid=userid)
+    all_user_data = pd.concat([all_user_data, user_data], axis=0, ignore_index=True)
+    if i%50==0:
+      all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
 
 all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
 

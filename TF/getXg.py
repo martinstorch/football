@@ -80,3 +80,4 @@ for s in season_list:
 xgdf.to_csv('xgoals.csv', index=False)  
 print(xgdf)
 
+

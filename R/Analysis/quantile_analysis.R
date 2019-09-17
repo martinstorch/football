@@ -21,7 +21,7 @@ newdata_df<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
 fetch_data<-function(season){
   url <- paste0("http://www.football-data.co.uk/mmz4281/", season, "/D1.csv")
   inputFile <- paste0("BL",season,".csv")
-  #download.file(url, inputFile, method = "libcurl")
+  download.file(url, inputFile, method = "libcurl")
   data<-read.csv(inputFile)
   data[is.na(data<-data)]<-0
   data$season<-season
@@ -80,7 +80,6 @@ alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/row
 
 
 qmix_lfda<-function(pwin, ploss, thedata, quotes){
-  #ord <- order(quotes[,1], quotes[,2], quotes[,3])
   ord <- do.call(order, quotes) # varargs ... uses lexicagraphic sorting
   thedata<-thedata[ord,]
   quotes<-quotes[ord,]
