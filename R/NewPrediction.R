@@ -21,8 +21,8 @@ human_level_median <- 219 / 9 / 31
 
 predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
-predictions_file<-"d:\\Models\\new_predictions_df.csv"
-predictions_file<-"c:\\Models\\xg_bwin_pistor//new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
+#predictions_file<-"c:\\Models\\xg_bwin_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
 point_type<-"z_points"
@@ -40,6 +40,7 @@ predictions_file<-"c:\\Models\\conv1_auto_sky5//new_predictions_df.csv"
 predictions_file<-"c:\\Models\\laplace_sky2//new_predictions_df.csv"
 predictions_file<-"c:\\Models\\laplace_bwin_sky//new_predictions_df.csv"
 predictions_file<-"c:\\Models\\xg_bwin_sky//new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
 
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)

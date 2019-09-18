@@ -1,4 +1,4 @@
-setwd("D:/gitrepository/Football/football/TF/data")
+setwd("c:/git/football/TF/data")
 
 library(lfda)
 library(caret)
@@ -9,20 +9,20 @@ teamdata1 <- read.csv("teams_onehot.csv")
 
 is_new <- data1$Predict=="True"
 data1 <- data1[,setdiff(colnames(data1), c("Team1","Team2","Team1_index","Team2_index","Predict" ))]
-data1 <- cbind(data1, teamdata1)
+#data1 <- cbind(data1, teamdata1)
 
 labels<-labels1[!is_new,]
 data<-data1[!is_new,]
 
 model.pca <- prcomp(data1, center = TRUE, scale. = TRUE)
 # summary(model.pca)
-# plot(data.pca$sdev)
-# plot(summary(data.pca)$importance[2,])
-# plot(summary(data.pca)$importance[3,])
+# plot(model.pca$sdev)
+# plot(summary(model.pca)$importance[2,])
+# plot(summary(model.pca)$importance[3,])
 
 data1.sc <- scale(data1, center= model.pca$center)
 data1.pca <- data1.sc %*% model.pca$rotation
-data1.pca <- data1.pca[,1:173]
+data1.pca <- data1.pca[,1:116]
 
 
 metric = c("orthonormalized", "plain", "weighted")
@@ -48,6 +48,9 @@ lfda.result<-data.frame(lfda.data1, lfda.data2)
 
 write.csv(lfda.result, "lfda_data.csv", row.names=FALSE)
 
+# for (i in 1:20) {
+#   plot(lfda.result[,i], main=colnames(lfda.result[i]))
+# }
 
 
 

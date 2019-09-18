@@ -61,3 +61,8 @@ python model_bwin_xg.py --modes=predict --checkpoints=20000: --target_system=Pis
 python model_bwin_xg.py --modes=eval --checkpoints=1: --target_system=Sky --model_dir=c:\Models\xg_bwin_sky 
 python model_bwin_xg.py --modes=eval --checkpoints=20000: --target_system=Pistor --model_dir=c:\Models\xg_bwin_pistor
 
+#cd d:\models\model_1920_pistor
+cd c:\git\football\TF\	
+python model_1920.py --modes=eval --checkpoints=11000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=20000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+

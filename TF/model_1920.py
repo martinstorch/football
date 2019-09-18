@@ -1096,8 +1096,8 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
       predictions = sess.run(pred, feed_dict=feed_dict)
       #print({k:v.shape for k,v in predictions.items()})      
 #      print(predictions["sp/p_pred_12"][0])
-      pd.DataFrame(predictions["outputs_poisson"]).to_csv(model_dir+'/poisson_data_pred.csv')
-      pd.DataFrame(labels_batch).to_csv(model_dir+'/poisson_data_gt.csv')
+      #pd.DataFrame(predictions["outputs_poisson"]).to_csv(model_dir+'/poisson_data_pred.csv')
+      #pd.DataFrame(labels_batch).to_csv(model_dir+'/poisson_data_gt.csv')
       results = [enrich_predictions(predictions, features_batch, labels_batch, team1, team2, datetimes, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
       results = pd.concat(results, sort=False)
       if not skip_plotting:
@@ -1400,15 +1400,15 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/model_1920_pistor",
+      default="d:/Models/model_1920_sky",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1417,8 +1417,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
-      #default="Sky",
+      #default="Pistor",
+      default="Sky",
       #default="TCS",
       help="Point system to optimize for"
   )
@@ -1432,9 +1432,9 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
+      default="train",
       #default="eval",
-      default="predict",
+      #default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
@@ -1444,7 +1444,7 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="9912",
       #default="60000:92000", 
-      default="-1",  # slice(-2, None)
+      default="-10",  # slice(-2, None)
       #default="14000:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
