@@ -167,14 +167,14 @@ def build_features(df_data):
   features["zGamePoints2"] = [1-x if x>=0 else 3 for x in features["zGameResult"]]
   
   # feature scaling
-  features["T1_S"] /= 15.0
-  features["T2_S"] /= 15.0
-  features["T1_ST"] /= 5.0
-  features["T2_ST"] /= 5.0
-  features["T1_F"] /= 15.0
-  features["T2_F"] /= 15.0
-  features["T1_C"] /= 5.0
-  features["T2_C"] /= 5.0
+#  features["T1_S"] /= 15.0
+#  features["T2_S"] /= 15.0
+#  features["T1_ST"] /= 5.0
+#  features["T2_ST"] /= 5.0
+#  features["T1_F"] /= 15.0
+#  features["T2_F"] /= 15.0
+#  features["T1_C"] /= 5.0
+#  features["T2_C"] /= 5.0
   features["Date"] /= 1000.0
   
   gr = pd.get_dummies(features["zGameResult"])
@@ -372,6 +372,10 @@ def build_features(df_data):
   #print(features.loc[t2new==1, ["Season","Team2"]].drop_duplicates())
   features["t2promoted"]=t2new
   
+  # make sure that xG labels are the last ones in the list, so that tensorflow can apply MSE loss instead of Poisson deviance loss
+  label_column_names.remove("T1_xG")
+  label_column_names.remove("T2_xG")
+  label_column_names = label_column_names+["T1_xG", "T2_xG"]
   labels_df =  features[label_column_names].copy()
   #label_df.describe()
   features_df = features[feature_column_names].copy()
@@ -381,127 +385,6 @@ def build_features(df_data):
   print(features[label_column_names].mean()) 
 
   return features_df , labels_df, teamsoh, team_onehot_encoder, team_encoder
-
-  
-
-
-
-
-
-
-
-
-
-
-if False:
-
-  features.columns.values
-#  print(features[["Team1", "t1games_total", "Date", "t1dayssince", "Where"]])
-#  print(features[["Team2", "t2games_total", "Date", "t2dayssince", "Where"]])
-  
-  
-  #batches1 = [features[features["Team1"]==t].copy() for t in teamnames]
-  #batches2 = [features[features["Team2"]==t].copy() for t in teamnames]
-  steps = 28
-  
-  batches1 = [features[features["Team1_index"]==t].index for t in range(len(teamnames))]
-  batches2 = [features[features["Team2_index"]==t].index for t in range(len(teamnames))]
-  
-  #batches2 = [features[features["Team2"]==t].index for t in teamnames]
-  features["gameindex"]=features.index
-  
-  batches1 = features.groupby("Team1_index").gameindex.apply(list)
-  batches2 = features.groupby("Team2_index").gameindex.apply(list)
-  batches12 = features.groupby(["Team1_index","Team2_index"]).gameindex.apply(list)
-  
-  mh1 = batches1.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  mh2 = batches2.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  mh12 = batches12.apply(lambda x: [(y, x[max(i-steps,0):max(i,0)]) for i,y in enumerate(x)])
-  # flatten nested lists
-  mh1 = mh1.apply(pd.Series).stack().reset_index(drop=True) 
-  mh2 = mh2.apply(pd.Series).stack().reset_index(drop=True) 
-  mh12 = mh12.apply(pd.Series).stack().reset_index(drop=True)  
-  
-  # split tuples 
-  mh1 = mh1.apply(pd.Series)
-  mh2 = mh2.apply(pd.Series)
-  mh12 = mh12.apply(pd.Series)
-  
-  # use first column as index, keep second column as series, then sort by index
-  mh1 = mh1.set_index(mh1.columns[0])[1].sort_index()
-  mh2 = mh2.set_index(mh2.columns[0])[1].sort_index()
-  mh12 = mh12.set_index(mh12.columns[0])[1].sort_index()
-  
-  features["mh1len"]=mh1.apply(len)  
-  features["mh2len"]=mh2.apply(len)  
-  features["mh12len"]=mh12.apply(len)  
-  
-#  print(features["mh1len"])
-  
-  # left padding with -1 
-  mh1 = mh1.map(lambda x: [-1]*(steps-len(x))+x)
-  mh2 = mh2.map(lambda x: [-1]*(steps-len(x))+x)
-  mh12 = mh12.map(lambda x: [-1]*(steps-len(x))+x)
-  
-  mh1 = np.array(mh1.tolist(), dtype=np.int16)
-  mh2 = np.array(mh2.tolist(), dtype=np.int16)
-  mh12 = np.array(mh12.tolist(), dtype=np.int16)
-  
-
-  print(label_column_names) 
-  print(feature_column_names) 
-  
-  
-  feature_column_names = ['roundsleft', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG']
-  feature_column_names = ['roundsleft', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG']
-  feature_column_names = ['roundsleft', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT']
-  feature_column_names = ['t1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT']
-  #feature_column_names = ['t1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2']
-  features['T1_CUM_T1_xG']=0.0
-  features['T2_CUM_T2_xG']=0.0 
-  features['T1_CUM_T1_W_xG']=0.0 
-  features['T2_CUM_T2_W_xG']=0.0 
-#  features['T1_CUM_T2_W_GFT']=0.0 
-#  features['T2_CUM_T1_W_GFT']=0.0 
-  features['t1rank6_attention']=0.0
-  features['t2rank6_attention']=0.0 
-  features['t1rank16_attention']=0.0
-  features['t2rank16_attention']=0.0 
-  features['T1_CUM_T2_W_GFT']=0.0 
-  features['T2_CUM_T1_W_GFT']=0.0 
-  features['t1cards_ema']=0.0 
-  features['t2cards_ema']=0.0 
-  
-  print(feature_column_names) 
-  print(features[label_column_names].mean()) 
-  
-  print("features.gameindex.values", features.gameindex.values)
-
-  tn = len(teamnames)
-  #lc = len(label_column_names)
-  fc = len(feature_column_names)
-
-  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+fc], dtype=np.float32)
-  match_input_layer[:, 0] = features["mh1len"] * 0.1
-  match_input_layer[:, 1] = features["Where"] 
-  match_input_layer[:, 2] = features["mh2len"] * 0.1
-  match_input_layer[:, 3] = features["mh12len"] * 0.1
-  j = 4+2*tn
-  match_input_layer[:, 4:j] = teamsoh
-#  match_input_layer[:, j:j+lc] = features [label_column_names]
-#  j = j+lc
-  match_input_layer[:, j:j+fc] = features[feature_column_names]
-  
-  labels = features [label_column_names].values.astype(np.float32)
-
-
-  return {
-      "match_input_layer": match_input_layer,
-      "gameindex": features.gameindex.values.astype(np.int16), 
-      "match_history_t1": mh1,
-      "match_history_t2": mh2,
-      "match_history_t12": mh12,
-      }, labels, team_onehot_encoder, label_column_names, team_encoder
 
 
 

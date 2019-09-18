@@ -87,14 +87,16 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   team_mapping = pd.read_csv(data_dir+"/team_mapping.csv") 
   all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
   
-  all_data["Train"]=is_train.values
-  all_data["Test"]=is_test.values
-  all_labels["Train"]=is_train.values
-  all_labels["Test"]=is_test.values
-  all_features["Train"]=is_train.values
-  all_features["Test"]=is_test.values
-  all_labels["Predict"] = all_data["Predict"]
-  all_features["Predict"] = all_data["Predict"]
+  all_data["Train"]=is_train.values&(~all_data["Predict"])
+  all_data["Test"]=is_test.values&(~all_data["Predict"])
+
+#  all_labels["Train"]=is_train.values
+#  all_labels["Test"]=is_test.values
+#  all_labels["Predict"] = all_data["Predict"]
+#
+#  all_features["Train"]=is_train.values
+#  all_features["Test"]=is_test.values
+#  all_features["Predict"] = all_data["Predict"]
   teamnames = team_mapping.Teamname.tolist()
 
   return all_data, all_labels, all_features, teamnames, team_mapping
@@ -122,31 +124,34 @@ def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
   mh12 = mh12.astype(np.int16)
   
   label_column_names = all_labels.columns
+#  feature_column_names = all_features.columns
   
-  
-  tn = len(teamnames)
-  #lc = len(label_column_names)
-  fc = len(feature_column_names)
-
-  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+fc], dtype=np.float32)
-  match_input_layer[:, 0] = features["mh1len"] * 0.1
-  match_input_layer[:, 1] = features["Where"] 
-  match_input_layer[:, 2] = features["mh2len"] * 0.1
-  match_input_layer[:, 3] = features["mh12len"] * 0.1
-  j = 4+2*tn
-  match_input_layer[:, 4:j] = teamsoh
-#  match_input_layer[:, j:j+lc] = features [label_column_names]
-#  j = j+lc
-  match_input_layer[:, j:j+fc] = features[feature_column_names]
-  
-  labels = features [label_column_names].values.astype(np.float32)
+  prefix = all_data[["mh1len", "Where", "mh2len", "mh12len"]].astype(np.float32).values
+  prefix[:,[0,2,3]]*=0.1
+  match_input_layer = np.concatenate([prefix, all_features.values], axis=1)
+#  tn = len(teamnames)
+#  #lc = len(label_column_names)
+#  fc = len(feature_column_names)
+#
+#  match_input_layer = np.zeros(shape=[len(features), 4+2*tn+fc], dtype=np.float32)
+#  match_input_layer[:, 0] = features["mh1len"] * 0.1
+#  match_input_layer[:, 1] = features["Where"] 
+#  match_input_layer[:, 2] = features["mh2len"] * 0.1
+#  match_input_layer[:, 3] = features["mh12len"] * 0.1
+#  j = 4+2*tn
+#  match_input_layer[:, 4:j] = teamsoh
+##  match_input_layer[:, j:j+lc] = features [label_column_names]
+##  j = j+lc
+#  match_input_layer[:, j:j+fc] = features[feature_column_names]
+#  
+#  #labels = features [label_column_names].values.astype(np.float32)
   return {
       "match_input_layer": match_input_layer,
-      "gameindex": features.gameindex.values.astype(np.int16), 
+      "gameindex": all_data.gameindex.values.astype(np.int16), 
       "match_history_t1": mh1,
       "match_history_t2": mh2,
       "match_history_t12": mh12,
-      }, labels, team_onehot_encoder, label_column_names
+      }, all_labels.values, team_mapping, label_column_names
 
 def plot_confusion_matrix(plotaxis, cm, classes,
                           normalize=False,
@@ -198,8 +203,8 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
   sp = pred[prefix+"p_pred_12"]
   #print(sp)
   spt = pred[prefix+"ev_points"]
-  gs = min(gs,6.0)
-  gc = min(gc,6.0)
+  gs = min(gs,6)
+  gc = min(gc,6)
   margin_pred_prob1 = pred[prefix+"p_marg_1"]
   margin_poisson_prob1 = pred[prefix+"p_poisson_1"]
   margin_pred_prob2 = pred[prefix+"p_marg_2"]
@@ -300,8 +305,8 @@ def static_probabilities(model_data):
     train_y = labels_array[train_idx]
     test_X = {k: v[test_idx] for k, v in features_arrays.items()}
     test_y = labels_array[test_idx]
-    plot_softprob(themodel.makeStaticPrediction(decode_dict(train_X), decode_array(train_y)),6,6,"Static Prediction Train Data")
-    plot_softprob(themodel.makeStaticPrediction(decode_dict(test_X), decode_array(test_y)),6,6,"Static Prediction Test Data")
+    plot_softprob(themodel.makeStaticPrediction((train_X), (train_y)),6,6,"Static Prediction Train Data")
+    plot_softprob(themodel.makeStaticPrediction((test_X), (test_y)),6,6,"Static Prediction Test Data")
 
 def plot_predictions_3(df, prefix, dataset):
   df = df.loc[(df.Prefix==prefix)&(df.dataset==dataset)].copy()
@@ -837,10 +842,10 @@ def plot_checkpoints(df, predictions):
     print(prefix, s)
     #print({k:v.shape for k,v in predictions.items()})
     sample_preds = {k:v[s] for k,v in predictions.items()}
-    plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
+    plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Time"][s]+" : "+prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
     s = random.sample(range(len(prefix_df)), 1)[0]
     sample_preds = {k:v[s] for k,v in predictions.items()}
-    plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
+    plot_softprob(sample_preds, prefix_df["GS"][s], prefix_df["GC"][s], prefix_df["Time"][s]+" : "+prefix_df["Team1"][s]+" - "+prefix_df["Team2"][s]+" ("+prefix_df["Where"][s]+")", prefix=prefix)
     for dataset in ["test", "train"]:
       plot_predictions_3(df, prefix[:-1], dataset)
 
@@ -850,23 +855,9 @@ def plot_checkpoints(df, predictions):
     
 
 def get_input_data(model_dir, train_data, test_data, data_dir):
-  my_file = Path(model_dir+'/features_built.dmp')
-  if my_file.is_file():  
-    tic = time.time()
-    with open(model_dir+'/features_built.dmp', 'rb') as fp:
-      data = pickle.load(fp)
-    toc = time.time()
-    print("Loading features - elapsed time = {}".format(toc-tic))
-  else:
-    all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir)
-    features_arrays, labels_array, team_onehot_encoder, label_column_names = build_features(all_data.copy(), teamnames)
-  
-    data = (all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names)
-    tic = time.time()
-    with open(model_dir+'/features_built.dmp', 'wb') as fp:
-      pickle.dump(data, fp)
-    toc = time.time()
-    print("Saving features - elapsed time = {}".format(toc-tic))
+  all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir)
+  features_arrays, labels_array, team_onehot_encoder, label_column_names = build_features(all_data.copy(), all_labels, all_features, teamnames, team_mapping)
+  data = (all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names)
   return data
 
 
@@ -1071,7 +1062,7 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
   test_writer.close()        
 
 
-def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
+def predict_checkpoints(model_data, cps, all_data, skip_plotting):
   model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
   #tf.reset_default_graph()
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="infer", config = model.config)
@@ -1082,6 +1073,13 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
   data_index = train_idx+test_idx+pred_idx
   print("len(data_index)", len(data_index))
   data_set = ["train"]*len(train_idx)+["test"]*len(test_idx)+["pred"]*len(pred_idx)
+  team1 = all_data.Team1[data_index].tolist()
+  team2 = all_data.Team2[data_index].tolist()
+  datetimes = ((all_data.Date[data_index]*1000+734138).astype(int)\
+    .apply(lambda x: datetime.fromordinal(x)) +\
+    (all_data.Time[data_index]+15.5).astype(int).apply(lambda x: np.timedelta64(x, 'h'))  +\
+    ((all_data.Time[data_index]*60+30).astype(int)%60).apply(lambda x: np.timedelta64(x, 'm')) \
+     ).dt.strftime("%d.%m.%Y %H:%M").tolist()
   feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
   feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
   feed_dict[ "alllabels:0"]=labels_array
@@ -1098,19 +1096,22 @@ def predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting):
       predictions = sess.run(pred, feed_dict=feed_dict)
       #print({k:v.shape for k,v in predictions.items()})      
 #      print(predictions["sp/p_pred_12"][0])
-      results = [enrich_predictions(predictions, features_batch, labels_batch, team_onehot_encoder, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
+      pd.DataFrame(predictions["outputs_poisson"]).to_csv(model_dir+'/poisson_data_pred.csv')
+      pd.DataFrame(labels_batch).to_csv(model_dir+'/poisson_data_gt.csv')
+      results = [enrich_predictions(predictions, features_batch, labels_batch, team1, team2, datetimes, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
       results = pd.concat(results, sort=False)
       if not skip_plotting:
         plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      results = results[["Date", "Team1", "Team2", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
+      results = results[["Date", "Team1", "Team2", "Time", "act", "pred", "Where", "est1","est2","Pt", "Prefix", "Strategy", "win", "draw", "loss", "winPt", "drawPt", "lossPt", "dataset", "global_step", "score", "train", "test"]]
 #      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
 #        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
       new_results = results.loc[results.dataset=="pred"]  
+      print(new_results)
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
 
-def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefix, dataset, global_step):
+def enrich_predictions(predictions, features, labels, team1, team2, datetimes, prefix, dataset, global_step):
 
 #  print("features.shape", features.shape)
 #  print("len(predictions)", len(predictions))
@@ -1156,13 +1157,13 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
     print(Counter(df['Strategy']))
     
   #print(team_onehot_encoder.classes_)
-  tn = len(team_onehot_encoder.classes_)
-  df['Team1']=team_onehot_encoder.inverse_transform(features[:, 4:4+tn])
-  df['Team2']=team_onehot_encoder.inverse_transform(features[:, 4+tn:4+2*tn])
+  df['Team1']=team1
+  df['Team2']=team2
+  df['Time']=datetimes
   df['Where']=['Home' if h==1 else 'Away' for h in features[:, 1]]
   df["act"]  = [str(gs)+':'+str(gc) for gs,gc in zip(df["GS"],df["GC"]) ]
   df["pred"] = [str(gs)+':'+str(gc) for gs,gc in zip(df["pGS"],df["pGC"]) ]
-  
+  print(df.shape)
   if prefix!="ens/":
     df["win"]=0.0
     df["loss"]=0.0
@@ -1187,6 +1188,7 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
     df["draw"]*=100.0
   df["dataset"]=dataset
   df["global_step"]=global_step
+  print(df.shape)
 
   #tensor = tf.constant(df[[ "pGS", "pGC", "GS", "GC"]].as_matrix(), dtype = tf.int64)
   #is_home = tf.equal(features[:,2] , 1)
@@ -1218,6 +1220,7 @@ def enrich_predictions(predictions, features, labels, team_onehot_encoder, prefi
   
   #print(preparePrintData(prefix, df).tail(20))
   #print(df.Where.describe())
+  print(df.shape)
   return df
 
   
@@ -1253,6 +1256,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
 #  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
 #  print(train_idx)
 #  print(test_idx)
+  print(target_system)
   print(all_data.shape)
   print(labels_array.shape)
   print(labels_array.dtype)
@@ -1268,9 +1272,9 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     if np.min(test_idx)==0 and np.min(train_idx)>45:
       test_idx = [t for t in test_idx if t>45]
   
-  train_idx = list(sum([(2*i, 2*i+1) for i in train_idx ], ()))
-  test_idx = list(sum([(2*i, 2*i+1) for i in test_idx ], ()))
-  pred_idx = list(sum([(2*i, 2*i+1) for i in pred_idx ], ()))
+#  train_idx = list(sum([(2*i, 2*i+1) for i in train_idx ], ()))
+#  test_idx = list(sum([(2*i, 2*i+1) for i in test_idx ], ()))
+#  pred_idx = list(sum([(2*i, 2*i+1) for i in pred_idx ], ()))
 
 #  train_idx = [val for sublist in train_idx for val in sublist]
 #  test_idx = [val for sublist in test_idx for val in sublist]
@@ -1306,7 +1310,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     evaluate_checkpoints(model_data, checkpoints, use_swa)    
   elif modes == "predict": 
     cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
-    predict_checkpoints(model_data, cps, team_onehot_encoder, skip_plotting)    
+    predict_checkpoints(model_data, cps, all_data, skip_plotting)    
   
   return    
     
@@ -1351,8 +1355,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1368,8 +1372,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
-      #default=1000,
+      #default=200,
+      default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1385,37 +1389,26 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
-      #default=["1112", "1213", "1314"], #
-      #default=["1213", "1314", "1415"], #
-      #default=["1314", "1415", "1516"], #
-      #default=["1415", "1516", "1617", "1718", "1819"], #
       default=["1314","1415", "1516", "1617", "1718", "1819", "1920"], #
-      #default=["1415", "1516", "1617"], #
-      #default=["1415", "1516", "1617", "1718"], #
-      #default=["1112", "1213", "1314","1415", "1516", "1617", "1718"], #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
-      #default=["1415"],
-      #default=["1516"],
-      #default=["1617"],
-      #default=["1112", "1213", "1314"],
-      #default=["1415", "1516", "1617", "1718"], #
       default=["0910", "1011", "1112", "1213"], #
       help="Path to the test data."
   )
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/trial_pistor",
+      default="d:/Models/model_1920_pistor",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1438,10 +1431,10 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="static",
+      #default="static",
       #default="train",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
