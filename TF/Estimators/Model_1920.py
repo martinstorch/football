@@ -521,14 +521,14 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #          match_history_t2 = tf.concat([match_history_t2[:,:,0:2], match_history_t2[:,:,2+2*teams_count:]], axis=2)
 #          match_history_t12 = tf.concat([match_history_t12[:,:,0:2], match_history_t12[:,:,2+2*teams_count:]], axis=2)
           
-        #batch_size = tf.shape(features_newgame)[0]
+        batch_size = tf.shape(features_newgame)[0]
         num_label_columns = len(label_column_names)
         print(label_column_names)
         output_size = num_label_columns
 
-        #match_history_t1_seqlen = 10*features_newgame[:,0]
-        #match_history_t2_seqlen = 10*features_newgame[:,2]
-        #match_history_t12_seqlen = 10*features_newgame[:,3]
+        match_history_t1_seqlen = 10*features_newgame[:,0]
+        match_history_t2_seqlen = 10*features_newgame[:,2]
+        match_history_t12_seqlen = 10*features_newgame[:,3]
         
         # batch normalization
         #features_newgame = tf.layers.batch_normalization(features_newgame, axis=1, momentum=0.99, center=False, scale=False, training=(mode == tf.estimator.ModeKeys.TRAIN))
@@ -559,7 +559,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           return tf.sigmoid(x)
 
       def tanhStochastic(x):
-        if False and mode == tf.estimator.ModeKeys.TRAIN:
+        if mode == tf.estimator.ModeKeys.TRAIN:
           #print("tanh sampling")
           return tanhSample(passThroughSigmoid(x))
           #return tf.where(tf.less(tf.random_uniform(tf.shape(x)), 0.05), tanhSample(passThroughSigmoid(x)), tf.tanh(x))
@@ -567,164 +567,165 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print("tanh smooth")
           return tf.tanh(x)
 
-#      def make_rnn_cell():
-#        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=64, 
-#                                          activation=tanhStochastic,
-#                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-#        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
-#        if mode == tf.estimator.ModeKeys.TRAIN:
-#          # 13.12.2017: was 0.9
-#          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
-#               input_keep_prob=0.99, 
-#               output_keep_prob=0.99,
-#               state_keep_prob=0.99)
-#        return rnn_cell
-#      
-#
-#      def make_gru_cell():
-#        return tf.nn.rnn_cell.MultiRNNCell([
-#            make_rnn_cell(), 
-#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
-#          ])
-#      
-#      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
-#        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float16)
-#        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
-#                                   initial_state=initial_state,
-#                                   dtype=tf.float16,
-#                                   sequence_length = sequence_length)
-#        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
-#        # 'state' is a tensor of shape [batch_size, num_units]
-#        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
-#        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
-#        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
-#        return state[1] # use upper layer state
-#
-#      def rnn_histograms():
-#        def rnn_histogram(section, num, part, regularizer=None):
-#          scope = tf.get_variable_scope().name
-#          summary_name = "gru_cell/"+section+num+"/"+part
-#          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
-#          node = tf.get_default_graph().get_tensor_by_name(node_name)
-#          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
-#          if regularizer is not None:
-#            loss = tf.identity(regularizer(node), name=summary_name)
-#            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
-#            if loss is not None:
-#              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
-#
-#        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
-#        rnn_histogram("gates", "0", "bias")
-#        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
-#        rnn_histogram("candidate", "0", "bias")
-#        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
-#        rnn_histogram("gates", "1", "bias")
-#        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
-#        rnn_histogram("candidate", "1", "bias")
-#
-#      with tf.variable_scope("RNN_1"):
-#        shared_rnn_cell = make_gru_cell()
-#        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
-#        rnn_histograms()
-#      with tf.variable_scope("RNN_2"):
-#        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
-#      with tf.variable_scope("RNN_12"):
-#        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
-#        rnn_histograms()
-      def conv_layer(X, name, output_channels, keep_prob=1.0):
-        X = tf.layers.conv1d(X,
-                  filters=output_channels, kernel_size=5, strides=1,
-                  padding='valid',
-                  data_format='channels_last',
-                  dilation_rate=1,
-                  activation=None, #tanhStochastic,
-                  use_bias=True,
-                  kernel_initializer=None,
-                  bias_initializer=tf.zeros_initializer(),
-                  kernel_regularizer=l2_regularizer(scale=0.00001),
-                  bias_regularizer=None,
-                  #activity_regularizer=l2_regularizer(scale=0.01),
-                  kernel_constraint=None,
-                  bias_constraint=None,
-                  trainable=True,
-                  name=name,
-                  reuse=None
-              )  
-        eval_metric_ops.update(variable_summaries(X, "conv_outputs", mode))
-        #X = tf.layers.batch_normalization(X, momentum=0.99, center=True, scale=True, training=(mode == tf.estimator.ModeKeys.TRAIN))
-        X = tf.nn.sigmoid(X)
-        rho_hat = tf.reduce_mean(X, axis=0)
-        rho = 0.3
-        KL_loss = kl_divergence(rho, rho_hat)
-        ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, KL_loss)
-        if mode == tf.estimator.ModeKeys.TRAIN:  
-          X = tf.nn.dropout(X, keep_prob=keep_prob)
-        return X
-
-      def avg_pool(X, name):
-        eval_metric_ops.update(variable_summaries(X, "pooling_inputs", mode))
-        return tf.layers.average_pooling1d(X, pool_size=2, strides=2,
-              padding='valid',
-              data_format='channels_last',
-              name=name
-            )
+      def make_rnn_cell():
+        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=32, 
+                                          activation=tanhStochastic,
+                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
+        if mode == tf.estimator.ModeKeys.TRAIN:
+          # 13.12.2017: was 0.9
+          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
+               input_keep_prob=0.99, 
+               output_keep_prob=0.99,
+               state_keep_prob=0.99)
+        return rnn_cell
       
-      def deconv_layer(X, name, output_width, output_channels, keep_prob=1.0, stride=1, activation=tf.nn.sigmoid):
-        #print("input", X)
-        W = tf.get_variable(name=name+"W", dtype=X.dtype,
-                            shape=[5, output_channels, int(X.shape[2])],
-                            regularizer = l2_regularizer(scale=0.01), 
-                            initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-            )
-        #print(W)
-        eval_metric_ops.update(variable_summaries(W, "Weights", mode))
-        tf.add_to_collection(tf.GraphKeys.WEIGHTS, W)
-        X = tf.contrib.nn.conv1d_transpose(X, W, 
-                   output_shape=[tf.shape(X)[0], output_width, output_channels],
-                   stride=stride,
-                   padding='VALID',
-                   data_format='NWC',
-                   name=name)
-        #print("deconv", X)
-        eval_metric_ops.update(variable_summaries(X, "deconv_outputs", mode))
-        if activation is not None:
-          X = activation(X)
-        if mode == tf.estimator.ModeKeys.TRAIN:  
-          X = tf.nn.dropout(X, keep_prob=keep_prob)
-        return X
 
-      def auto_encoder(X):
-        with tf.variable_scope("enc"):
-          X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
-          #print(X)
-          X = avg_pool(X, name="avgpool")
-          #print(X)
-          X = conv_layer(X, name="conv2", output_channels=24, keep_prob=1.0)
-          #print(X)
-          X = avg_pool(X, name="avgpool")
-          #print(X)
-          shape_after_pooling = tf.shape(X)
-          w,c = X.shape[1], X.shape[2]
-          X = tf.reshape(X, (-1, w*c))
-          #print(X)
-          if mode == tf.estimator.ModeKeys.TRAIN:  
-            X = tf.nn.dropout(X, keep_prob=0.98)
-          hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l1_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
-          #print("hidden", hidden)
-        
-        with tf.variable_scope("dec"):
-          ####X = build_dense_layer(hidden, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=True, activation=tf.nn.relu, eval_metric_ops=eval_metric_ops)
-          X = hidden
-          #print(X)
-          X = tf.reshape(X, shape_after_pooling )
-          #print(X)
-          X = deconv_layer(X, "deconv1", 12, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
-          #print(X)
-          X = deconv_layer(X, "deconv2", 28, output_channels=48, keep_prob=1.0, activation=None, stride=2)        
-          #print(X)
-          decoded = X
-        return (hidden), decoded
-        #return tf.stop_gradient(hidden), decoded
+      def make_gru_cell():
+        return tf.nn.rnn_cell.MultiRNNCell([
+            make_rnn_cell(), 
+            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell()),
+            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
+          ])
+      
+      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
+        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float32)
+        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
+                                   initial_state=initial_state,
+                                   dtype=tf.float32,
+                                   sequence_length = sequence_length)
+        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
+        # 'state' is a tensor of shape [batch_size, num_units]
+        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
+        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
+        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
+        return state[1] # use upper layer state
+
+      def rnn_histograms():
+        def rnn_histogram(section, num, part, regularizer=None):
+          scope = tf.get_variable_scope().name
+          summary_name = "gru_cell/"+section+num+"/"+part
+          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
+          node = tf.get_default_graph().get_tensor_by_name(node_name)
+          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
+          if regularizer is not None:
+            loss = tf.identity(regularizer(node), name=summary_name)
+            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
+            if loss is not None:
+              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
+
+        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
+        rnn_histogram("gates", "0", "bias")
+        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
+        rnn_histogram("candidate", "0", "bias")
+        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
+        rnn_histogram("gates", "1", "bias")
+        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
+        rnn_histogram("candidate", "1", "bias")
+
+      with tf.variable_scope("RNN_1"):
+        shared_rnn_cell = make_gru_cell()
+        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
+        rnn_histograms()
+      with tf.variable_scope("RNN_2"):
+        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
+      with tf.variable_scope("RNN_12"):
+        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
+        rnn_histograms()
+#      def conv_layer(X, name, output_channels, keep_prob=1.0):
+#        X = tf.layers.conv1d(X,
+#                  filters=output_channels, kernel_size=5, strides=1,
+#                  padding='valid',
+#                  data_format='channels_last',
+#                  dilation_rate=1,
+#                  activation=None, #tanhStochastic,
+#                  use_bias=True,
+#                  kernel_initializer=None,
+#                  bias_initializer=tf.zeros_initializer(),
+#                  kernel_regularizer=l2_regularizer(scale=0.00001),
+#                  bias_regularizer=None,
+#                  #activity_regularizer=l2_regularizer(scale=0.01),
+#                  kernel_constraint=None,
+#                  bias_constraint=None,
+#                  trainable=True,
+#                  name=name,
+#                  reuse=None
+#              )  
+#        eval_metric_ops.update(variable_summaries(X, "conv_outputs", mode))
+#        #X = tf.layers.batch_normalization(X, momentum=0.99, center=True, scale=True, training=(mode == tf.estimator.ModeKeys.TRAIN))
+#        X = tf.nn.sigmoid(X)
+#        rho_hat = tf.reduce_mean(X, axis=0)
+#        rho = 0.3
+#        KL_loss = kl_divergence(rho, rho_hat)
+#        ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, KL_loss)
+#        if mode == tf.estimator.ModeKeys.TRAIN:  
+#          X = tf.nn.dropout(X, keep_prob=keep_prob)
+#        return X
+#
+#      def avg_pool(X, name):
+#        eval_metric_ops.update(variable_summaries(X, "pooling_inputs", mode))
+#        return tf.layers.average_pooling1d(X, pool_size=2, strides=2,
+#              padding='valid',
+#              data_format='channels_last',
+#              name=name
+#            )
+#      
+#      def deconv_layer(X, name, output_width, output_channels, keep_prob=1.0, stride=1, activation=tf.nn.sigmoid):
+#        #print("input", X)
+#        W = tf.get_variable(name=name+"W", dtype=X.dtype,
+#                            shape=[5, output_channels, int(X.shape[2])],
+#                            regularizer = l2_regularizer(scale=0.01), 
+#                            initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+#            )
+#        #print(W)
+#        eval_metric_ops.update(variable_summaries(W, "Weights", mode))
+#        tf.add_to_collection(tf.GraphKeys.WEIGHTS, W)
+#        X = tf.contrib.nn.conv1d_transpose(X, W, 
+#                   output_shape=[tf.shape(X)[0], output_width, output_channels],
+#                   stride=stride,
+#                   padding='VALID',
+#                   data_format='NWC',
+#                   name=name)
+#        #print("deconv", X)
+#        eval_metric_ops.update(variable_summaries(X, "deconv_outputs", mode))
+#        if activation is not None:
+#          X = activation(X)
+#        if mode == tf.estimator.ModeKeys.TRAIN:  
+#          X = tf.nn.dropout(X, keep_prob=keep_prob)
+#        return X
+#
+#      def auto_encoder(X):
+#        with tf.variable_scope("enc"):
+#          X = conv_layer(X, name="conv1", output_channels=32, keep_prob=1.0)
+#          #print(X)
+#          X = avg_pool(X, name="avgpool")
+#          #print(X)
+#          X = conv_layer(X, name="conv2", output_channels=24, keep_prob=1.0)
+#          #print(X)
+#          X = avg_pool(X, name="avgpool")
+#          #print(X)
+#          shape_after_pooling = tf.shape(X)
+#          w,c = X.shape[1], X.shape[2]
+#          X = tf.reshape(X, (-1, w*c))
+#          #print(X)
+#          if mode == tf.estimator.ModeKeys.TRAIN:  
+#            X = tf.nn.dropout(X, keep_prob=0.98)
+#          hidden,_ = build_dense_layer(X, w*c, mode, regularizer = l1_regularizer(scale=0.01), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops)
+#          #print("hidden", hidden)
+#        
+#        with tf.variable_scope("dec"):
+#          ####X = build_dense_layer(hidden, w*c, mode, regularizer = l2_regularizer(scale=0.01), keep_prob=1.0, batch_norm=True, activation=tf.nn.relu, eval_metric_ops=eval_metric_ops)
+#          X = hidden
+#          #print(X)
+#          X = tf.reshape(X, shape_after_pooling )
+#          #print(X)
+#          X = deconv_layer(X, "deconv1", 12, output_channels=32, keep_prob=1.0, activation=tf.nn.tanh, stride=2)        
+#          #print(X)
+#          X = deconv_layer(X, "deconv2", 28, output_channels=48, keep_prob=1.0, activation=None, stride=2)        
+#          #print(X)
+#          decoded = X
+#        return (hidden), decoded
+#        #return tf.stop_gradient(hidden), decoded
       
       if False:
         with tf.variable_scope("CNN_1"):
@@ -739,7 +740,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           print(match_history_t1)
           print(X)
       else:
-        X = features_newgame
+        #X = features_newgame
+        X = tf.concat([features_newgame, history_state_t1, history_state_t2, history_state_t12], axis=1)
 
 
         
@@ -792,7 +794,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #                                    eval_metric_ops=eval_metric_ops)
 
       with tf.variable_scope("Layer0H"):
-          X0H,Z0H = build_dense_layer(X, 32, mode, 
+          X0H,Z0H = build_dense_layer(X, 64, mode, # 32
                                     regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
@@ -800,7 +802,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                     eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer0A"):
-          X0A,Z0A = build_dense_layer(X, 32, mode, 
+          X0A,Z0A = build_dense_layer(X, 64, mode, 
                                     regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True

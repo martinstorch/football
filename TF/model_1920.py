@@ -1372,8 +1372,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      #default=200,
-      default=1000,
+      default=200,
+      #default=1000,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1408,7 +1408,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/model_1920_sky",
+      default="d:/Models/model_1920_rnn2_sky",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
