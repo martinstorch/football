@@ -72,7 +72,7 @@ point_scheme_sky = [[5,5,5], [2,2,2], [2,2,2], [2.60, 3.38, 2.66], [285/9/27, 24
 
 point_scheme = point_scheme_pistor
 
-SEQ_LENGTH = 12
+SEQ_LENGTH = 3
 TIMESERIES_COL = 'rawdata'
 
 

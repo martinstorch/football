@@ -584,8 +584,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def make_gru_cell():
         return tf.nn.rnn_cell.MultiRNNCell([
             make_rnn_cell(), 
-            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell()),
-            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
+#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell()),
+#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
           ])
       
       def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
@@ -597,9 +597,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
         # 'state' is a tensor of shape [batch_size, num_units]
         eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
-        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
+#        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
         eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
-        return state[1] # use upper layer state
+        return state[-1] # use upper layer state
 
       def rnn_histograms():
         def rnn_histogram(section, num, part, regularizer=None):
@@ -614,14 +614,14 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             if loss is not None:
               ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
 
-        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
-        rnn_histogram("gates", "0", "bias")
-        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
-        rnn_histogram("candidate", "0", "bias")
-        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
-        rnn_histogram("gates", "1", "bias")
-        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
-        rnn_histogram("candidate", "1", "bias")
+#        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
+#        rnn_histogram("gates", "0", "bias")
+#        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
+#        rnn_histogram("candidate", "0", "bias")
+#        rnn_histogram("gates", "1", "kernel", l2_regularizer(scale=1.01))
+#        rnn_histogram("gates", "1", "bias")
+#        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
+#        rnn_histogram("candidate", "1", "bias")
 
       with tf.variable_scope("RNN_1"):
         shared_rnn_cell = make_gru_cell()
