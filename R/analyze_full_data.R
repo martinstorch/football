@@ -37,13 +37,29 @@ model<-glmnet(formula, data=data, family = "poisson")
 model<-glmnet(formula, data=data, family = "multinomial", type.multinomial = "grouped")
 cvfit = cv.glmnet(formula, data=data, family = "multinomial", type.multinomial = "grouped")
 
-plot(model)
+plot(model, label=T)
 coef(model, s=exp(-8))
 cvfit = cv.glmnet(formula, data=data, family = "poisson")
 
 plot(cvfit)
 print(log(cvfit$lambda.min))
 print(log(cvfit$lambda.1se))
+
+
+label <- labels$T1_GFT; family="poisson"
+label <- labels$T1_GFT+labels$T2_GFT; family="poisson"
+
+label <- labels$T1_GFT==labels$T2_GFT; family="binomial"
+label <- factor(sign(labels$T1_GFT-labels$T2_GFT)); family="multinomial"
+label <- labels$T1_GFT-labels$T2_GFT; family="gaussian"
+
+cvfit <- cv.glmnet(label~., data=cbind(lfda.result, label=label), foldid=foldid, family = family, alpha=1.0, parallel=TRUE, type.measure = "class", keep=T)
+plot(cvfit)
+
+coef(cvfit, c(cvfit$lambda.1se, cvfit$lambda.min))
+
+print(c(log(cvfit$lambda.1se), cvfit$cvm[sum(cvfit$lambda>=cvfit$lambda.1se)]))
+print(c(log(cvfit$lambda.min), min(cvfit$cvm)))
 
 c<-as.data.frame(as.matrix(coef(cvfit, s="lambda.min")))
 c2<-as.data.frame(as.matrix(coef(cvfit, s="lambda.1se")))
@@ -87,7 +103,8 @@ data<-data[data$Predict=="False",]
 data$t1dayssince <-data$t1dayssince*1000
 data$t2dayssince <-data$t2dayssince*1000
 
-label <- labels$T1_GFT; family="poisson"
+label <- labels$T2_GFT; family="poisson"
+label <- labels$T1_GFT+labels$T2_GFT; family="poisson"
 
 label <- labels$T1_GFT==labels$T2_GFT; family="binomial"
 label <- factor(sign(labels$T1_GFT-labels$T2_GFT)); family="multinomial"
@@ -95,45 +112,40 @@ label <- labels$T1_GFT-labels$T2_GFT; family="gaussian"
 
 model<-glmnet(label~., data=cbind(data[,-c(2:6)], label=label), family = family, alpha=1)
 
-model<-glmregNB(label~., data=cbind(data[,-c(2:6)], label=label), trace=T, nlambda=5)
+#model<-glmregNB(label~., data=cbind(data[,-c(2:6)], label=label), trace=T, nlambda=5)
 
-plot(model)
-coef(model)
+plot(model, label=T)
+#coef(model)
 #coef(model, s=exp(-1))
 #coef(model, s=exp(-8))
 
 seasons<-c(rep(1:10, each=17*18*2), rep(11, 4*9*2))
-seasons<-c(rep(1:10, each=17*18), rep(11, 4*9))
+
+#seasons<-c(rep(1:10, each=17*18), rep(11, 4*9))
 plot(data$Date, col=seasons)
 
-cvfit = cv.glmnet(label~., data=cbind(scale(data[,-c(2:6)]), label=label, foldid=seasons), family = family, alpha=0.9)
+cvfit = cv.glmnet(label~., data=cbind(scale(data[,-c(2:6)]), label=label, foldid=seasons), family = family, alpha=0.9) # , type.measure = "class"
 
-cvfit<-cv.glmregNB(label~., data=cbind(data[,-c(2:6)], label=label, foldid=seasons), parallel=T, n.cores=3)
+coef(cvfit, c(cvfit$lambda.1se, cvfit$lambda.min))
 
-cvfit = cv.glmnet(label~., data=cbind(data, label=label, foldid=seasons), family = family, alpha=0.8)
+print(c(log(cvfit$lambda.1se), cvfit$cvm[sum(cvfit$lambda>=cvfit$lambda.1se)]))
+print(c(log(cvfit$lambda.min), min(cvfit$cvm)))
+
+#cvfit<-cv.glmregNB(label~., data=cbind(data[,-c(2:6)], label=label, foldid=seasons), parallel=T, n.cores=3)
+
+#cvfit = cv.glmnet(label~., data=cbind(data, label=label, foldid=seasons), family = family, alpha=0.8)
 
 plot(cvfit)
-print(log(cvfit$lambda.min))
-print(log(cvfit$lambda.1se))
 
-c<-as.data.frame(as.matrix(do.call(cBind, coef(cvfit, s="lambda.min"))))
-colnames(c)<-levels(label)
-c2<-as.data.frame(as.matrix(do.call(cBind, coef(cvfit, s="lambda.1se"))))
-colnames(c2)<-levels(label)
-print(c[rowSums(c)!=0,])
-print(c2[rowSums(c2)!=0,])
-min(cvfit$cvm)
+r<-as.matrix(coef(cvfit, c(cvfit$lambda.1se, cvfit$lambda.min)))
+c1_Gdiff<-rownames(r)[r[,1]!=0]
+c2_Gdiff<-rownames(r)[r[,2]!=0]
 
+c1cols<-unique(c(c1T1_GFT, c1T2_GFT, c1T12_GFT, c1_Draw, c1_WDLW, c1_WDLD, c1_WDLL, c1_Gdiff))
+c2cols<-unique(c(c2T1_GFT, c2T2_GFT, c1T12_GFT, c2_Draw, c2_WDLW, c2_WDLD, c2_WDLL, c2_Gdiff))
 
-c<-as.data.frame(as.matrix(coef(cvfit, s="lambda.min")))
-c2<-as.data.frame(as.matrix(coef(cvfit, s="lambda.1se")))
-colnames(c)<-"coef"
-c$name <- rownames(c)
-colnames(c2)<-"coef"
-c2$name <- rownames(c2)
-
-c%>%filter(coef!=0)%>%arrange(coef)%>%full_join(c2%>%filter(coef!=0)%>%arrange(coef), by="name")
-min(cvfit$cvm)
+write.csv(c1cols[-1], "feature_candidates_short.csv", row.names = F)
+write.csv(c2cols[-1], "feature_candidates_long.csv", row.names = F)
 
 
 

@@ -49,13 +49,24 @@ def calc_points(pGS,pGC, gs, gc, is_home):
   
     z = tf.zeros_like(gs) 
   
-    draw_points = tf.where(is_draw, tf.where(is_full, z+point_scheme[0][1], tf.where(is_diff, z+point_scheme[1][1], z, name="is_diff"), name="is_full"), z, name="is_draw") 
-    home_win_points  = tf.where(is_win & is_home & is_tendency, tf.where(is_full, z+point_scheme[0][0], tf.where(is_diff, z+point_scheme[1][0], z+point_scheme[2][0])), z)
-    home_loss_points = tf.where(is_loss & is_home & is_tendency,  tf.where(is_full, z+point_scheme[0][2], tf.where(is_diff, z+point_scheme[1][2], z+point_scheme[2][2])), z)
-    away_win_points  = tf.where(is_win & is_away & is_tendency,  tf.where(is_full, z+point_scheme[0][2], tf.where(is_diff, z+point_scheme[1][2], z+point_scheme[2][2])), z)
-    away_loss_points = tf.where(is_loss & is_away & is_tendency, tf.where(is_full, z+point_scheme[0][0], tf.where(is_diff, z+point_scheme[1][0], z+point_scheme[2][0])), z)
+    if point_scheme[0][0]==-1: # Goal Difference
+      gsDiff = tf.abs(gs-pGS)
+      gcDiff = tf.abs(gc-pGC)
+      diff_points = 10-tf.minimum(gsDiff+gcDiff, 5)
+      draw_points = tf.where(is_draw & is_tendency, diff_points, z, name="is_draw") 
+      home_win_points  = tf.where(is_win & is_home & is_tendency, diff_points, z)
+      home_loss_points = tf.where(is_loss & is_home & is_tendency, diff_points , z)
+      away_win_points  = tf.where(is_win & is_away & is_tendency, diff_points , z)
+      away_loss_points = tf.where(is_loss & is_away & is_tendency, diff_points, z)
+    else:  
+      draw_points = tf.where(is_draw, tf.where(is_full, z+point_scheme[0][1], tf.where(is_diff, z+point_scheme[1][1], z, name="is_diff"), name="is_full"), z, name="is_draw") 
+      home_win_points  = tf.where(is_win & is_home & is_tendency, tf.where(is_full, z+point_scheme[0][0], tf.where(is_diff, z+point_scheme[1][0], z+point_scheme[2][0])), z)
+      home_loss_points = tf.where(is_loss & is_home & is_tendency,  tf.where(is_full, z+point_scheme[0][2], tf.where(is_diff, z+point_scheme[1][2], z+point_scheme[2][2])), z)
+      away_win_points  = tf.where(is_win & is_away & is_tendency,  tf.where(is_full, z+point_scheme[0][2], tf.where(is_diff, z+point_scheme[1][2], z+point_scheme[2][2])), z)
+      away_loss_points = tf.where(is_loss & is_away & is_tendency, tf.where(is_full, z+point_scheme[0][0], tf.where(is_diff, z+point_scheme[1][0], z+point_scheme[2][0])), z)
     
     points = tf.cast(draw_points+home_win_points+home_loss_points+away_loss_points+away_win_points, tf.float32)
+      
   return (points, is_tendency, is_diff, is_full,
           draw_points, home_win_points, home_loss_points, away_loss_points, away_win_points)
 
@@ -568,17 +579,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           return tf.tanh(x)
 
       def make_rnn_cell():
-        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=32, 
-                                          activation=tanhStochastic,
-                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
-        if mode == tf.estimator.ModeKeys.TRAIN:
-          # 13.12.2017: was 0.9
-          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
-               input_keep_prob=0.99, 
-               output_keep_prob=0.99,
-               state_keep_prob=0.99)
-        return rnn_cell
+        return tf.nn.rnn_cell.BasicRNNCell(num_units=8, 
+                                          activation=None)
+#        
+#        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=8, 
+#                                          activation=None, #tanhStochastic,
+#                                          kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+#        #rnn_cell = tf.nn.rnn_cell.ResidualWrapper(rnn_cell)
+#        if mode == tf.estimator.ModeKeys.TRAIN:
+#          # 13.12.2017: was 0.9
+#          rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
+#               input_keep_prob=0.99, 
+#               output_keep_prob=0.99,
+#               state_keep_prob=0.99)
+#        return rnn_cell
       
 
       def make_gru_cell():
@@ -623,15 +637,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
 #        rnn_histogram("candidate", "1", "bias")
 
-      with tf.variable_scope("RNN_1"):
-        shared_rnn_cell = make_gru_cell()
-        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
-        rnn_histograms()
-      with tf.variable_scope("RNN_2"):
-        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
-      with tf.variable_scope("RNN_12"):
-        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
-        rnn_histograms()
+#      with tf.variable_scope("RNN_1"):
+#        shared_rnn_cell = make_gru_cell()
+#        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
+#        rnn_histograms()
+#      with tf.variable_scope("RNN_2"):
+#        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
+#      with tf.variable_scope("RNN_12"):
+#        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
+#        rnn_histograms()
+
+
+
+
+
 #      def conv_layer(X, name, output_channels, keep_prob=1.0):
 #        X = tf.layers.conv1d(X,
 #                  filters=output_channels, kernel_size=5, strides=1,
@@ -736,12 +755,32 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           match_history_t12, decode_t12 = auto_encoder(match_history_t12)
 
         with tf.variable_scope("Combine"):
-          X = tf.concat([features_newgame, match_history_t1, match_history_t2, match_history_t12], axis=1)
+          X = tf.concat([match_history_t1, match_history_t2, match_history_t12], axis=1)
+          if mode == tf.estimator.ModeKeys.TRAIN:
+            X = tf.nn.dropout(X, keep_prob=0.5)
+          X = tf.concat([features_newgame, X], axis=1)
           print(match_history_t1)
           print(X)
       else:
-        #X = features_newgame
-        X = tf.concat([features_newgame, history_state_t1, history_state_t2, history_state_t12], axis=1)
+        X = features_newgame
+#        with tf.variable_scope("MH1"):
+#          mh1,_ = build_dense_layer(match_history_t1[:,-1], 8, mode, 
+#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+#        with tf.variable_scope("MH2"):
+#          mh2,_ = build_dense_layer(match_history_t2[:,-1], 8, mode, 
+#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+#        with tf.variable_scope("MH12"):
+#          mh12,_ = build_dense_layer(match_history_t12[:,-1], 8, mode, 
+#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+#
+#        #X = features_newgame
+#        X = tf.concat([mh1, mh2, mh12], axis=1)
+#        if mode == tf.estimator.ModeKeys.TRAIN:
+#          X = tf.nn.dropout(X, keep_prob=0.99)
+#        X = tf.concat([features_newgame, X], axis=1)
 
 
         
@@ -795,7 +834,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.7), # 100.0
+                                    regularizer = l1_regularizer(scale=1.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -803,7 +842,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.7), # 100.0
+                                    regularizer = l1_regularizer(scale=1.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 

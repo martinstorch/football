@@ -69,10 +69,11 @@ COLS_Extended = COLS + ['HWin', 'AWin', 'HLoss', 'ALoss', 'HDraw', 'ADraw']
 point_scheme_tcs = [[4,6,7], [3,2,5], [2,2,4], [2.62, 3.77, 4.93], [285/9/27, 247/9/26, 196/9/27]]
 point_scheme_pistor = [[3,3,3], [2,2,2], [1,1,1], [1.65, 2.46, 1.73], [285/9/27, 247/9/26, 196/9/27]]
 point_scheme_sky = [[5,5,5], [2,2,2], [2,2,2], [2.60, 3.38, 2.66], [285/9/27, 247/9/26, 196/9/27]]
+point_scheme_goal_diff = [[-1,-1,-1], [-1,-1,-1], [-1,-1,-1], [7, 9, 7.5], [285/9/27, 247/9/26, 196/9/27]]
 
 point_scheme = point_scheme_pistor
 
-SEQ_LENGTH = 3
+SEQ_LENGTH = 4
 TIMESERIES_COL = 'rawdata'
 
 
@@ -85,8 +86,11 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_data =  pd.read_csv(data_dir+"/all_features.csv")
   all_labels =  pd.read_csv(data_dir+"/all_labels.csv") 
   team_mapping = pd.read_csv(data_dir+"/team_mapping.csv") 
-  all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
-  
+  #all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
+  feature_names = pd.read_csv(data_dir+"/feature_candidates_short.csv")
+  print(feature_names)
+  feature_names = feature_names.x.tolist() 
+  all_features = all_data[feature_names]
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
 
@@ -334,16 +338,20 @@ def plot_predictions_3(df, prefix, dataset):
   df["pGDiff"] = df["pFTHG"]-df["pFTAG"]
   df["pTendency"] = np.sign(df["pFTHG"]-df["pFTAG"])
   df["total_points"]=0
-
-  df["total_points"]+=[point_scheme[0][1] if t==0 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[1][1] if t==0 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[2][1] if t==0 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[2][0] if t==1 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[1][0] if t==1 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[0][0] if t==1 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[2][2] if t==-1 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[1][2] if t==-1 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
-  df["total_points"]+=[point_scheme[0][2] if t==-1 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+  
+  if point_scheme[0][0]==-1:
+    # GoalDiff calculation
+    df["total_points"] = (np.sign(df["pGS"]-df["pGC"])==np.sign(df["GS"]-df["GC"]))*(10.0 - np.minimum(5.0, np.abs(df["pGS"]-df["GS"])+np.abs(df["pGC"]-df["GC"])))
+  else:
+    df["total_points"]+=[point_scheme[0][1] if t==0 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[1][1] if t==0 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[2][1] if t==0 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[2][0] if t==1 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[1][0] if t==1 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[0][0] if t==1 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[2][2] if t==-1 and gof=="1_tendency" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[1][2] if t==-1 and gof=="2_diff" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
+    df["total_points"]+=[point_scheme[0][2] if t==-1 and gof=="3_full" else 0 for t, gof in zip(np.sign(df["pFTHG"]-df["pFTAG"]), df["gof"])]
 
   df = pd.concat([df, pd.get_dummies(df["gof"])], axis=1) # one-hot encoding of gof
   if "3_full" not in df: 
@@ -1245,6 +1253,9 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   elif target_system=="Sky":
     point_scheme = point_scheme_sky
     themodel.point_scheme = point_scheme_sky
+  elif target_system=="GoalDiff":
+    point_scheme = point_scheme_goal_diff
+    themodel.point_scheme = point_scheme_goal_diff
   else:
     raise Exception("Unknown point scheme")
     
@@ -1324,7 +1335,7 @@ def main(_):
     #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
     target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
     
-    if FLAGS.target_system=="Pistor":
+    if FLAGS.target_system=="Pistor" or FLAGS.target_system=="GoalDiff":
         # Pistor
         target_distr={  "cp":[(5, 15, 30), 25, (15, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
@@ -1372,8 +1383,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--save_steps", type=int,
-      default=200,
-      #default=1000,
+      #default=200,
+      default=500,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1400,15 +1411,15 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/model_1920_rnn2_sky",
+      default="d:/Models/model_1920_pistor_short",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1417,9 +1428,10 @@ if __name__ == "__main__":
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
-      default="Sky",
+      default="Pistor",
+      #default="Sky",
       #default="TCS",
+      #default="GoalDiff",
       help="Point system to optimize for"
   )
   parser.add_argument(
@@ -1432,8 +1444,8 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      default="train",
-      #default="eval",
+      #default="train",
+      default="eval",
       #default="predict",
       #default="upgrade",
       #default="train_eval",
@@ -1444,8 +1456,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="9912",
       #default="60000:92000", 
-      default="-10",  # slice(-2, None)
-      #default="14000:",
+      #default="-1",  # slice(-2, None)
+      default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

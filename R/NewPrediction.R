@@ -21,7 +21,7 @@ human_level_median <- 219 / 9 / 31
 
 predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
-predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_pistor_a/new_predictions_df.csv"
 #predictions_file<-"c:\\Models\\xg_bwin_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
