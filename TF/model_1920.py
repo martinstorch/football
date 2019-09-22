@@ -87,7 +87,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_labels =  pd.read_csv(data_dir+"/all_labels.csv") 
   team_mapping = pd.read_csv(data_dir+"/team_mapping.csv") 
   #all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
-  feature_names = pd.read_csv(data_dir+"/feature_candidates_short.csv")
+  feature_names = pd.read_csv(data_dir+"/feature_candidates_long.csv")
   print(feature_names)
   feature_names = feature_names.x.tolist() 
   all_features = all_data[feature_names]
@@ -1411,15 +1411,15 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/model_1920_pistor_short",
+      default="d:/Models/model_1920_pistor_long",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
@@ -1444,8 +1444,8 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
-      default="eval",
+      default="train",
+      #default="eval",
       #default="predict",
       #default="upgrade",
       #default="train_eval",
