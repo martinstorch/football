@@ -23,8 +23,8 @@ from tensorflow.metrics import precision, recall
 
 GLOBAL_REGULARIZER = l2_regularizer(scale=0.1)
 MINOR_REGULARIZER = l2_regularizer(scale=0.005)
-plot_list = ["cp/", "cp2/", "sp/", "pg2/", "av/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
-prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/", "av/"]
+plot_list = ["cp/", "cp2/", "sp/", "pg2/", "av/", "cbsp/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
+prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/", "av/", "cbsp/"]
 #ens_prefix_list = ["pg/", "pgpt/", "pghb/", "ps/", "pspt/", "sp/", "smpt/", "cp/", "cp2/"]
 ens_prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/"]
 segmentation_strategies = {"cp":"cp2", "pg":"pg2"}
@@ -922,8 +922,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
-
-      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs #, decode_t1, decode_t2, decode_t12 
+      
+      with tf.variable_scope("condprob_sp"):
+        cb_h2_logits = cond_probs[1]
+        print(cb_h2_logits)
+        cb_h2_logits = tf.stop_gradient(cb_h2_logits)
+        cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
+                                      regularizer = l2_regularizer(scale=0.200002), # 2.0
+                                      keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        
+      
+      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, cbsp_logits #, decode_t1, decode_t2, decode_t12 
         
   def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False):
     with tf.variable_scope("Prediction"):
@@ -1865,6 +1874,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       loss += 0.05*tf.reduce_mean(pt_pgpt_sm_loss)
 
+
+      pt_cbsp_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["cbsp/p_pred_12"]) * achievable_points_mask, axis=1)
+      loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
+      
+      with tf.variable_scope("cbsp"):
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.1)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
@@ -1916,6 +1931,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      eval_metric_ops.update(collect_summary("losses", "t_ensemble_softpoints", mode, tensor=t_ensemble_softpoints))
       eval_metric_ops.update(collect_summary("losses", "l_regularization", mode, tensor=l_regularization))
       eval_metric_ops.update(collect_summary("summary", "l_regularization", mode, tensor=l_regularization))
+
+      eval_metric_ops.update(collect_summary("losses", "pt_cbsp_softpoints", mode, tensor=pt_cbsp_softpoints))
       
     return eval_metric_ops, loss
 
@@ -2211,7 +2228,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_is_home_bool = tf.equal(features["newgame"][:,1] , 1)
       graph_outputs = buildGraph(features, labels, mode, params, t_is_home_bool)
       #outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, decode_t1, decode_t2, decode_t12  = graph_outputs
-      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs = graph_outputs
+      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, cbsp_logits = graph_outputs
 #      t_is_train_bool = tf.equal(features["Train"] , True)
 
       def apply_prefix(predictions, prefix):
@@ -2239,6 +2256,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions["cp1/labels"] = label_features_h1
         predictions["cp/labels"] = label_features_h2
             
+      cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
+      cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)
+      predictions.update(apply_prefix(cbsp_predictions , "cbsp/"))
+
       with tf.variable_scope("cp"):
           #cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
           cp_predictions = create_quantile_scheme_prediction(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
@@ -2262,8 +2283,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       T2_GHT = tf.exp(outputs[:,3])
       T1_GH2 = tf.exp(outputs[:,16])
       T2_GH2 = tf.exp(outputs[:,17])
-      T1_GFT_est = (T1_GFT+T1_GHT+T1_GH2)/2
-      T2_GFT_est = (T2_GFT+T2_GHT+T2_GH2)/2
+      T1_xG = tf.exp(outputs[:,-2])
+      T2_xG = tf.exp(outputs[:,-1])
+      T1_GFT_est = (T1_GFT+T1_GHT+T1_GH2+T1_xG)/3
+      T2_GFT_est = (T2_GFT+T2_GHT+T2_GH2+T2_xG)/3
       epsilon = 1e-7
       predictions_poisson_FT = create_predictions_from_ev_goals(T1_GFT_est, T2_GFT_est, t_is_home_bool, tc)
       
@@ -2505,7 +2528,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                                "cp2" : eval_metric_ops["summary/cp2/z_points"][0][1], 
                                                "pgpt" : eval_metric_ops["summary/pgpt/z_points"][0][1],
                                                "pg2" : eval_metric_ops["summary/pg2/z_points"][0][1],
-                                               "sp" : eval_metric_ops["summary/sp/z_points"][0][1]}, 
+                                               "sp" : eval_metric_ops["summary/sp/z_points"][0][1], 
+                                               "cbsp" : eval_metric_ops["summary/cbsp/z_points"][0][1]}, 
       every_n_iter=25)
     
     return tf.estimator.EstimatorSpec(mode=mode #, predictions=predictions 

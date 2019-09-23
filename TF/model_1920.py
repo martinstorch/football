@@ -87,7 +87,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_labels =  pd.read_csv(data_dir+"/all_labels.csv") 
   team_mapping = pd.read_csv(data_dir+"/team_mapping.csv") 
   #all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
-  feature_names = pd.read_csv(data_dir+"/feature_candidates_short.csv")
+  feature_names = pd.read_csv(data_dir+"/feature_candidates_long.csv")
   print(feature_names)
   feature_names = feature_names.x.tolist() 
   if 'BW1' in feature_names:
@@ -1346,8 +1346,8 @@ def main(_):
         target_distr={  "cp":[(5, 15, 30), 25, (15, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                        "pg2":[(2, 20, 48), 15, (11, 3, 1), (20, 20, 80)],
-                        "av":[(5, 15, 30), 25, (15, 8, 2), (20, 20, 80)],
+                        "pg2":[(2, 10, 58), 5, (16, 3, 1), (20, 20, 80)],
+                        "av":[(5, 15, 30), 20, (20, 8, 2), (20, 20, 80)],
                         }
     elif FLAGS.target_system=="Sky":
         # Sky
@@ -1372,8 +1372,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1424,7 +1424,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_pistor_short_hist1",
+      default="d:/Models/model_1920_pistor_long",
       help="Base directory for output models."
   )
   parser.add_argument(
@@ -1446,9 +1446,9 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      default="train",
+      #default="train",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
@@ -1456,10 +1456,10 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      #default="9912",
+      #default="19000:",
       #default="60000:92000", 
-      #default="-1",  # slice(-2, None)
-      default="100:",
+      default="-1",  # slice(-2, None)
+      #default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
