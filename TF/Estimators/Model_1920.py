@@ -762,25 +762,25 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           print(match_history_t1)
           print(X)
       else:
-        X = features_newgame
-#        with tf.variable_scope("MH1"):
-#          mh1,_ = build_dense_layer(match_history_t1[:,-1], 8, mode, 
-#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
-#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-#        with tf.variable_scope("MH2"):
-#          mh2,_ = build_dense_layer(match_history_t2[:,-1], 8, mode, 
-#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
-#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-#        with tf.variable_scope("MH12"):
-#          mh12,_ = build_dense_layer(match_history_t12[:,-1], 8, mode, 
-#                                        regularizer = l2_regularizer(scale=3.0), # 2.0
-#                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-#
-#        #X = features_newgame
-#        X = tf.concat([mh1, mh2, mh12], axis=1)
-#        if mode == tf.estimator.ModeKeys.TRAIN:
-#          X = tf.nn.dropout(X, keep_prob=0.99)
-#        X = tf.concat([features_newgame, X], axis=1)
+        #X = features_newgame
+        with tf.variable_scope("MH1"):
+          mh1,_ = build_dense_layer(match_history_t1[:,-1], 8, mode, 
+                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        with tf.variable_scope("MH2"):
+          mh2,_ = build_dense_layer(match_history_t2[:,-1], 8, mode, 
+                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        with tf.variable_scope("MH12"):
+          mh12,_ = build_dense_layer(match_history_t12[:,-1], 8, mode, 
+                                        regularizer = l2_regularizer(scale=3.0), # 2.0
+                                        keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+
+        #X = features_newgame
+        X = tf.concat([mh1, mh2, mh12], axis=1)
+        if mode == tf.estimator.ModeKeys.TRAIN:
+          X = tf.nn.dropout(X, keep_prob=0.99)
+        X = tf.concat([features_newgame, X], axis=1)
 
 
         

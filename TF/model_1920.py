@@ -1419,7 +1419,7 @@ if __name__ == "__main__":
       "--model_dir",
       type=str,
       #default="D:/Models/conv1_auto_sky4",
-      default="d:/Models/model_1920_pistor_short",
+      default="d:/Models/model_1920_pistor_short_hist1",
       #default="c:/Models/laplace_sky_bwin",
       #default="c:/Models/laplace_sky",
       #default="D:/Models/simple36_sky_1819",
