@@ -90,6 +90,9 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   feature_names = pd.read_csv(data_dir+"/feature_candidates_short.csv")
   print(feature_names)
   feature_names = feature_names.x.tolist() 
+  if 'BW1' in feature_names:
+    # place 'BW1', 'BW2', 'BW0' first is list, so that they have a fixed colunm position
+    feature_names = pd.Series(['BW1', 'BW2', 'BW0'] + feature_names).drop_duplicates().tolist()
   all_features = all_data[feature_names]
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
@@ -130,9 +133,12 @@ def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
   label_column_names = all_labels.columns
 #  feature_column_names = all_features.columns
   
-  prefix = all_data[["mh1len", "Where", "mh2len", "mh12len"]].astype(np.float32).values
+  prefix0 = all_data[["mh1len", "Where", "mh2len", "mh12len"]].astype(np.float32)
+  prefix = prefix0.values
   prefix[:,[0,2,3]]*=0.1
   match_input_layer = np.concatenate([prefix, all_features.values], axis=1)
+  print("prefix.columns.tolist()+all_features.columns.tolist()")
+  print(prefix0.columns.tolist()+all_features.columns.tolist())
 #  tn = len(teamnames)
 #  #lc = len(label_column_names)
 #  fc = len(feature_column_names)
@@ -1418,11 +1424,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      #default="D:/Models/conv1_auto_sky4",
       default="d:/Models/model_1920_pistor_short_hist1",
-      #default="c:/Models/laplace_sky_bwin",
-      #default="c:/Models/laplace_sky",
-      #default="D:/Models/simple36_sky_1819",
       help="Base directory for output models."
   )
   parser.add_argument(
@@ -1444,8 +1446,8 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
-      default="eval",
+      default="train",
+      #default="eval",
       #default="predict",
       #default="upgrade",
       #default="train_eval",

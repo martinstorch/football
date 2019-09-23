@@ -1,28 +1,20 @@
 ,Date,Time,HomeTeam,AwayTeam,BWH,BWD,BWA,DOW
-0,20.09.2019,20:30,FC Schalke 04,FSV Mainz 05,1.70,3.75,4.75,Freitag
-1,21.09.2019,15:30,Bayer Leverkusen,1. FC Union Berlin,1.28,5.50,9.25,Samstag
-2,21.09.2019,15:30,SC Freiburg,FC Augsburg,1.95,3.60,3.60,Samstag
-3,21.09.2019,15:30,Hertha BSC,SC Paderborn 07 ,1.67,3.80,4.75,Samstag
-4,21.09.2019,15:30,FC Bayern München,1. FC Köln,1.12,8.50,17.50,Samstag
-5,21.09.2019,18:30,Werder Bremen,RB Leipzig,4.40,4.10,1.67,Samstag
-6,22.09.2019,15:30,Borussia Mönchengladbach,Fortuna Düsseldorf,1.60,4.10,5.00,Sonntag
-7,22.09.2019,18:00,Eintracht Frankfurt,Borussia Dortmund,4.25,4.25,1.67,Sonntag
-8,23.09.2019,20:30,VfL Wolfsburg,1899 Hoffenheim,1.95,3.80,3.40,Montag
-9,27.09.2019,20:30,1. FC Union Berlin,Eintracht Frankfurt,2.95,3.50,2.25,Freitag
-10,28.09.2019,15:30,FC Augsburg,Bayer Leverkusen,4.60,4.20,1.62,Samstag
-11,28.09.2019,15:30,FSV Mainz 05,VfL Wolfsburg,2.75,3.40,2.40,Samstag
-12,28.09.2019,15:30,SC Paderborn 07 ,FC Bayern München,14.00,7.25,1.16,Samstag
-13,28.09.2019,15:30,RB Leipzig,FC Schalke 04,1.55,4.10,5.50,Samstag
-14,28.09.2019,15:30,1899 Hoffenheim,Borussia Mönchengladbach,2.40,3.50,2.75,Samstag
-15,28.09.2019,18:30,Borussia Dortmund,Werder Bremen,1.30,5.75,7.75,Samstag
-16,29.09.2019,15:30,Fortuna Düsseldorf,SC Freiburg,2.35,3.40,2.85,Sonntag
-17,29.09.2019,18:00,1. FC Köln,Hertha BSC,2.10,3.50,3.20,Sonntag
-18,04.10.2019,20:30,Hertha BSC,Fortuna Düsseldorf,2.05,3.50,3.40,Freitag
-19,05.10.2019,15:30,FC Bayern München,1899 Hoffenheim,1.18,6.75,13.00,Samstag
-20,05.10.2019,15:30,SC Freiburg,Borussia Dortmund,6.50,5.00,1.40,Samstag
-21,05.10.2019,15:30,SC Paderborn 07 ,FSV Mainz 05,2.60,3.50,2.50,Samstag
-22,05.10.2019,15:30,Bayer Leverkusen,RB Leipzig,2.50,3.70,2.50,Samstag
-23,05.10.2019,18:30,FC Schalke 04,1. FC Köln,1.65,3.90,4.75,Samstag
-24,06.10.2019,13:30,Borussia Mönchengladbach,FC Augsburg,1.50,4.20,6.00,Sonntag
-25,06.10.2019,15:30,VfL Wolfsburg,1. FC Union Berlin,1.45,4.60,6.00,Sonntag
-26,06.10.2019,18:00,Eintracht Frankfurt,Werder Bremen,2.00,3.60,3.40,Sonntag
+0,23.09.2019,20:30,VfL Wolfsburg,1899 Hoffenheim,1.85,3.90,3.90,Montag
+1,27.09.2019,20:30,1. FC Union Berlin,Eintracht Frankfurt,2.95,3.50,2.25,Freitag
+2,28.09.2019,15:30,FC Augsburg,Bayer Leverkusen,4.60,4.60,1.57,Samstag
+3,28.09.2019,15:30,FSV Mainz 05,VfL Wolfsburg,2.80,3.40,2.40,Samstag
+4,28.09.2019,15:30,SC Paderborn 07 ,FC Bayern München,15.50,8.00,1.14,Samstag
+5,28.09.2019,15:30,RB Leipzig,FC Schalke 04,1.53,4.10,5.75,Samstag
+6,28.09.2019,15:30,1899 Hoffenheim,Borussia Mönchengladbach,2.45,3.40,2.70,Samstag
+7,28.09.2019,18:30,Borussia Dortmund,Werder Bremen,1.28,6.00,8.25,Samstag
+8,29.09.2019,15:30,Fortuna Düsseldorf,SC Freiburg,2.35,3.40,2.85,Sonntag
+9,29.09.2019,18:00,1. FC Köln,Hertha BSC,2.10,3.50,3.20,Sonntag
+10,04.10.2019,20:30,Hertha BSC,Fortuna Düsseldorf,1.91,3.50,3.80,Freitag
+11,05.10.2019,15:30,FC Bayern München,1899 Hoffenheim,1.11,9.00,17.00,Samstag
+12,05.10.2019,15:30,SC Freiburg,Borussia Dortmund,6.00,4.75,1.44,Samstag
+13,05.10.2019,15:30,SC Paderborn 07 ,FSV Mainz 05,2.60,3.50,2.50,Samstag
+14,05.10.2019,15:30,Bayer Leverkusen,RB Leipzig,2.60,3.70,2.40,Samstag
+15,05.10.2019,18:30,FC Schalke 04,1. FC Köln,1.72,3.70,4.50,Samstag
+16,06.10.2019,13:30,Borussia Mönchengladbach,FC Augsburg,1.55,4.50,5.00,Sonntag
+17,06.10.2019,15:30,VfL Wolfsburg,1. FC Union Berlin,1.50,4.30,5.75,Sonntag
+18,06.10.2019,18:00,Eintracht Frankfurt,Werder Bremen,1.95,3.60,3.60,Sonntag
