@@ -769,6 +769,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             #X = tf.nn.dropout(X, keep_prob=0.5)
             BWdata  = tf.cond(tf.random.uniform((1,))[0]>0.1, lambda: BWdata, lambda: tf.random.shuffle(BWdata))
         X = tf.concat([X, BWdata], axis=1)
+        if mode == tf.estimator.ModeKeys.TRAIN:
+            X= tf.cond(tf.random.uniform((1,))[0]>0.05, lambda: X, lambda: tf.random.shuffle(X))
         #11,12,66
         #15,16,70
         
@@ -862,7 +864,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=1.2), # 100.0
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -870,7 +872,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=1.2), # 100.0
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
