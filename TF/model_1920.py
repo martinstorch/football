@@ -1016,7 +1016,7 @@ def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
     print("No checkpoints selected in {} using filter \"{}\"".format(export_dir, checkpoints))
   return cp_df_final.sort_values("global_step")
 
-def evaluate_checkpoints(model_data, checkpoints, use_swa):
+def evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=False):
   model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
   #tf.reset_default_graph()
   est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
@@ -1065,9 +1065,12 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa):
           train_writer.add_summary(summary, global_step)
           print("train", global_step, outputs)
         cps_done.extend(cps.global_step)
-        print("cps_done", cps_done)
+        #print("cps_done", cps_done)
       else:
-        exit_.wait(10)
+        if eval_stop:
+          return
+        else:
+          exit_.wait(10)
       cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
       #print("cps2", cps2)
       cps = cps2.loc[~cps2.global_step.isin(cps_done)]
@@ -1324,7 +1327,9 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   elif modes == "train_eval": 
     train_eval_model(model_data, train_steps)
   elif modes == "eval": 
-    evaluate_checkpoints(model_data, checkpoints, use_swa)    
+    evaluate_checkpoints(model_data, checkpoints, use_swa)
+  elif modes == "eval_stop":
+    evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=True)
   elif modes == "predict": 
     cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
     predict_checkpoints(model_data, cps, all_data, skip_plotting)    
