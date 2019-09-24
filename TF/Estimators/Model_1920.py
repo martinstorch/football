@@ -924,11 +924,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
       
       with tf.variable_scope("condprob_sp"):
-        cb_h2_logits = tf.log(cond_probs[8]+1e-7)
+        cb_h2_logits = cond_probs[8]
         print(cb_h2_logits)
         cb_h2_logits = tf.stop_gradient(cb_h2_logits)
+        cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
         cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.200002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.00200002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
@@ -1879,7 +1880,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
       
       with tf.variable_scope("cbsp"):
-        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=2.0)
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.1)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))

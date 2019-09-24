@@ -1417,14 +1417,14 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_pistor_long3",
+      default="d:/Models/model_1920_pistor_long4",
       help="Base directory for output models."
   )
   parser.add_argument(
