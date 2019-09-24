@@ -185,8 +185,8 @@ xgdf.to_csv(dir_path+'/xgoals.csv', index=False)
 print(xgdf)
 
 quotes_bwin = load_bwin_quotes()
-quotes_bwin.to_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
-quotes_bwin.iloc[0:9].to_csv(dir_path+"/quotes_bwin.csv", encoding = "utf-8")
+quotes_bwin.to_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8", index=False)
+quotes_bwin.iloc[0:9].to_csv(dir_path+"/quotes_bwin.csv", encoding = "utf-8", index=False)
 print(quotes_bwin)
 
 all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920"]
@@ -214,7 +214,7 @@ xgdf["Date"]=pd.to_datetime(xgdf.Date).apply(lambda x: x.strftime('%d.%m.%Y'))
 print(xgdf[-9:])
 
 team_mapping_bwin= pd.read_csv(dir_path+"/bwin_team_mapping.csv", sep="\t")
-quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8").drop(columns="Unnamed: 0")
+quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
 quotes_bwin= quotes_bwin.merge(team_mapping_bwin, left_on="HomeTeam", right_on="bwinTeam", how="left").drop(columns="bwinTeam")
 quotes_bwin= quotes_bwin.merge(team_mapping_bwin, left_on="AwayTeam", right_on="bwinTeam", how="left").drop(columns="bwinTeam")
 quotes_bwin = quotes_bwin.rename(columns=
