@@ -66,3 +66,41 @@ cd c:\git\football\TF\
 python model_1920.py --modes=eval --checkpoints=11000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 python model_1920.py --modes=predict --checkpoints=20000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
 
+
+activate tfgpu
+c:
+cd c:\git\football\TF\data
+python get_all_data.py
+python prepare_data_matrix.py
+
+activate tfgpu
+rmdir /S /Q d:\Models\model_1920_pistor
+rmdir /S /Q d:\Models\model_1920_sky
+rmdir /S /Q d:\Models\model_1920_gd
+cd c:\git\football\TF\	
+python model_1920.py --modes=train --train_steps=100000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=train --train_steps=100000 --target_system=Sky --model_dir=d:/Models/model_1920_sky
+python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+
+activate tf
+cd c:\git\football\TF\	
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+
+activate tf
+cd c:\git\football\TF\	
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+
+tensorboard --logdir d:/Models/model_1920_pistor
+
+activate tf
+cd c:\git\football\TF\	
+python model_1920.py --modes=eval --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+
+
+
+
+
