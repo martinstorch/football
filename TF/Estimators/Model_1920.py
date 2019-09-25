@@ -896,23 +896,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("condprob"):
-        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.1002), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
+        cond_probs = build_cond_prob_layer(X, labels, mode, regularizer = l2_regularizer(scale=0.2002), keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         with tf.variable_scope("WDL"):
           sp_logits_1,_ = build_dense_layer(X, 3, mode, 
-                                        regularizer = l2_regularizer(scale=1.6), # 2.0
+                                        regularizer = l2_regularizer(scale=0.6), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 11, mode, 
-                                        regularizer = l2_regularizer(scale=0.100002), # 2.0
+                                        regularizer = l2_regularizer(scale=0.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=0.100002), # 2.0
+                                        regularizer = l2_regularizer(scale=1.200002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
@@ -928,8 +928,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         print(cb_h2_logits)
         cb_h2_logits = tf.stop_gradient(cb_h2_logits)
         cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
+        cb_h2_logits = tf.stop_gradient(cb_h2_logits)
         cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.00200002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.020002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
@@ -1420,7 +1421,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #predictions = create_predictions(logits, logits, t_is_home_bool, tc, False)
 
           p_pred_12 = tf.nn.softmax(logits)
-          create_laplacian_loss(p_pred_12, alpha=1.0)
+          create_laplacian_loss(p_pred_12, alpha=0.1)
           
           predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = predictions)
           predictions = calc_probabilities(p_pred_12, predictions)
@@ -1880,7 +1881,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
       
       with tf.variable_scope("cbsp"):
-        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.1)
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=1.0)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
