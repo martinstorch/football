@@ -21,7 +21,7 @@ human_level_median <- 219 / 9 / 31
 
 predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
 predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
-predictions_file<-"d:\\Models\\model_1920_pistor_a/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
 #predictions_file<-"c:\\Models\\xg_bwin_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
@@ -140,7 +140,7 @@ evaluate<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
-  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pspt", "pgpt", "pg2", "cp2")) # 
+  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pspt", "pgpt", "pg2", "cp2", "cbsp")) # 
   #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 

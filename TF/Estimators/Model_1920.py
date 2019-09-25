@@ -23,8 +23,8 @@ from tensorflow.metrics import precision, recall
 
 GLOBAL_REGULARIZER = l2_regularizer(scale=0.1)
 MINOR_REGULARIZER = l2_regularizer(scale=0.005)
-plot_list = ["cp/", "cp2/", "sp/", "pg2/", "av/", "cbsp/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
-prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/", "av/", "cbsp/"]
+plot_list = ["cp/", "cp2/", "sp/", "pg2/", "av/", "cbsp/", "xpt/"] # ["pspt/", "cp/", "cp2/", "sp/", "ens/"]
+prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/", "av/", "cbsp/", "xpt/"]
 #ens_prefix_list = ["pg/", "pgpt/", "pghb/", "ps/", "pspt/", "sp/", "smpt/", "cp/", "cp2/"]
 ens_prefix_list = ["pgpt/", "sp/", "cp/", "cp2/", "pg2/"]
 segmentation_strategies = {"cp":"cp2", "pg":"pg2"}
@@ -1880,6 +1880,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       pt_cbsp_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["cbsp/p_pred_12"]) * achievable_points_mask, axis=1)
       loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
       
+      xpt_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["xpt/p_pred_12"]) * achievable_points_mask, axis=1)
+      loss -= 10*tf.reduce_mean(xpt_softpoints)
+
       with tf.variable_scope("cbsp"):
         create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=1.0)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
@@ -1935,6 +1938,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops.update(collect_summary("summary", "l_regularization", mode, tensor=l_regularization))
 
       eval_metric_ops.update(collect_summary("losses", "pt_cbsp_softpoints", mode, tensor=pt_cbsp_softpoints))
+      eval_metric_ops.update(collect_summary("losses", "xpt_softpoints", mode, tensor=xpt_softpoints))
       
     return eval_metric_ops, loss
 
@@ -2260,6 +2264,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             
       cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
       cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)
+      cbsp_predictions = apply_poisson_summary(cbsp_predictions["p_pred_12"], t_is_home_bool, tc, predictions = cbsp_predictions)
       predictions.update(apply_prefix(cbsp_predictions , "cbsp/"))
 
       with tf.variable_scope("cp"):
@@ -2300,6 +2305,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       predictions["outputs_poisson"] = outputs
       #predictions["index"] = index
+      
+      ########################################
+      with tf.variable_scope("xpt"):
+          xpt_predictions = point_maximization_layer(outputs, tf.concat([hidden_layer, predictions["cp/p_pred_12"]], axis=1), "xpt", t_is_home_bool, tc, mode)
+          xpt_predictions  = calc_probabilities(xpt_predictions ["p_pred_12"], xpt_predictions)
+          xpt_predictions = apply_poisson_summary(xpt_predictions["p_pred_12"], t_is_home_bool, tc, predictions = xpt_predictions)
+          create_laplacian_loss(xpt_predictions["p_pred_12"], alpha=1.0) # 100
+          predictions.update(apply_prefix(xpt_predictions, "xpt/"))
+      
+      ########################################
 
       for k,v in segmentation_strategies.items():
         with tf.variable_scope(k):
@@ -2529,6 +2544,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                                "cp" : eval_metric_ops["summary/cp/z_points"][0][1],
                                                "cp2" : eval_metric_ops["summary/cp2/z_points"][0][1], 
                                                "pgpt" : eval_metric_ops["summary/pgpt/z_points"][0][1],
+                                               "xpt" : eval_metric_ops["summary/xpt/z_points"][0][1],
                                                "pg2" : eval_metric_ops["summary/pg2/z_points"][0][1],
                                                "sp" : eval_metric_ops["summary/sp/z_points"][0][1], 
                                                "cbsp" : eval_metric_ops["summary/cbsp/z_points"][0][1]}, 

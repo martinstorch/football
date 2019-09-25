@@ -1124,7 +1124,7 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
 #      with open(model_dir+'/all_predictions_df.csv', 'a') as f:
 #        results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
       new_results = results.loc[results.dataset=="pred"]  
-      print(new_results)
+      #print(new_results)
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
 
@@ -1377,8 +1377,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1422,14 +1422,14 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_pistor_long4",
+      default="d:/Models/model_1920_pistor_long5",
       help="Base directory for output models."
   )
   parser.add_argument(
@@ -1451,8 +1451,9 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      default="train",
+      #default="train",
       #default="eval",
+      default="eval_stop",
       #default="predict",
       #default="upgrade",
       #default="train_eval",
@@ -1463,7 +1464,7 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="19000:",
       #default="60000:92000", 
-      default="-1",  # slice(-2, None)
+      default="-3",  # slice(-2, None)
       #default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
