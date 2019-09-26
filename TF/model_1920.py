@@ -79,6 +79,9 @@ TIMESERIES_COL = 'rawdata'
 
 def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   full_data =   pd.read_csv(data_dir+"/full_data.csv")
+  
+  #full_data = full_data .loc[(full_data.HomeTeam=="Bayern Munich") | (full_data.AwayTeam=="Bayern Munich")]
+  
   is_train = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(train_seasons).repeat(2)
   is_test = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(test_seasons).repeat(2)
   is_test.value_counts()
@@ -96,6 +99,11 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_features = all_data[feature_names]
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
+
+#  custom_filter = all_data.Team1=="Bayern Munich"  
+#  all_data = all_data[custom_filter]
+#  all_features = all_features[custom_filter]
+#  all_labels = all_labels[custom_filter]
 
 #  all_labels["Train"]=is_train.values
 #  all_labels["Test"]=is_test.values
@@ -1346,7 +1354,7 @@ def main(_):
     #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
     target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
     
-    if FLAGS.target_system=="Pistor" or FLAGS.target_system=="GoalDiff":
+    if FLAGS.target_system=="Pistor" :
         # Pistor
         target_distr={  "cp":[(5, 15, 30), 25, (15, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
@@ -1354,7 +1362,7 @@ def main(_):
                         "pg2":[(2, 10, 58), 5, (16, 3, 1), (20, 20, 80)],
                         "av":[(5, 15, 30), 20, (20, 8, 2), (20, 20, 80)],
                         }
-    elif FLAGS.target_system=="Sky":
+    elif FLAGS.target_system=="Sky" or FLAGS.target_system=="GoalDiff":
         # Sky
         target_distr={"cp":[(5, 20, 45), 1, (22, 5, 2), (10, 10, 85)],
                       "sp":[(6, 10, 58), 1, (19, 5, 2), (10, 10, 90)],
@@ -1429,16 +1437,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_pistor_long5",
+      default="d:/Models/model_1920_gd",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
+      #default="Pistor",
       #default="Sky",
       #default="TCS",
-      #default="GoalDiff",
+      default="GoalDiff",
       help="Point system to optimize for"
   )
   parser.add_argument(
@@ -1453,8 +1461,8 @@ if __name__ == "__main__":
       #default="static",
       #default="train",
       #default="eval",
-      default="eval_stop",
-      #default="predict",
+      #default="eval_stop",
+      default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",

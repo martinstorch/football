@@ -781,11 +781,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        if mode == tf.estimator.ModeKeys.TRAIN:
 #          X = tf.nn.dropout(X, keep_prob=0.99)
 #        X = tf.concat([features_newgame, X], axis=1)
-        def extract_BW_xG_WDL(y):
-          return tf.concat([y[:,-1,4:7], y[:,-1,-2:], y[:,-1,-30:-27]], axis=1)
+        def extract_BW_xG_WDL(y, step=-1):
+          return tf.concat([y[:,step,4:7], y[:,step,-2:], y[:,step,-30:-27]], axis=1)
         
         X = features_newgame
         X = tf.concat([X, extract_BW_xG_WDL(match_history_t1), extract_BW_xG_WDL(match_history_t2), extract_BW_xG_WDL(match_history_t12)], axis=1)
+        X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -2), extract_BW_xG_WDL(match_history_t2, -2)], axis=1)
         BWdata = X[:,4:7]
         X= tf.concat([X[:,0:4], X[:,7:]], axis=1)
         if mode == tf.estimator.ModeKeys.TRAIN:
@@ -930,7 +931,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
         cb_h2_logits = tf.stop_gradient(cb_h2_logits)
         cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.020002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.20002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
@@ -1884,7 +1885,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss -= 10*tf.reduce_mean(xpt_softpoints)
 
       with tf.variable_scope("cbsp"):
-        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=1.0)
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=2.0)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
