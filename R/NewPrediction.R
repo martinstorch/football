@@ -42,6 +42,14 @@ predictions_file<-"c:\\Models\\laplace_bwin_sky//new_predictions_df.csv"
 predictions_file<-"c:\\Models\\xg_bwin_sky//new_predictions_df.csv"
 predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
 
+
+point_type<-"d_points"
+cut_off_level_low<-3.8
+cut_off_level_high<-8.8
+human_level<-297/6/30
+human_level_median <- 282 / 6 / 30
+predictions_file<-"D:\\Models\\model_1920_gd//new_predictions_df.csv"
+
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)
 
@@ -140,7 +148,8 @@ evaluate<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
-  onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pspt", "pgpt", "pg2", "cp2", "cbsp")) # 
+  #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pspt", "pgpt", "pg2", "cp2", "cbsp")) # 
+  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", )) # 
   #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 

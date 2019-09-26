@@ -13,17 +13,15 @@
 # limitations under the License.
 # ==============================================================================
 """Example code for TensorFlow Wide & Deep Tutorial using TF.Learn API."""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+#from __future__ import absolute_import
+#from __future__ import division
+#from __future__ import print_function
 
 import argparse
 #import shutil
 import sys
 import tempfile
 import pickle
-import time
-from pathlib import Path
 import csv
 import pandas as pd
 pd.set_option('expand_frame_repr', False)
@@ -36,7 +34,6 @@ import os
 from threading import Event
 import signal
 
-from six.moves import urllib
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -48,7 +45,6 @@ from Estimators import Utilities as utils
 
 from collections import Counter
 #from pathlib import Path
-from sklearn import preprocessing
 from sklearn.metrics import confusion_matrix
 import random
 import itertools
@@ -79,9 +75,6 @@ TIMESERIES_COL = 'rawdata'
 
 def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   full_data =   pd.read_csv(data_dir+"/full_data.csv")
-  
-  #full_data = full_data .loc[(full_data.HomeTeam=="Bayern Munich") | (full_data.AwayTeam=="Bayern Munich")]
-  
   is_train = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(train_seasons).repeat(2)
   is_test = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(test_seasons).repeat(2)
   is_test.value_counts()
@@ -99,11 +92,6 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_features = all_data[feature_names]
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
-
-#  custom_filter = all_data.Team1=="Bayern Munich"  
-#  all_data = all_data[custom_filter]
-#  all_features = all_features[custom_filter]
-#  all_labels = all_labels[custom_filter]
 
 #  all_labels["Train"]=is_train.values
 #  all_labels["Test"]=is_test.values
@@ -236,11 +224,11 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
   ax[0].scatter(g1, g2, s=sp*10000, alpha=0.4, color=default_color)
   ax[0].scatter(gs, gc, s=sp[gs*7+gc]*10000, alpha=0.7, color=default_color)
   for i, txt in enumerate(sp):
-    ax[0].annotate("{:4.2f}".format(txt*100), (g1[i],g2[i]))
+    ax[0].annotate("{:4.2f}".format(txt*100), (g1[i]-0.3,g2[i]-0.1))
   ax[1].scatter(g1, g2, s=spt*500, alpha=0.4,color='red')
   ax[1].scatter(gs, gc, s=spt[gs*7+gc]*500, alpha=0.7,color='red')
   for i, txt in enumerate(spt):
-    ax[1].annotate("{:4.2f}".format(txt), (g1[i],g2[i]))
+    ax[1].annotate("{:4.2f}".format(txt), (g1[i]-0.3,g2[i]-0.1))
   ax[0].set_title(prefix)
   ax[1].set_title(prefix)
   max_sp = max(sp)
@@ -1354,7 +1342,7 @@ def main(_):
     #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
     target_distr=[(5, 20, 35), 10, (15, 8, 2), (20, 20, 80)] # [(3:0, 3:1, 2:1), 1:1, (1:2, 1:3, 0:3), (0:0, 0:1/1:0, 0:2/2:0)]
     
-    if FLAGS.target_system=="Pistor" :
+    if FLAGS.target_system=="Pistor" or FLAGS.target_system=="GoalDiff":
         # Pistor
         target_distr={  "cp":[(5, 15, 30), 25, (15, 8, 2), (20, 20, 80)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
@@ -1362,7 +1350,7 @@ def main(_):
                         "pg2":[(2, 10, 58), 5, (16, 3, 1), (20, 20, 80)],
                         "av":[(5, 15, 30), 20, (20, 8, 2), (20, 20, 80)],
                         }
-    elif FLAGS.target_system=="Sky" or FLAGS.target_system=="GoalDiff":
+    elif FLAGS.target_system=="Sky":
         # Sky
         target_distr={"cp":[(5, 20, 45), 1, (22, 5, 2), (10, 10, 85)],
                       "sp":[(6, 10, 58), 1, (19, 5, 2), (10, 10, 90)],
@@ -1385,8 +1373,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1430,8 +1418,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -1472,7 +1460,7 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="19000:",
       #default="60000:92000", 
-      default="-3",  # slice(-2, None)
+      default="-1",  # slice(-2, None)
       #default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
