@@ -3105,7 +3105,7 @@ Date,Season,Predict,HomeTeam,AwayTeam,FTHG,FTAG,FTR,HTHG,HTAG,HTR,HS,AS,HST,AST,
 22.09.2019,1920,False,Ein Frankfurt,Dortmund,2.0,2.0,D,1.0,1.0,D,17.0,15.0,3.0,7.0,18.0,10.0,5.0,8.0,2.0,2.0,0.0,0.0,4.4,4.25,1.7,Sunday,16:00,1.15899,2.36595
 23.09.2019,1920,False,Wolfsburg,Hoffenheim,1.0,1.0,D,1.0,1.0,D,12.0,11.0,4.0,5.0,11.0,18.0,4.0,6.0,2.0,4.0,0.0,0.0,1.95,3.9,3.5,Monday,18:30,0.941782,0.7432880000000001
 27.09.2019,1920,True,Union Berlin,Ein Frankfurt,,,,,,,,,,,,,,,,,,,2.95,3.5,2.25,Friday,20:30,,
-28.09.2019,1920,True,Hoffenheim,M'gladbach,,,,,,,,,,,,,,,,,,,2.45,3.4,2.7,Saturday,15:30,,
+28.09.2019,1920,True,Hoffenheim,M'gladbach,,,,,,,,,,,,,,,,,,,2.4,3.4,2.75,Saturday,15:30,,
 28.09.2019,1920,True,RB Leipzig,Schalke 04,,,,,,,,,,,,,,,,,,,1.53,4.1,5.75,Saturday,15:30,,
 28.09.2019,1920,True,Mainz,Wolfsburg,,,,,,,,,,,,,,,,,,,2.8,3.4,2.4,Saturday,15:30,,
 28.09.2019,1920,True,Augsburg,Leverkusen,,,,,,,,,,,,,,,,,,,4.6,4.6,1.57,Saturday,15:30,,

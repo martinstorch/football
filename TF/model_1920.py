@@ -1373,8 +1373,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      #default=True, 
-      default=False, 
+      default=True, 
+      #default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1418,8 +1418,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(

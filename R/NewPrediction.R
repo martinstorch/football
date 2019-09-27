@@ -13,33 +13,17 @@ human_level<-461/9/31
 human_level_median <- 449 / 9 / 31
 
 point_type<-"p_points"
-point_type<-"z_points"
 cut_off_level_low<-0.7
 cut_off_level_high<-1.4
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
-
-predictions_file<-"D:\\Models\\conv1_auto_pistor3//new_predictions_df.csv"
-predictions_file<-"C:\\Models\\laplace_pistor//new_predictions_df.csv"
 predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
-#predictions_file<-"c:\\Models\\xg_bwin_pistor//new_predictions_df.csv"
 
 point_type<-"s_points"
-point_type<-"z_points"
 cut_off_level_low<-1.25
 cut_off_level_high<-2.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"D:\\Models\\rnn1_sky/new_predictions_df.csv"
-predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df.csv"
-predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset15.csv"
-predictions_file<-"D:\\Models\\conv1_auto6_sky/new_predictions_df_offset25.csv"
-predictions_file<-"D:\\Models\\conv1_auto_sky4//new_predictions_df.csv"
-
-predictions_file<-"c:\\Models\\conv1_auto_sky5//new_predictions_df.csv"
-predictions_file<-"c:\\Models\\laplace_sky2//new_predictions_df.csv"
-predictions_file<-"c:\\Models\\laplace_bwin_sky//new_predictions_df.csv"
-predictions_file<-"c:\\Models\\xg_bwin_sky//new_predictions_df.csv"
 predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
 
 
