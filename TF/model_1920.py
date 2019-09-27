@@ -69,7 +69,7 @@ point_scheme_goal_diff = [[-1,-1,-1], [-1,-1,-1], [-1,-1,-1], [7, 9, 7.5], [285/
 
 point_scheme = point_scheme_pistor
 
-SEQ_LENGTH = 4
+SEQ_LENGTH = 20
 TIMESERIES_COL = 'rawdata'
 
 
@@ -1418,8 +1418,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -1447,10 +1447,10 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
+      default="train",
       #default="eval",
       #default="eval_stop",
-      default="predict",
+      #default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
