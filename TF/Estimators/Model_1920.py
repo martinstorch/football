@@ -772,7 +772,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=0.1), 
+                                           regularizer1 = l2_regularizer(scale=0.4), 
                                            regularizer2 = l2_regularizer(scale=0.2), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
@@ -1913,9 +1913,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       labels_shuffled1 = create_shuffled_labels(features["match_history_t1"], match_history_t1_seqlen)
       labels_shuffled2 = create_shuffled_labels(features["match_history_t2"], match_history_t2_seqlen)
       randomvalue = tf.random.uniform((1,))[0]
-      labels = tf.cond(randomvalue > 0.1, 
+      labels = tf.cond(randomvalue > 0.2, 
                        lambda: labels, 
-                       lambda: tf.cond(randomvalue < 0.05, 
+                       lambda: tf.cond(randomvalue < 0.1, 
                                        lambda: labels_shuffled1, 
                                        lambda: labels_shuffled2)
                        )
