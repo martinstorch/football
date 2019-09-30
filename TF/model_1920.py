@@ -1418,23 +1418,23 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_gd",
+      default="d:/Models/model_1920_pistor",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      #default="Pistor",
+      default="Pistor",
       #default="Sky",
       #default="TCS",
-      default="GoalDiff",
+      #default="GoalDiff",
       help="Point system to optimize for"
   )
   parser.add_argument(
@@ -1448,8 +1448,8 @@ if __name__ == "__main__":
       type=str,
       #default="static",
       default="train",
-      #default="eval",
       #default="eval_stop",
+      #default="eval",
       #default="predict",
       #default="upgrade",
       #default="train_eval",
@@ -1460,8 +1460,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="19000:",
       #default="60000:92000", 
-      default="-1",  # slice(-2, None)
-      #default="100:",
+      #default="-1",  # slice(-2, None)
+      default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )
