@@ -60,7 +60,7 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.xHG), "xHG"]=df_data.loc[pd.isna(df_data.xHG), "FTHG"]
   df_data.loc[pd.isna(df_data.xAG), "xAG"]=df_data.loc[pd.isna(df_data.xAG), "FTAG"]
   df_data.loc[pd.isna(df_data.Time), "Time"]="15:30"
-  df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-15.5
+  df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-14.5
   
   df_data.fillna(value=0, inplace=True)
   
