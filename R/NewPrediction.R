@@ -119,22 +119,20 @@ with (pp,
                        fill=T, fill.alpha = 0.05
       ))
 
-data_summary <- predictions_data %>% group_by(Prefix) %>% summarise(TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) )
-print(data_summary%>%arrange(-TestMean))
-
 hometeams<-unique(predictions_data[predictions_data$Where=="Home",c("Team1", "Team2")])
 print(hometeams)
+
+data_summary <- predictions_data %>% group_by(Prefix) %>% summarise(TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) )
+print(data_summary%>%arrange(-TestMean))
 
 t <- 1
 evaluate<-function(t){
   onematch1 <- predictions_data %>% filter(Team1==hometeams$Team1[t] & Team2==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1, Team2, Prefix, pred, train, test)
   onematch2 <- predictions_data %>% filter(Team2==hometeams$Team1[t] & Team1==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, train, test) %>% mutate(pred=stringi::stri_reverse(pred))
   onematch <- rbind(onematch1, onematch2)
-  #onematch <- onematch %>% filter(Prefix %in% c("ens", "pgpt", "sp", "ps", "pghb", "pspt", "smpt"))
-  #onematch <- onematch %>% filter(Prefix %in% c("ens", "cp", "sp", "smpt", "pspt", "pgpt", "cp2"))
-  #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pspt", "pgpt", "pg2", "cp2", "cbsp")) # 
-  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", )) # 
-  #onematch <- onematch %>% filter(Prefix %in% c("sm", "smpt", "pspt", "pgpt", "smpi", "cp")) # "sp", 
+  #onematch <- onematch %>% filter(!Prefix %in% c("pg2", "xpt"))
+  #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pgpt" )) # 
+  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
   onematch <- onematch %>% group_by(pred) %>% mutate(N=n()) %>% filter(N > 2) %>% ungroup() %>% mutate(legend_text=factor(pred)) 
