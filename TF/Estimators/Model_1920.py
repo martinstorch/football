@@ -484,9 +484,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
   #    p_pred_oppgoal = p_pred_h1[:,6]
   #    p_pred_bothgoal = p_pred_h1[:,7]
       
-    with tf.variable_scope("H2"):
+    with tf.variable_scope("H2", reuse=tf.AUTO_REUSE):
+
+      test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
+      test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
+      X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
       
-      test_p_pred_12_h2 = None
       if mode == tf.estimator.ModeKeys.TRAIN:
         # use actual half-time score as input for dense layer
         X = tf.concat([X, label_features_h1], axis=1)
@@ -494,32 +497,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_12_h2 = tf.nn.softmax(h2_logits)
         create_laplacian_loss(p_pred_12_h2, alpha=0.1) # 100
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
-      else:
-        test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
-        test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
-  
-        X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
-        #print(X3) # Tensor("Model/condprob/H2/concat:0", shape=(?, 136), dtype=float32)
-  
-        # this should find the same dense layer with same weights as in training - because name scope is same
-        test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-  
-        test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
-        create_laplacian_loss(test_p_pred_12_h2, alpha=0.1) # 100
-        test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
-        #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
+
+      # this should find the same dense layer with same weights as in training - because name scope is same
+      test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+      test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
+      test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
+      #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
         
-        p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
-        p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
-        #p_pred_12_h2 = tf.print(p_pred_12_h2, data=[p_pred_12_h2[0,:]], message="Summarised probability")
-        
+      p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
+      p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
+      #p_pred_12_h2 = tf.print(p_pred_12_h2, data=[p_pred_12_h2[0,:]], message="Summarised probability")
+      test_p_pred_12_h2 = tf.transpose(test_p_pred_12_h2, [1,0,2])
+      
+      if mode != tf.estimator.ModeKeys.TRAIN:
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
         #print(p_pred_h2)  #Tensor("Model/condprob/H2/MatMul_2:0", shape=(?, 8), dtype=float32)
-  
         h2_logits = tf.log((p_pred_12_h2 + 1e-7) )
         
-        test_p_pred_12_h2 = tf.transpose(test_p_pred_12_h2, [1,0,2])
-         
       if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
         label_oh_h2 = tf.one_hot(tf.cast(T1_GFT*7+T2_GFT, tf.int32), 49, dtype=X.dtype)
         label_features_h2 = tf.matmul(label_oh_h2, t_map)
@@ -1047,6 +1041,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
   def create_quantile_scheme_prediction(outputs, logits, t_is_home_bool, tc, mode, prefix, p_pred_12=None):
         if p_pred_12 is None:
           p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
+        
+        p_pred_12 = tf.stop_gradient(p_pred_12)
         
         p_pred_gdiff = get_gdiff(p_pred_12)
         
@@ -1913,9 +1909,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       labels_shuffled1 = create_shuffled_labels(features["match_history_t1"], match_history_t1_seqlen)
       labels_shuffled2 = create_shuffled_labels(features["match_history_t2"], match_history_t2_seqlen)
       randomvalue = tf.random.uniform((1,))[0]
-      labels = tf.cond(randomvalue > 0.2, 
+      labels = tf.cond(randomvalue > 0.1, 
                        lambda: labels, 
-                       lambda: tf.cond(randomvalue < 0.1, 
+                       lambda: tf.cond(randomvalue < 0.05, 
                                        lambda: labels_shuffled1, 
                                        lambda: labels_shuffled2)
                        )
@@ -1962,8 +1958,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       h1_logits, h2_logits, p_pred_h1, label_features_h1, p_pred_h2, label_features_h2, t_mask, test_p_pred_12_h2, p_pred_12_h2 = cond_probs
       
-      predictions["test_p_pred_12_h2"]=test_p_pred_12_h2
-      predictions["p_pred_12_h2"]=p_pred_12_h2
+      predictions["cp/test_p_pred_12_h2"]=test_p_pred_12_h2
+      h2_logits = tf.log(p_pred_12_h2) # use predicted probabilities as logits
+      
+      predictions["cp/p_pred_12_h2"]=p_pred_12_h2
       
       if mode == tf.estimator.ModeKeys.EVAL or mode == tf.estimator.ModeKeys.TRAIN:
         predictions["cp1/logits"] = h1_logits
@@ -1987,19 +1985,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("cp"):
           #cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
-          cp_predictions = create_quantile_scheme_prediction(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
+          cp_predictions = create_quantile_scheme_prediction(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp", p_pred_12 = predictions["cp/p_pred_12_h2"])
       predictions.update(apply_prefix(cp_predictions, "cp/"))
       cp1_predictions = create_predictions(outputs, h1_logits, t_is_home_bool, tc, False)
       predictions.update(apply_prefix(cp1_predictions, "cp1/"))
 
-      avg_logits = tf.log(predictions["sp/p_pred_12"]) + h2_logits # averaging of sp and cp strategies in logit space
+      avg_p_pred_12 = predictions["sp/p_pred_12"]+predictions["cp/p_pred_12_h2"] # averaging of sp and cp strategies 
+      avg_logits = tf.log(avg_p_pred_12) 
       with tf.variable_scope("av"):
 #        avg_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, False)
 #        avg_pred = create_fixed_scheme_prediction_new(avg_predictions["p_pred_12"], t_is_home_bool, mode)
 #        avg_predictions.update({"pred":avg_pred})
 #        predictions.update(apply_prefix(avg_predictions, "av/"))
         # avg_predictions = create_hierarchical_predictions(outputs, avg_logits, t_is_home_bool, tc, mode, prefix="av")
-        avg_predictions = create_quantile_scheme_prediction(outputs, avg_logits, t_is_home_bool, tc, mode, prefix="av")
+        avg_predictions = create_quantile_scheme_prediction(outputs, avg_logits, t_is_home_bool, tc, mode, prefix="av", p_pred_12 = avg_p_pred_12)
         predictions.update(apply_prefix(avg_predictions, "av/"))
         
         # for avmx - average the ev_points, not the logits or p_pred_12 probabilities
@@ -2042,7 +2041,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       ########################################
       with tf.variable_scope("xpt"):
-          xpt_predictions = point_maximization_layer(outputs, tf.concat([hidden_layer, predictions["cp/p_pred_12"]*0.0], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=True)
+          xpt_predictions = point_maximization_layer(outputs, tf.concat([predictions["cp/p_pred_12_h2"]], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=True)
 
           xpt_predictions  = calc_probabilities(xpt_predictions ["p_pred_12"], xpt_predictions)
           xpt_predictions = apply_poisson_summary(xpt_predictions["p_pred_12"], t_is_home_bool, tc, predictions = xpt_predictions)
@@ -2204,10 +2203,22 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     def skip_gradients(gradients, variables, exclude_list): 
       gradvars = [(g,v) for g,v in zip(gradients, variables) if g is not None and not any(s in v.name for s in exclude_list)]      
       gradients, variables = zip(*gradvars)
-      print(variables)
-      print(gradients)
+#      print(variables)
+#      print(gradients)
       return gradients, variables
       
+    # last 100 steps: set gradient to 0 for exclude_list
+    def null_gradients(gradients, variables, exclude_list): 
+      return [g if g is None or not any(s in v.name for s in exclude_list) else \
+              tf.cast(tf.mod(global_step-1, save_steps)<=(save_steps-30), tf.float32)*g for g,v in zip(gradients, variables)]
+
+    def large_gradients(gradients, variables, exclude_list): 
+      # double the gradient for all except those in exclude list
+      return [g if g is None else \
+              tf.cast(tf.mod(global_step-1, save_steps)<=(save_steps-30), tf.float32)*g \
+                        if any(s in v.name for s in exclude_list) else \
+              g + 0.5*g*tf.cast(tf.mod(global_step-1, save_steps) > (save_steps-30), tf.float32) for g,v in zip(gradients, variables)]
+
     reg_gradients, reg_variables = skip_gradients(reg_gradients, reg_variables, exclude_list)
     gradients, variables = skip_gradients(gradients, variables, exclude_list)
     
@@ -2233,6 +2244,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
     global_norm = tf.global_norm([tf.cast(g, dtype=tf.float32) for g in gradients])
     eval_metric_ops.update(collect_summary("Gradients", "global_norm", mode, tensor=global_norm))
+
+#    # ##################################
+#    # freeze Layer0 in the last 100 steps and increase regularization on remaining layers instead
+    reg_gradients = large_gradients(reg_gradients, reg_variables, exclude_list = ["Layer0"])
+    gradients = null_gradients(gradients, variables, exclude_list = ["Layer0"])
 
     #print("gradient variables", variables)
     train_op = optimizer.apply_gradients(zip(gradients, variables), 
