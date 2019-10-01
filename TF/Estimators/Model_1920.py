@@ -474,6 +474,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         label_features_h1 = tf.matmul(label_oh_h1, t_map)
       else:
         label_features_h1 = None
+      label_features_h1_est = tf.matmul(p_pred_12_h1, t_map)
         
   #    p_pred_win = p_pred_h1[:,0]
   #    p_pred_draw = p_pred_h1[:,1]
@@ -490,26 +491,33 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
       X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
       
+      test_p_pred_12_h2 = None
       if mode == tf.estimator.ModeKeys.TRAIN:
         # use actual half-time score as input for dense layer
-        X = tf.concat([X, label_features_h1], axis=1)
-        h2_logits,_ = build_dense_layer(X, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        X4 = tf.concat([X, label_features_h1], axis=1)
+        h2_logits,_ = build_dense_layer(X4, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         p_pred_12_h2 = tf.nn.softmax(h2_logits)
         create_laplacian_loss(p_pred_12_h2, alpha=0.1) # 100
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
-
-      # this should find the same dense layer with same weights as in training - because name scope is same
-      test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-      test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
-      test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
-      #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
         
-      p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
-      p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
-      #p_pred_12_h2 = tf.print(p_pred_12_h2, data=[p_pred_12_h2[0,:]], message="Summarised probability")
-      test_p_pred_12_h2 = tf.transpose(test_p_pred_12_h2, [1,0,2])
+        # loss will be linked to h2_logits only
+        # reestimate p_pred_12_h2 from p_pred_12_h1_est
+        X2 = tf.concat([X, label_features_h1_est], axis=1)
+        h2_logits_est,_ = build_dense_layer(X2, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        p_pred_12_h2 = tf.nn.softmax(h2_logits_est)
+        
+      else:  
+        # this should find the same dense layer with same weights as in training - because name scope is same
+        test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
+        test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
+        #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
+            
+        p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
+        p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
+        #p_pred_12_h2 = tf.print(p_pred_12_h2, data=[p_pred_12_h2[0,:]], message="Summarised probability")
+        test_p_pred_12_h2 = tf.transpose(test_p_pred_12_h2, [1,0,2])
       
-      if mode != tf.estimator.ModeKeys.TRAIN:
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
         #print(p_pred_h2)  #Tensor("Model/condprob/H2/MatMul_2:0", shape=(?, 8), dtype=float32)
         h2_logits = tf.log((p_pred_12_h2 + 1e-7) )
@@ -1909,9 +1917,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       labels_shuffled1 = create_shuffled_labels(features["match_history_t1"], match_history_t1_seqlen)
       labels_shuffled2 = create_shuffled_labels(features["match_history_t2"], match_history_t2_seqlen)
       randomvalue = tf.random.uniform((1,))[0]
-      labels = tf.cond(randomvalue > 0.1, 
+      labels = tf.cond(randomvalue > 0.15, 
                        lambda: labels, 
-                       lambda: tf.cond(randomvalue < 0.05, 
+                       lambda: tf.cond(randomvalue < 0.075, 
                                        lambda: labels_shuffled1, 
                                        lambda: labels_shuffled2)
                        )
@@ -2247,8 +2255,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
 #    # ##################################
 #    # freeze Layer0 in the last 100 steps and increase regularization on remaining layers instead
-    reg_gradients = large_gradients(reg_gradients, reg_variables, exclude_list = ["Layer0"])
-    gradients = null_gradients(gradients, variables, exclude_list = ["Layer0"])
+#    reg_gradients = large_gradients(reg_gradients, reg_variables, exclude_list = ["Layer0", "Softpoints/WDL"])
+#    gradients = null_gradients(gradients, variables, exclude_list = ["Layer0", "Softpoints/WDL"])
 
     #print("gradient variables", variables)
     train_op = optimizer.apply_gradients(zip(gradients, variables), 
