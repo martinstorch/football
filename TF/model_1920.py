@@ -69,7 +69,7 @@ point_scheme_goal_diff = [[-1,-1,-1], [-1,-1,-1], [-1,-1,-1], [7, 9, 7.5], [285/
 
 point_scheme = point_scheme_pistor
 
-SEQ_LENGTH = 20
+SEQ_LENGTH = 10
 TIMESERIES_COL = 'rawdata'
 
 
@@ -1344,11 +1344,11 @@ def main(_):
     
     if FLAGS.target_system=="Pistor" :
         # Pistor
-        target_distr={  "cp":[(2, 10, 48), 15, (16, 8, 1), (20, 20, 80)],
+        target_distr={  "cp":[(2, 10, 48), 15, (16, 8, 1), (2, 2, 50)],
                         "sp":[(2, 20, 43), 15, (14, 5, 1), (20, 20, 80)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
                         "pg2":[(2, 12, 48), 5, (22, 5, 1), (20, 20, 80)],
-                        "av":[(2, 10, 43), 15, (21, 8, 1), (20, 20, 80)],
+                        "av":[(2, 10, 43), 15, (21, 8, 1), (2, 2, 50)],
                         }
     elif FLAGS.target_system=="Sky" or FLAGS.target_system=="GoalDiff":
         # Sky

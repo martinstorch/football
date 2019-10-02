@@ -593,9 +593,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           #print("tanh smooth")
           return tf.tanh(x)
 
-      def make_rnn_cell():
-        return tf.nn.rnn_cell.BasicRNNCell(num_units=8, 
-                                          activation=None)
 #        
 #        rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=8, 
 #                                          activation=None, #tanhStochastic,
@@ -610,39 +607,63 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        return rnn_cell
       
 
-      def make_gru_cell():
-        return tf.nn.rnn_cell.MultiRNNCell([
-            make_rnn_cell(), 
-#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell()),
-#            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
-          ])
+#      def make_gru_cell():
+#        return tf.nn.rnn_cell.MultiRNNCell([
+#            make_rnn_cell(), 
+##            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell()),
+##            tf.nn.rnn_cell.ResidualWrapper(make_rnn_cell())
+#          ])
       
-      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
-        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float32)
-        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
-                                   initial_state=initial_state,
-                                   dtype=tf.float32,
-                                   sequence_length = sequence_length)
-        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
-        # 'state' is a tensor of shape [batch_size, num_units]
-        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
-#        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
-        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
-        return state[-1] # use upper layer state
+#      def make_rnn(match_history, sequence_length, rnn_cell = make_gru_cell()):
+#        initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float32)
+#        outputs, state = tf.nn.dynamic_rnn(rnn_cell, match_history,
+#                                   initial_state=initial_state,
+#                                   dtype=tf.float32,
+#                                   sequence_length = sequence_length)
+#        # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
+#        # 'state' is a tensor of shape [batch_size, num_units]
+#        eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
+##        eval_metric_ops.update(variable_summaries(state[1], "States", mode))
+#        eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
+#        return state[-1] # use upper layer state
+#
+      def make_rnn_cell():
+        return tf.keras.layers.SimpleRNNCell(units=8, 
+                                          activation=None,
+                                          recurrent_regularizer = l2_regularizer(scale=0.1))
 
-      def rnn_histograms():
-        def rnn_histogram(section, num, part, regularizer=None):
-          scope = tf.get_variable_scope().name
-          summary_name = "gru_cell/"+section+num+"/"+part
-          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
-          node = tf.get_default_graph().get_tensor_by_name(node_name)
-          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
-          if regularizer is not None:
-            loss = tf.identity(regularizer(node), name=summary_name)
-            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
-            if loss is not None:
-              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
+      def make_rnn(match_history, sequence_length, rnn_cell):
+          def extract_BW_xG_WDL(y):
+              return tf.concat([y[:,:,4:7], y[:,:,-2:], y[:,:,-30:-27]], axis=2)
+          match_history = extract_BW_xG_WDL(match_history)
+          print(match_history)
+          rnn_output = tf.keras.layers.RNN(cell = rnn_cell,
+                                      return_sequences=False,
+                                          return_state=False,
+                                      unroll=True)(match_history, mask=None, 
+                                                 training=(mode==tf.estimator.ModeKeys.TRAIN))
 
+          # 'outputs' is a tensor of shape [batch_size, max_time, num_units]
+          # 'state' is a tensor of shape [batch_size, num_units]
+          #eval_metric_ops.update(variable_summaries(outputs, "Intermediate_Outputs", mode))
+          eval_metric_ops.update(variable_summaries(rnn_output, "rnn_output", mode))
+          eval_metric_ops.update(variable_summaries(sequence_length, "Sequence_Length", mode))
+          return rnn_output 
+
+      
+#      def rnn_histograms():
+#        def rnn_histogram(section, num, part, regularizer=None):
+#          scope = tf.get_variable_scope().name
+#          summary_name = "gru_cell/"+section+num+"/"+part
+#          node_name = scope+"/rnn/multi_rnn_cell/cell_"+num+"/gru_cell/"+section+"/"+part+":0"
+#          node = tf.get_default_graph().get_tensor_by_name(node_name)
+#          eval_metric_ops.update(variable_summaries(node, summary_name, mode))
+#          if regularizer is not None:
+#            loss = tf.identity(regularizer(node), name=summary_name)
+#            ops.add_to_collection(tf.GraphKeys.WEIGHTS, node)
+#            if loss is not None:
+#              ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, loss)
+#
 #        rnn_histogram("gates", "0", "kernel", l2_regularizer(scale=1.01))
 #        rnn_histogram("gates", "0", "bias")
 #        rnn_histogram("candidate", "0", "kernel", l2_regularizer(scale=3.01))
@@ -651,15 +672,14 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #        rnn_histogram("gates", "1", "bias")
 #        rnn_histogram("candidate", "1", "kernel", l2_regularizer(scale=3.01))
 #        rnn_histogram("candidate", "1", "bias")
-
-#      with tf.variable_scope("RNN_1"):
-#        shared_rnn_cell = make_gru_cell()
-#        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
+      with tf.variable_scope("RNN_1"):
+        shared_rnn_cell = make_rnn_cell()
+        history_state_t1 = make_rnn(match_history_t1, sequence_length = match_history_t1_seqlen, rnn_cell=shared_rnn_cell)  
 #        rnn_histograms()
-#      with tf.variable_scope("RNN_2"):
-#        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
-#      with tf.variable_scope("RNN_12"):
-#        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_gru_cell())  
+      with tf.variable_scope("RNN_2"):
+        history_state_t2 = make_rnn(match_history_t2, sequence_length = match_history_t2_seqlen, rnn_cell=shared_rnn_cell)  
+      with tf.variable_scope("RNN_12"):
+        history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_rnn_cell())  
 #        rnn_histograms()
 
 
@@ -690,8 +710,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         return tf.concat([y[:,step,4:7], y[:,step,-2:], y[:,step,-30:-27]], axis=1)
       
       X = features_newgame
-      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1), extract_BW_xG_WDL(match_history_t2), extract_BW_xG_WDL(match_history_t12)], axis=1)
-      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -2), extract_BW_xG_WDL(match_history_t2, -2)], axis=1)
+#      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1), extract_BW_xG_WDL(match_history_t2), extract_BW_xG_WDL(match_history_t12)], axis=1)
+#      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -2), extract_BW_xG_WDL(match_history_t2, -2)], axis=1)
+#      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -3), extract_BW_xG_WDL(match_history_t2, -3)], axis=1)
+#      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -4), extract_BW_xG_WDL(match_history_t2, -4)], axis=1)
+#      X = tf.concat([X, extract_BW_xG_WDL(match_history_t1, -5), extract_BW_xG_WDL(match_history_t2, -5)], axis=1)
       BWdata = X[:,4:7]
       X= tf.concat([X[:,0:4], X[:,7:]], axis=1)
       if mode == tf.estimator.ModeKeys.TRAIN:
@@ -699,6 +722,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           BWdata  = tf.cond(tf.random.uniform((1,))[0]>0.2, lambda: BWdata, lambda: tf.random.shuffle(BWdata))
       
       X = tf.concat([X, BWdata], axis=1)
+
+      X = tf.concat([X, history_state_t1, history_state_t2, history_state_t12], axis=1)
       
 #      if mode == tf.estimator.ModeKeys.TRAIN:
 #          X= tf.cond(tf.random.uniform((1,))[0]>0.05, lambda: X, lambda: tf.random.shuffle(X))
