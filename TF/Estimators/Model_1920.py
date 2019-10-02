@@ -487,10 +487,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
     with tf.variable_scope("H2", reuse=tf.AUTO_REUSE):
 
-      test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
-      test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
-      X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
-      
       test_p_pred_12_h2 = None
       if mode == tf.estimator.ModeKeys.TRAIN:
         # use actual half-time score as input for dense layer
@@ -508,6 +504,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         
       else:  
         # this should find the same dense layer with same weights as in training - because name scope is same
+        test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
+        test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
+        
+        X3 = tf.concat([
+            tf.tile(X, [49,1]),
+            tf.reshape(tf.tile(test_label_features_h1, [1,tf.shape(X)[0]]), (tf.shape(X)[0]*49, test_label_features_h1.shape[1])),
+            ], axis=1)
+        
+        #X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
         test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
         test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
@@ -637,6 +642,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
               return tf.concat([y[:,:,4:7], y[:,:,-2:], y[:,:,-30:-27]], axis=2)
           match_history = extract_BW_xG_WDL(match_history)
           print(match_history)
+
+          if mode == tf.estimator.ModeKeys.TRAIN:
+            match_history = tf.cond(tf.random.uniform((1,))[0]>0.2, 
+                        lambda: match_history, 
+                        lambda: tf.transpose(tf.random.shuffle(tf.transpose(match_history, (1,0,2))), (1,0,2))
+                        )
+
           rnn_output = tf.keras.layers.RNN(cell = rnn_cell,
                                       return_sequences=False,
                                           return_state=False,
@@ -681,11 +693,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       with tf.variable_scope("RNN_12"):
         history_state_t12 = make_rnn(match_history_t12, sequence_length = match_history_t12_seqlen, rnn_cell=make_rnn_cell())  
 #        rnn_histograms()
-
-
-
-
-
+      
+      def reshuffle(x, mode):
+        if mode == tf.estimator.ModeKeys.TRAIN:
+          x = tf.cond(tf.random.uniform((1,))[0]>0.2, 
+                      lambda: x, 
+                      lambda: tf.gather(x, tf.random.shuffle(tf.range(tf.shape(x)[0]))))
+        return x
+      
+#      history_state_t1 = reshuffle(history_state_t1 , mode)
+#      history_state_t2 = reshuffle(history_state_t2 , mode)
+#      history_state_t12 = reshuffle(history_state_t12 , mode)
      
          #X = features_newgame
 #        with tf.variable_scope("MH1"):
@@ -747,7 +765,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.7), # 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.5), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -755,7 +773,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.7), # 100.0
+                                    regularizer = l1_regularizer(scale=0.5), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
