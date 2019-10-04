@@ -635,7 +635,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       def make_rnn_cell():
         return tf.keras.layers.SimpleRNNCell(units=8, 
                                           activation=None,
-                                          recurrent_regularizer = l2_regularizer(scale=0.1))
+                                          recurrent_regularizer = l2_regularizer(scale=3.0))
 
       def make_rnn(match_history, sequence_length, rnn_cell):
           def extract_BW_xG_WDL(y):
@@ -741,7 +741,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       X = tf.concat([X, BWdata], axis=1)
 
-      X = tf.concat([X, history_state_t1, history_state_t2, history_state_t12], axis=1)
+      hh = tf.concat([history_state_t1, history_state_t2, history_state_t12], axis=1)
+      if mode == tf.estimator.ModeKeys.TRAIN:
+          hh = tf.cond(tf.random.uniform((1,))[0]>0.2, 
+                      lambda: hh, 
+                      lambda: tf.gather(hh, tf.random.shuffle(tf.range(tf.shape(hh)[0]))))
+
+      X = tf.concat([X, hh], axis=1)
       
 #      if mode == tf.estimator.ModeKeys.TRAIN:
 #          X= tf.cond(tf.random.uniform((1,))[0]>0.05, lambda: X, lambda: tf.random.shuffle(X))
@@ -765,7 +771,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.5), # 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.8), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -773,7 +779,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.5), # 100.0
+                                    regularizer = l1_regularizer(scale=0.8), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -817,31 +823,31 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=0.4), 
-                                           regularizer2 = l2_regularizer(scale=0.2), 
+                                           regularizer1 = l2_regularizer(scale=4.0), 
+                                           regularizer2 = l2_regularizer(scale=1.6), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         with tf.variable_scope("WDL"):
           sp_logits_1,_ = build_dense_layer(X, 3, mode, 
-                                        regularizer = l2_regularizer(scale=0.6), # 2.0
+                                        regularizer = l2_regularizer(scale=2.0), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 11, mode, 
-                                        regularizer = l2_regularizer(scale=0.200002), # 2.0
+                                        regularizer = l2_regularizer(scale=2.800002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=1.200002), # 2.0
+                                        regularizer = l2_regularizer(scale=8.400002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=2.2002), #2.0
+                                regularizer = l2_regularizer(scale=8.4002), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
