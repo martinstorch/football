@@ -460,7 +460,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_mask = tf.cast(t_mask, tf.float32)
   
       p_pred_12_h1 = tf.nn.softmax(h1_logits)
-      create_laplacian_loss(p_pred_12_h1, alpha=0.1) # 100
+      create_laplacian_loss(p_pred_12_h1, alpha=0.01) # 100
       p_pred_h1 = tf.matmul(p_pred_12_h1, t_map)
   
       if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
@@ -474,7 +474,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         label_features_h1 = tf.matmul(label_oh_h1, t_map)
       else:
         label_features_h1 = None
-      label_features_h1_est = tf.matmul(p_pred_12_h1, t_map)
+      label_features_h1_est = tf.matmul(tf.stop_gradient(p_pred_12_h1), t_map)
         
   #    p_pred_win = p_pred_h1[:,0]
   #    p_pred_draw = p_pred_h1[:,1]
@@ -490,10 +490,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       test_p_pred_12_h2 = None
       if mode == tf.estimator.ModeKeys.TRAIN:
         # use actual half-time score as input for dense layer
-        X4 = tf.concat([X, label_features_h1], axis=1)
+        X4 = tf.concat([X, tf.stop_gradient(label_features_h1)], axis=1)
         h2_logits,_ = build_dense_layer(X4, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         p_pred_12_h2 = tf.nn.softmax(h2_logits)
-        create_laplacian_loss(p_pred_12_h2, alpha=0.1) # 100
+        create_laplacian_loss(p_pred_12_h2, alpha=0.01) # 100
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
         
         # loss will be linked to h2_logits only
@@ -821,9 +821,18 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      with tf.variable_scope("Skymax"):
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
+      with tf.variable_scope("Poisson"):
+        outputs,Z = build_dense_layer(X, output_size, mode, 
+                                regularizer = l2_regularizer(scale=10.0), #2.0
+                                keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        #outputs, index = harmonize_outputs(outputs, label_column_names)
+        #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
+
+      X = tf.stop_gradient(X)
+
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=4.0), 
+                                           regularizer1 = l2_regularizer(scale=1.3), 
                                            regularizer2 = l2_regularizer(scale=1.6), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
@@ -835,22 +844,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 11, mode, 
-                                        regularizer = l2_regularizer(scale=2.800002), # 2.0
+                                        regularizer = l2_regularizer(scale=8.800002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=8.400002), # 2.0
+                                        regularizer = l2_regularizer(scale=16.400002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
-      with tf.variable_scope("Poisson"):
-        outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=8.4002), #2.0
-                                keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-        #outputs, index = harmonize_outputs(outputs, label_column_names)
-        #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
       
       with tf.variable_scope("cbsp"):
         cb_h2_logits = cond_probs[8]
@@ -859,7 +862,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
         cb_h2_logits = tf.stop_gradient(cb_h2_logits)
         cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.20002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.020002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
@@ -1226,7 +1229,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
           predictions = create_predictions(logits, logits, t_is_home_bool, tc, use_max_points)
 
           p_pred_12 = tf.nn.softmax(logits)
-          create_laplacian_loss(p_pred_12, alpha=0.01)
+          create_laplacian_loss(p_pred_12, alpha=0.001)
           
           predictions = apply_poisson_summary(p_pred_12, t_is_home_bool, tc, predictions = predictions)
           predictions = calc_probabilities(p_pred_12, predictions)
@@ -1619,7 +1622,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss -= 10*tf.reduce_mean(xpt_softpoints)
 
       with tf.variable_scope("cbsp"):
-        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.001)
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.00001)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
