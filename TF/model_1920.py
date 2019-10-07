@@ -1239,7 +1239,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   
 def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data, 
                    checkpoints, save_steps, data_dir, max_to_keep, 
-                   evaluate_after_steps, skip_plotting, target_system, modes, use_swa, histograms):
+                   reset_variables, skip_plotting, target_system, modes, use_swa, histograms):
   tf.logging.set_verbosity(tf.logging.INFO)
   
   """Train and evaluate the model."""
@@ -1311,13 +1311,13 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
   features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
   print(label_column_names)
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, evaluate_after_steps, max_to_keep, len(teamnames), use_swa, histograms, target_distr)
+  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, max_to_keep, len(teamnames), use_swa, histograms, target_distr)
   
   model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
   if modes == "static":
     static_probabilities(model_data)    
   elif "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array)
+    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array, reset_variables=reset_variables)
   elif modes == "train": 
     train_model(model_data, train_steps)
   elif modes == "train_eval": 
@@ -1352,11 +1352,11 @@ def main(_):
                         }
     elif FLAGS.target_system=="Sky" or FLAGS.target_system=="GoalDiff":
         # Sky
-        target_distr={"cp":[(5, 20, 45), 1, (22, 5, 2), (10, 10, 85)],
+        target_distr={"cp":[(5, 20, 45), 1, (22, 5, 2), (1, 1, 85)],
                       "sp":[(6, 10, 58), 1, (19, 5, 2), (10, 10, 90)],
         #                "pgpt":[(5, 20, 35), 25, (8, 5, 2), (20, 20, 80)],
-                      "pg2":[(2, 8, 70), 1, (13, 4, 2), (30, 30, 70)],
-                      "av":[(7, 15, 48), 0, (23, 5, 2), (30, 30, 70)],
+                      "pg2":[(2, 13, 55), 1, (18, 9, 2), (30, 30, 70)],
+                      "av":[(7, 15, 48), 0, (23, 5, 2), (3, 3, 70)],
                     }
     else:
         raise("Wrong system")
@@ -1364,7 +1364,7 @@ def main(_):
     dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                      FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                      FLAGS.save_steps, FLAGS.data_dir, FLAGS.max_to_keep, 
-                     FLAGS.evaluate_after_steps, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
+                     FLAGS.reset_variables, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
   
   
 
@@ -1373,8 +1373,8 @@ if __name__ == "__main__":
   parser.register("type", "bool", lambda v: v.lower() == "true")
   parser.add_argument(
       "--skip_plotting", type=bool,
-      default=True, 
-      #default=False, 
+      #default=True, 
+      default=False, 
       help="Print plots of predicted data"
   )
   parser.add_argument(
@@ -1395,10 +1395,10 @@ if __name__ == "__main__":
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
-      "--evaluate_after_steps", type=int,
-      default=200,
+      "--reset_variables", type=str, #nargs='+',
+      default="cbsp",
       #default=300,
-      help="Number of training steps after which to run evaluation. Should be a multiple of save_steps"
+      help="List of variable names to be re-initialized during upgrade"
   )
   parser.add_argument(
       "--max_to_keep", type=int,
@@ -1418,14 +1418,14 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_sky",
+      default="d:/Models/model_1920_sky2",
       help="Base directory for output models."
   )
   parser.add_argument(
@@ -1460,8 +1460,8 @@ if __name__ == "__main__":
       "--checkpoints", type=str,
       #default="19000:",
       #default="60000:92000", 
-      #default="-1",  # slice(-2, None)
-      default="100:",
+      default="-1",  # slice(-2, None)
+      #default="100:",
       #default="",
       help="Range of checkpoints for evaluation / prediction. Format: "
   )

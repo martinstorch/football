@@ -366,7 +366,7 @@ def kl_divergence(p, p_hat):
         return tf.reduce_sum(p * tf.log(p+epsilon) - p * tf.log(p_hat+epsilon) + (1 - p) * tf.log(1 - p + epsilon) - (1 - p) * tf.log(1 - p_hat + epsilon), name="KL_divergence")
 
 
-def create_estimator(model_dir, label_column_names, my_feature_columns, thedata, thelabels, save_steps, evaluate_after_steps, max_to_keep, teams_count, use_swa, histograms, target_distr):    
+def create_estimator(model_dir, label_column_names, my_feature_columns, thedata, thelabels, save_steps, max_to_keep, teams_count, use_swa, histograms, target_distr):    
   
   def variable_summaries(var, name, mode):
       """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
@@ -771,7 +771,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.8), # 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.7), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -779,7 +779,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.8), # 100.0
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -823,7 +823,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=10.0), #2.0
+                                regularizer = l2_regularizer(scale=0.7), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
@@ -832,25 +832,25 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=1.3), 
-                                           regularizer2 = l2_regularizer(scale=1.6), 
+                                           regularizer1 = l2_regularizer(scale=0.2), 
+                                           regularizer2 = l2_regularizer(scale=0.3), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
       with tf.variable_scope("Softpoints"):
         with tf.variable_scope("WDL"):
           sp_logits_1,_ = build_dense_layer(X, 3, mode, 
-                                        regularizer = l2_regularizer(scale=2.0), # 2.0
+                                        regularizer = l2_regularizer(scale=1.0), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 11, mode, 
-                                        regularizer = l2_regularizer(scale=8.800002), # 2.0
+                                        regularizer = l2_regularizer(scale=2.00002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=16.400002), # 2.0
+                                        regularizer = l2_regularizer(scale=6.00002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
@@ -862,7 +862,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
         cb_h2_logits = tf.stop_gradient(cb_h2_logits)
         cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.020002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.000020002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
@@ -1603,7 +1603,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         t_leg2_pred = tf.matmul(p, t_leg2_mask)   
         l_softmax1 = t_weight * weighted_softmax_cross_entropy(t_wdl_labels*t_pred_tendency_weight, t_wdl_pred) 
         l_softmax2 = t_weight * weighted_softmax_cross_entropy(t_leg2_labels, t_leg2_pred) 
-        softpoints = t_weight * weighted_softmax_cross_entropy(-achievable_points_mask, p * t_draw_bias_mask)
+        softpoints = t_weight * weighted_softmax_cross_entropy(-achievable_points_mask, p ) # * t_draw_bias_mask
         
         return 0.05*l_softmax1 + 0.2*l_softmax2, softpoints
       
@@ -1615,14 +1615,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       loss += 0.05*tf.reduce_mean(pt_pgpt_sm_loss)
 
 
-      pt_cbsp_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["cbsp/p_pred_12"]) * achievable_points_mask, axis=1)
-      loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
+      #pt_cbsp_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["cbsp/p_pred_12"]) * achievable_points_mask, axis=1)
+      #loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
+      pt_cbsp_sm_loss, pt_cbsp_softpoints = softpoint_loss(predictions["cbsp/p_pred_12"])
+      loss -= 0.05*tf.reduce_mean(pt_cbsp_softpoints)
+      loss += 5.05*tf.reduce_mean(pt_cbsp_sm_loss)
       
-      xpt_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["xpt/p_pred_12"]) * achievable_points_mask, axis=1)
-      loss -= 10*tf.reduce_mean(xpt_softpoints)
+#      xpt_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["xpt/p_pred_12"]) * achievable_points_mask, axis=1)
+#      loss -= 10*tf.reduce_mean(xpt_softpoints)
+      pt_xpt_sm_loss, pt_xpt_softpoints = softpoint_loss(predictions["xpt/p_pred_12"])
+      loss -= 0.05*tf.reduce_mean(pt_xpt_softpoints)
+      loss += 5.05*tf.reduce_mean(pt_xpt_sm_loss)
 
       with tf.variable_scope("cbsp"):
-        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.00001)
+        create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.0000000001)
       #create_laplacian_loss(predictions["sp/p_pred_12"], alpha=1.0) # 100
       
       #print(tf.get_collection(tf.GraphKeys.WEIGHTS))
@@ -1645,15 +1651,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       if False:
         loss += l_regularization
       
-#      ### ensemble
-#      t_home_points = tf.stack([predictions[p+"z_points"][0::2] for p in ens_prefix_list], axis=1)
-#      t_away_points = tf.stack([predictions[p+"z_points"][1::2] for p in ens_prefix_list], axis=1)
-#      t_points = tf.concat([t_home_points, t_away_points], axis=1)
-#      t_ensemble_softpoints = t_weight[::2] * tf.reduce_sum(predictions["ens/p_ensemble"][0::2]*t_points, axis=1)
-
-      #loss -= tf.reduce_mean(30*t_ensemble_softpoints)
-      # 30.1.2018
-#      loss -= tf.reduce_mean(10*t_ensemble_softpoints)
       
       loss = tf.identity(loss, "loss")
       #tf.summary.scalar("loss", loss)
@@ -1676,7 +1673,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       eval_metric_ops.update(collect_summary("summary", "l_regularization", mode, tensor=l_regularization))
 
       eval_metric_ops.update(collect_summary("losses", "pt_cbsp_softpoints", mode, tensor=pt_cbsp_softpoints))
-      eval_metric_ops.update(collect_summary("losses", "xpt_softpoints", mode, tensor=xpt_softpoints))
+      eval_metric_ops.update(collect_summary("losses", "pt_cbsp_sm_loss", mode, tensor=pt_cbsp_sm_loss))
+      eval_metric_ops.update(collect_summary("losses", "pt_xpt_softpoints", mode, tensor=pt_xpt_softpoints))
+      eval_metric_ops.update(collect_summary("losses", "pt_xpt_sm_loss", mode, tensor=pt_xpt_sm_loss))
       
     return eval_metric_ops, loss
 
@@ -1870,47 +1869,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     eval_metric_ops.update(create_f1_metrics(prefix+"/", predictions, labels, labels2, t_is_home_bool, mode))
     return eval_metric_ops
 
-  def create_ensemble_result_metrics(predictions, labels, labels2, achievable_points_mask, tc, mode):      
-    tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
-    pGS = predictions["ens/pred"][0::2, 0]
-    pGC = predictions["ens/pred"][0::2, 1]
-    labels = labels[0::2]
-    labels2 = labels2[0::2]
-    achievable_points_mask = achievable_points_mask[0::2]
-    
-    with tf.variable_scope("ensMetrics"):
-      point_summary = calc_points(pGS,pGC, labels, labels2, True)
-      pt_actual_points, is_tendency, is_diff, is_full, pt_draw_points, pt_home_win_points, pt_home_loss_points, pt_away_loss_points, pt_away_win_points = point_summary
-
-      predictions["ens/z_points"] = pt_actual_points
-      predictions["ens/is_tendency"] = tf.cast(is_tendency, tf.float32)
-
-      pred_draw = tf.cast(tf.equal(pGS,pGC), tf.float32)
-      pred_home_win = tf.cast(tf.greater(pGS, pGC)  , tf.float32)
-      pred_away_win = tf.cast(tf.less(pGS, pGC) , tf.float32)
-      
-      eval_metric_ops = {}
-      eval_metric_ops.update(collect_summary("ens", "z_points", mode, tensor=pt_actual_points))
-      eval_metric_ops.update(collect_summary("ens", "metric_is_tendency", mode, tensor=tf.cast(is_tendency, tf.float32)))
-      eval_metric_ops.update(collect_summary("ens", "metric_is_diff", mode, tensor=tf.cast(is_diff, tf.float32)))
-      eval_metric_ops.update(collect_summary("ens", "metric_is_full", mode, tensor=tf.cast(is_full, tf.float32)))
-      eval_metric_ops.update(collect_summary("ens", "metric_pred_home_win", mode, tensor=pred_home_win))
-      eval_metric_ops.update(collect_summary("ens", "metric_pred_away_win", mode, tensor=pred_away_win))
-      eval_metric_ops.update(collect_summary("ens", "metric_pred_draw", mode, tensor=pred_draw))
-
-      prefix_list = [p[:-1] for p in ens_prefix_list]
-      prefix_list = [p+"_home" for p in prefix_list]+[p+"_away" for p in prefix_list]
-      
-#      prefix_list = ["p1_home", "p1_away", "p2_home", "p2_away", 
-#                     "p3_home", "p3_away", "p4_home", "p4_away", 
-#                     "p5_home", "p5_away", "p6_home", "p6_away", 
-#                     "sp_home", "sp_away", 
-#                     "sm_home", "sm_away", "smhb_home", "smhb_away"] 
-
-      for i,p in enumerate(prefix_list):
-        eval_metric_ops.update(collect_summary("ens", p, mode, tensor=tf.cast(tf.equal(predictions["ens/selected_strategy"],i), tf.float32)))
-
-    return eval_metric_ops
 
   def model(features, labels, mode, params):
 #    print("labels", labels)
@@ -2033,11 +1991,11 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
             
       cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
       # select largest p_pred_12 after smoothing
-      cbsp_predictions ["p_pred_12_sm"] = apply_kernel_smoothing(cbsp_predictions ["p_pred_12"])
-      a = tf.argmax(cbsp_predictions ["p_pred_12_sm"], axis=1)
-      pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
-      pred = tf.cast(pred, tf.int32)
-      cbsp_predictions ["pred"]=pred 
+#      cbsp_predictions ["p_pred_12_sm"] = apply_kernel_smoothing(cbsp_predictions ["p_pred_12"])
+#      a = tf.argmax(cbsp_predictions ["p_pred_12_sm"], axis=1)
+#      pred = tf.reshape(tf.stack([a // 7, tf.mod(a, 7)], axis=1), [-1,2])
+#      pred = tf.cast(pred, tf.int32)
+#      cbsp_predictions ["pred"]=pred 
 
       cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)
       cbsp_predictions = apply_poisson_summary(cbsp_predictions["p_pred_12"], t_is_home_bool, tc, predictions = cbsp_predictions)
@@ -2101,7 +2059,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       ########################################
       with tf.variable_scope("xpt"):
-          xpt_predictions = point_maximization_layer(outputs, tf.concat([predictions["cp/p_pred_12_h2"]], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=True)
+          xpt_predictions = point_maximization_layer(outputs, tf.concat([predictions["cp/p_pred_12_h2"]], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=False)
 
           xpt_predictions  = calc_probabilities(xpt_predictions ["p_pred_12"], xpt_predictions)
           xpt_predictions = apply_poisson_summary(xpt_predictions["p_pred_12"], t_is_home_bool, tc, predictions = xpt_predictions)

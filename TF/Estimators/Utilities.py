@@ -34,8 +34,9 @@ def optimistic_restore_vars(model_checkpoint_path):
               restore_vars.append(curr_var)
   return restore_vars
 
-def upgrade_estimator_model(model_dir, model, features, labels):
+def upgrade_estimator_model(model_dir, model, features, labels, reset_variables):
   print("upgrade_estimator_model")
+  print("reset_variables = \"{}\"".format(reset_variables))
   global_step = _load_global_step_from_checkpoint_dir(model_dir)
   print("Existing global step = {}".format(global_step))
   
@@ -46,6 +47,7 @@ def upgrade_estimator_model(model_dir, model, features, labels):
   tf.Variable(global_step, trainable=False, name='global_step')
   model._call_model_fn(features, labels, tf.estimator.ModeKeys.TRAIN, model.config)
   with tf.Session() as sess:
+    
     sess.run(tf.global_variables_initializer())
   #    sv = tf.train.Saver(max_to_keep=50)  
   #    sv.restore(sess, checkpoint)
@@ -55,6 +57,13 @@ def upgrade_estimator_model(model_dir, model, features, labels):
     # Verifies get_variable_to_shape_map() returns the correct information.
     var_map = reader.get_variable_to_shape_map()
     print(var_map)
+    
+    if reset_variables != "":
+      reset_tensors = [key for key in tf.trainable_variables() if reset_variables in key.name]
+      print("Tensors to be reinitialized:")
+      print(reset_tensors)
+      reset_op = tf.variables_initializer(reset_tensors)
+
     #v1_tensor = reader.get_tensor("v1")
   
   #sv = tf.train.Saver(reshape=True, max_to_keep=20, allow_empty=True, defer_build=True)
@@ -66,8 +75,11 @@ def upgrade_estimator_model(model_dir, model, features, labels):
     print("Restoring old model ...")
     sv.restore(sess, checkpoint)
     sv= None
-    #sess.run(tf.global_variables_initializer())
     print("Restored")
+    if reset_variables != "":
+      print("Re-initialize Tensors ...")
+      sess.run(reset_op)
+    #sess.run(tf.global_variables_initializer())
     sv2 = tf.train.Saver(reshape=True, max_to_keep=20)
     print("Saving new model ...")
     sv2.save(sess, model_dir+"/model.ckpt", global_step=global_step+1)
