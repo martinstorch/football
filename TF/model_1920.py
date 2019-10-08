@@ -1176,7 +1176,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   df['Where']=['Home' if h==1 else 'Away' for h in features[:, 1]]
   df["act"]  = [str(gs)+':'+str(gc) for gs,gc in zip(df["GS"],df["GC"]) ]
   df["pred"] = [str(gs)+':'+str(gc) for gs,gc in zip(df["pGS"],df["pGC"]) ]
-  print(df.shape)
+  #print(df.shape)
   if prefix!="ens/":
     df["win"]=0.0
     df["loss"]=0.0
@@ -1201,7 +1201,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
     df["draw"]*=100.0
   df["dataset"]=dataset
   df["global_step"]=global_step
-  print(df.shape)
+  #print(df.shape)
 
   #tensor = tf.constant(df[[ "pGS", "pGC", "GS", "GC"]].as_matrix(), dtype = tf.int64)
   #is_home = tf.equal(features[:,2] , 1)
@@ -1233,7 +1233,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   
   #print(preparePrintData(prefix, df).tail(20))
   #print(df.Where.describe())
-  print(df.shape)
+  #print(df.shape)
   return df
 
   
@@ -1425,16 +1425,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_sky2",
+      default="d:/Models/model_1920_gd",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
       #default="Pistor",
-      default="Sky",
+      #default="Sky",
       #default="TCS",
-      #default="GoalDiff",
+      default="GoalDiff",
       help="Point system to optimize for"
   )
   parser.add_argument(
@@ -1447,10 +1447,10 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      #default="train",
+      default="train",
       #default="eval_stop",
       #default="eval",
-      default="predict",
+      #default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",

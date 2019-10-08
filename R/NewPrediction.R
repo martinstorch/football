@@ -20,11 +20,11 @@ human_level_median <- 219 / 9 / 31
 predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
 
 point_type<-"s_points"
-cut_off_level_low<-1.25
+cut_off_level_low<-1.20
 cut_off_level_high<-2.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_sky2/new_predictions_df.csv"
 
 
 point_type<-"d_points"
@@ -132,7 +132,7 @@ evaluate<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(!Prefix %in% c("pg2", "xpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pgpt" )) # 
-  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
+  #onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
   onematch <- onematch %>% group_by(pred) %>% mutate(N=n()) %>% filter(N > 2) %>% ungroup() %>% mutate(legend_text=factor(pred)) 
@@ -164,6 +164,36 @@ evaluate(6)
 evaluate(7)
 evaluate(8)
 evaluate(9)
+
+evaluate2<-function(t){
+  onematch1 <- predictions_data %>% filter(Team1==hometeams$Team1[t] & Team2==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1, Team2, Prefix, pred, train, test)
+  onematch2 <- predictions_data %>% filter(Team2==hometeams$Team1[t] & Team1==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, train, test) %>% mutate(pred=stringi::stri_reverse(pred))
+  onematch <- rbind(onematch1, onematch2)
+  #onematch <- onematch %>% filter(!Prefix %in% c("pg2", "xpt"))
+  #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pgpt" )) # 
+  #onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
+  # eliminate groups with only one sample
+  onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
+  onematch <- onematch %>% group_by(pred) %>% mutate(N=n()) %>% filter(N > 2) %>% ungroup() %>% mutate(legend_text=factor(pred)) 
+  matchname <- unique(paste(onematch$Team1, onematch$Team2, sep=" - "))
+  levels(onematch$legend_text)
+  nlevels(onematch$legend_text)
+  print.data.frame(onematch %>% group_by(Prefix, pred) %>% summarise(N=n(), TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) ) %>% arrange(-TestMean) )
+  print(onematch %>% group_by(pred) %>% summarise(N=n(), TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) ) %>% arrange(-TestMean) )
+  ggplot(onematch, aes(x=pred, y=test, fill=pred))+
+    geom_violin(scale = "count")+
+    facet_wrap(~Prefix)+  
+    stat_summary(fun.y = "mean", geom = "point", shape = 8, size = 3, color = "midnightblue") +
+    stat_summary(fun.y = "median", geom = "point", shape = 2, size = 3, color = "black")+
+    geom_dotplot(binaxis="y", stackdir="center", position="dodge", dotsize=0.5)+
+    ggtitle(matchname)+ theme(legend.position="top")
+    
+}
+evaluate2(5)
+evaluate2(4)
+evaluate2(3)
+evaluate2(2)
+evaluate2(1)
 
 
 v<-predictions_data[predictions_data$Where=="Home" & predictions_data$Prefix!="pgpt" & predictions_data$Prefix!="av",]
