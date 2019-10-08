@@ -71,7 +71,7 @@ def calc_points(pGS,pGC, gs, gc, is_home):
           draw_points, home_win_points, home_loss_points, away_loss_points, away_win_points)
 
 def collect_summary(scope, name, mode, tensor=None, metric= tf.metrics.mean, reduce=tf.reduce_mean):
-  scope_match = scope in ["summary", "losses", "Gradients"]
+  scope_match = scope in ["summary", "losses", "Gradients"] #, "poisson", "histogram", , "xpt", "xpt/", "cbsp", "cbsp/", "cpmx", "cpmx/"
   name_match = name in ["z_points", "p_points", "metric_is_tendency"]
   if mode == tf.estimator.ModeKeys.TRAIN and not scope_match and not name_match:
     return {}  
@@ -474,7 +474,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         label_features_h1 = tf.matmul(label_oh_h1, t_map)
       else:
         label_features_h1 = None
-      label_features_h1_est = tf.matmul(tf.stop_gradient(p_pred_12_h1), t_map)
         
   #    p_pred_win = p_pred_h1[:,0]
   #    p_pred_draw = p_pred_h1[:,1]
@@ -488,6 +487,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     with tf.variable_scope("H2", reuse=tf.AUTO_REUSE):
 
       test_p_pred_12_h2 = None
+      test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
+      test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
+      
+      X3 = tf.concat([
+          tf.tile(X, [49,1]),
+          tf.reshape(tf.tile(test_label_features_h1, [1,tf.shape(X)[0]]), (tf.shape(X)[0]*49, test_label_features_h1.shape[1])),
+          ], axis=1)
       if mode == tf.estimator.ModeKeys.TRAIN:
         # use actual half-time score as input for dense layer
         X4 = tf.concat([X, tf.stop_gradient(label_features_h1)], axis=1)
@@ -495,36 +501,20 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_12_h2 = tf.nn.softmax(h2_logits)
         create_laplacian_loss(p_pred_12_h2, alpha=0.01) # 100
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
-        
         # loss will be linked to h2_logits only
-        # reestimate p_pred_12_h2 from p_pred_12_h1_est
-        X2 = tf.concat([X, label_features_h1_est], axis=1)
-        h2_logits_est,_ = build_dense_layer(X2, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-        p_pred_12_h2 = tf.nn.softmax(h2_logits_est)
+
+      # this should find the same dense layer with same weights as in training - because name scope is same
+      test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+      test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
+      test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
+      #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
+          
+      p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
+      p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
         
-      else:  
-        # this should find the same dense layer with same weights as in training - because name scope is same
-        test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
-        test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
-        
-        X3 = tf.concat([
-            tf.tile(X, [49,1]),
-            tf.reshape(tf.tile(test_label_features_h1, [1,tf.shape(X)[0]]), (tf.shape(X)[0]*49, test_label_features_h1.shape[1])),
-            ], axis=1)
-        
-        #X3 = tf.concat([tf.map_fn(lambda x: tf.concat([x, test_label_features_h1[i]], axis=0), X) for i in range(49)], axis=0)
-        test_h2_logits,_ = build_dense_layer(X3, 49, mode, regularizer = regularizer2, keep_prob=keep_prob, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
-        test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
-        test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
-        #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
-            
-        p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
-        p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
-        #p_pred_12_h2 = tf.print(p_pred_12_h2, data=[p_pred_12_h2[0,:]], message="Summarised probability")
+      if mode != tf.estimator.ModeKeys.TRAIN:
         test_p_pred_12_h2 = tf.transpose(test_p_pred_12_h2, [1,0,2])
-      
         p_pred_h2 = tf.matmul(p_pred_12_h2, t_map)
-        #print(p_pred_h2)  #Tensor("Model/condprob/H2/MatMul_2:0", shape=(?, 8), dtype=float32)
         h2_logits = tf.log((p_pred_12_h2 + 1e-7) )
         
       if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
@@ -856,25 +846,23 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       
       with tf.variable_scope("cbsp"):
-        cb_h2_logits = cond_probs[8]
-        print(cb_h2_logits)
-        cb_h2_logits = tf.stop_gradient(cb_h2_logits)
-        cb_h2_logits = tf.concat([X, cb_h2_logits], axis=1)
-        cb_h2_logits = tf.stop_gradient(cb_h2_logits)
-        cbsp_logits,_ = build_dense_layer(cb_h2_logits, 49, mode, 
+        p_pred_12_h2 = cond_probs[8]
+        p_pred_12_h2 = tf.concat([X, p_pred_12_h2], axis=1)
+        p_pred_12_h2 = tf.stop_gradient(p_pred_12_h2)
+        cbsp_logits,_ = build_dense_layer(p_pred_12_h2, 49, mode, 
                                       regularizer = l2_regularizer(scale=0.000020002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
       return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, cbsp_logits #, decode_t1, decode_t2, decode_t12 
         
-  def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False):
+  def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False, p_pred_12=None):
     with tf.variable_scope("Prediction"):
         tc_1d1_goals_f, tc_home_points_i, tc_away_points_i, calc_poisson_prob, p_tendency_mask_f, p_gdiff_mask_f, p_fulltime_index_matrix = tc
 
-        p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
-        
-        
+        if p_pred_12 is None:
+          p_pred_12 = tf.nn.softmax(tf.reshape(logits, [-1, 49]))
+
         ev_points =  tf.where(t_is_home_bool,
                                tf.matmul(p_pred_12, tc_home_points_i),
                                tf.matmul(p_pred_12, tc_away_points_i))
@@ -1261,6 +1249,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     
     current_winloss_corr = corrcoef(is_win-is_loss, pred_win-pred_loss) 
     metrics.update(collect_summary("regularization", "current_winloss_corr", mode, tensor=current_winloss_corr))
+    metrics.update(collect_summary("summary", "current_winloss_corr", mode, tensor=current_winloss_corr))
     
     pred_gs = predictions["outputs_poisson"][::2, 0]
     gs_mean, gs_variance = tf.nn.moments(pred_gs, axes=[0])
@@ -1619,13 +1608,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #loss -= 10*tf.reduce_mean(pt_cbsp_softpoints)
       pt_cbsp_sm_loss, pt_cbsp_softpoints = softpoint_loss(predictions["cbsp/p_pred_12"])
       loss -= 0.05*tf.reduce_mean(pt_cbsp_softpoints)
-      loss += 5.05*tf.reduce_mean(pt_cbsp_sm_loss)
+      loss += 0.0005*tf.reduce_mean(pt_cbsp_sm_loss)
       
 #      xpt_softpoints = tf.reduce_sum(tf.minimum(0.2, predictions["xpt/p_pred_12"]) * achievable_points_mask, axis=1)
 #      loss -= 10*tf.reduce_mean(xpt_softpoints)
       pt_xpt_sm_loss, pt_xpt_softpoints = softpoint_loss(predictions["xpt/p_pred_12"])
       loss -= 0.05*tf.reduce_mean(pt_xpt_softpoints)
-      loss += 5.05*tf.reduce_mean(pt_xpt_sm_loss)
+      loss += 0.0005*tf.reduce_mean(pt_xpt_sm_loss)
 
       with tf.variable_scope("cbsp"):
         create_laplacian_loss(predictions["cbsp/p_pred_12"], alpha=0.0000000001)
@@ -2020,7 +2009,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions.update(apply_prefix(avg_predictions, "av/"))
         
         # for avmx - average the ev_points, not the logits or p_pred_12 probabilities
-        avmx_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, True)
+        avmx_predictions = create_predictions(outputs, avg_logits, t_is_home_bool, tc, True, p_pred_12=avg_p_pred_12)
         avmx_predictions = calc_probabilities(avmx_predictions["p_pred_12"], avmx_predictions)
         avmx_predictions["ev_points"] = (predictions["sp/ev_points"]+predictions["cp/ev_points"])/2
         # select the maximum ev_points 
@@ -2031,7 +2020,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions.update(apply_prefix(avmx_predictions, "avmx/"))
         
       with tf.variable_scope("cpmx"):
-        cpmx_predictions = create_predictions(outputs, h2_logits, t_is_home_bool, tc, True)
+        cpmx_predictions = create_predictions(outputs, h2_logits, t_is_home_bool, tc, True, p_pred_12=predictions["cp/p_pred_12_h2"])
         cpmx_predictions = calc_probabilities(cpmx_predictions["p_pred_12"], cpmx_predictions)
         predictions.update(apply_prefix(cpmx_predictions, "cpmx/"))
 
@@ -2296,6 +2285,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
     eval_metric_ops = {k:v for k,v in eval_metric_ops.items() if 
                        "summary/" in k or 
                        "losses/" in k or 
+#                       "xpt/" in k or 
+#                       "cbsp/" in k or 
+#                       "cp" in k or 
                        "Gradients/" in k } 
                        # or "histogram/" in k}
     
