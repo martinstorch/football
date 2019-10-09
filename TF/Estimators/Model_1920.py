@@ -761,7 +761,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.8), # 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.7), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -769,7 +769,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.8), # 100.0
+                                    regularizer = l1_regularizer(scale=0.7), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -813,7 +813,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Poisson"):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=0.7), #2.0
+                                regularizer = l2_regularizer(scale=0.8), #2.0
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
@@ -822,7 +822,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=0.3), 
+                                           regularizer1 = l2_regularizer(scale=0.6), 
                                            regularizer2 = l2_regularizer(scale=0.4), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
