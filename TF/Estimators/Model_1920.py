@@ -232,6 +232,17 @@ def create_laplacian_loss(p_pred_12, alpha=1.0):
   laplacian_loss = tf.multiply(alpha, tf.reduce_mean(laplacian_loss), name="laplacian") 
   ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, laplacian_loss)
 
+def create_block_sparse_loss(W, alpha=1.0):
+  # W has format (input_features, output_features/tasks)
+  print(W)
+  l2norm = tf.norm(W, ord=2, axis=1, name="l2norm")
+  print(l2norm)
+  l1norm = tf.norm(l2norm, ord=1, axis=0, name="l1norm")
+  print(l1norm)
+  block_sparse_loss = tf.multiply(alpha, l1norm, name="block_sparse_loss") 
+  ops.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, block_sparse_loss )
+  
+
 def kernel_smoothing_matrix(sigma = 1.0):
   m = [[np.exp(-(abs(i-i2)+abs(j-j2))/sigma)
          for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]   
@@ -761,7 +772,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.7), # 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.8), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -769,7 +780,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.7), # 100.0
+                                    regularizer = l1_regularizer(scale=0.8), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -811,10 +822,17 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      with tf.variable_scope("Skymax"):
 #        sk_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=0.8, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
-      with tf.variable_scope("Poisson"):
+      with tf.variable_scope("Poisson", reuse=tf.AUTO_REUSE):
         outputs,Z = build_dense_layer(X, output_size, mode, 
-                                regularizer = l2_regularizer(scale=0.8), #2.0
+                                regularizer = l2_regularizer(scale=0.00001), #2.0  l2_regularizer(scale=0.8)
                                 keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        # Perform L2/L1 block-sparse-regularization 
+        # this should be the same W matrix as in build_dense_layer
+        W = tf.get_variable(name="W", regularizer = l2_regularizer(scale=0.00001), 
+                            shape=[int(X.shape[1]), output_size],
+                            initializer=tf.contrib.layers.xavier_initializer(uniform=False), dtype=X.dtype)
+        create_block_sparse_loss(W, alpha=3.0)
+        
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))
 
