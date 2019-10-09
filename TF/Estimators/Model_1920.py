@@ -840,7 +840,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=0.6), 
+                                           regularizer1 = l2_regularizer(scale=0.8), 
                                            regularizer2 = l2_regularizer(scale=0.4), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
@@ -858,7 +858,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=7.00002), # 2.0
+                                        regularizer = l2_regularizer(scale=12.00002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
