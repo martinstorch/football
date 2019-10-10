@@ -1104,6 +1104,14 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
   #print(pred)  
   saver = tf.train.Saver()
   with tf.Session() as sess:
+    pl_pGS = tf.placeholder(tf.int64, name="pl_pGS")
+    pl_pGC = tf.placeholder(tf.int64, name="pl_pGC")
+    pl_GS = tf.placeholder(tf.int64, name="pl_GS")
+    pl_GC = tf.placeholder(tf.int64, name="pl_GC")
+    pl_is_home = tf.placeholder(tf.bool, name="pl_is_home")
+    calc_points_tensor = themodel.calc_points(pl_pGS,pl_pGC, pl_GS, pl_GC, pl_is_home)[0]
+    calc_points_eval = (calc_points_tensor, pl_pGS, pl_pGC, pl_GS, pl_GC, pl_is_home)
+    
     for cp, global_step in zip(cps.checkpoint, cps.global_step):
       saver.restore(sess, cp)
       predictions = sess.run(pred, feed_dict=feed_dict)
@@ -1111,7 +1119,7 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
 #      print(predictions["sp/p_pred_12"][0])
       #pd.DataFrame(predictions["outputs_poisson"]).to_csv(model_dir+'/poisson_data_pred.csv')
       #pd.DataFrame(labels_batch).to_csv(model_dir+'/poisson_data_gt.csv')
-      results = [enrich_predictions(predictions, features_batch, labels_batch, team1, team2, datetimes, prefix, data_set, global_step) for prefix in themodel.prefix_list ]
+      results = [enrich_predictions(predictions, features_batch, labels_batch, team1, team2, datetimes, prefix, data_set, global_step, sess, calc_points_eval) for prefix in themodel.prefix_list ]
       results = pd.concat(results, sort=False)
       if not skip_plotting:
         plot_checkpoints(results, predictions)
@@ -1124,7 +1132,7 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
 
-def enrich_predictions(predictions, features, labels, team1, team2, datetimes, prefix, dataset, global_step):
+def enrich_predictions(predictions, features, labels, team1, team2, datetimes, prefix, dataset, global_step, sess=None, calc_points_eval = None):
 
 #  print("features.shape", features.shape)
 #  print("len(predictions)", len(predictions))
@@ -1205,7 +1213,8 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
 
   #tensor = tf.constant(df[[ "pGS", "pGC", "GS", "GC"]].as_matrix(), dtype = tf.int64)
   #is_home = tf.equal(features[:,2] , 1)
-  with tf.Session(graph=CALC_GRAPH) as sess:
+  if sess is not None:
+    calc_points_tensor, pl_pGS, pl_pGC, pl_GS, pl_GC, pl_is_home = calc_points_eval
     feed_dict={pl_pGS: df[["pGS"]].values,
                pl_pGC: df[["pGC"]].values,
                pl_GS: df[["GS"]].values,
@@ -1215,6 +1224,17 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
     df['Pt'] = sess.run(tf.cast(calc_points_tensor, tf.int8), feed_dict=feed_dict)
     
     df['Prefix'] = prefix[:-1]
+  else:
+    with tf.Session(graph=CALC_GRAPH) as sess:
+      feed_dict={pl_pGS: df[["pGS"]].values,
+                 pl_pGC: df[["pGC"]].values,
+                 pl_GS: df[["GS"]].values,
+                 pl_GC: df[["GC"]].values,
+                 pl_is_home: features[:,1:2],
+                 }
+      df['Pt'] = sess.run(tf.cast(calc_points_tensor, tf.int8), feed_dict=feed_dict)
+      
+      df['Prefix'] = prefix[:-1]
   
   scores = df.groupby(["dataset", "Prefix", "global_step"]).Pt.mean()
   scores = scores.rename("score")
@@ -1447,10 +1467,10 @@ if __name__ == "__main__":
       "--modes",
       type=str,
       #default="static",
-      default="train",
+      #default="train",
       #default="eval_stop",
       #default="eval",
-      #default="predict",
+      default="predict",
       #default="upgrade",
       #default="train_eval",
       #default="upgrade,train,eval,predict",
@@ -1458,7 +1478,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--checkpoints", type=str,
-      default="311000:",
+      default="560000:",
       #default="60000:92000", 
       #default="-1",  # slice(-2, None)
       #default="100:",
