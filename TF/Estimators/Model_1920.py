@@ -500,7 +500,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       test_p_pred_12_h2 = None
       test_label_oh_h1 = tf.one_hot(tf.range(49), 49, dtype=X.dtype)
       test_label_features_h1 = tf.matmul(test_label_oh_h1, t_map)
-      
+      test_label_h1_mask = tf.constant([[1 if h2//7>=h1//7 and np.mod(h2,7)>=np.mod(h1,7) else 0 for h2 in range(49)] for h1 in range(49)], dtype=tf.float32)
       X3 = tf.concat([
           tf.tile(X, [49,1]),
           tf.reshape(tf.tile(test_label_features_h1, [1,tf.shape(X)[0]]), (tf.shape(X)[0]*49, test_label_features_h1.shape[1])),
@@ -519,7 +519,12 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       test_p_pred_12_h2 = tf.nn.softmax(test_h2_logits)
       test_p_pred_12_h2 = tf.reshape(test_p_pred_12_h2, (49,-1,49), name="test_p_pred_12_h2") # axis 0: H1 scores, 1: batch, 2: H2 scores
       #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
-          
+      mask = tf.reshape(tf.tile(test_label_h1_mask, [1,tf.shape(X)[0]]), (49, tf.shape(X)[0], 49)),
+
+      print(test_p_pred_12_h2 )
+      print(mask)
+      test_p_pred_12_h2 = tf.reshape(tf.minimum(test_p_pred_12_h2 , mask), (49, tf.shape(X)[0], 49))
+      print(test_p_pred_12_h2 )
       p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
       p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
         
@@ -1499,6 +1504,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       l_softmax_1h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs_1h*7+gc_1h, logits=h1_logits)
       l_softmax_2h = t_weight * tf.nn.sparse_softmax_cross_entropy_with_logits(labels=gs*7+gc, logits=h2_logits)
+      
       p_full    = tf.one_hot(gs*7+gc, 49, dtype=t_weight.dtype)
 
       achievable_points_mask = tf.where(t_is_home_bool, 
