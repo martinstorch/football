@@ -645,7 +645,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       def make_rnn(match_history, sequence_length, rnn_cell):
           def extract_BW_xG_WDL(y):
-              return tf.concat([y[:,:,4:7], y[:,:,-2:], y[:,:,-30:-27]], axis=2)
+              return tf.concat([y[:,:,4:11], y[:,:,-2:], y[:,:,-30:-27]], axis=2)
           match_history = extract_BW_xG_WDL(match_history)
           print(match_history)
 
@@ -776,16 +776,16 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #                                    eval_metric_ops=eval_metric_ops)
 
       with tf.variable_scope("Layer0H"):
-          X0H,Z0H = build_dense_layer(X, 64, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.8), # 0.7 -> 0.4 
+          X0H,Z0H = build_dense_layer(X, 128, mode, # 32
+                                    regularizer = l1_regularizer(scale=0.9), # 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
                                     eval_metric_ops=eval_metric_ops)
       
       with tf.variable_scope("Layer0A"):
-          X0A,Z0A = build_dense_layer(X, 64, mode, 
-                                    regularizer = l1_regularizer(scale=0.8), # 100.0
+          X0A,Z0A = build_dense_layer(X, 128, mode, 
+                                    regularizer = l1_regularizer(scale=0.9), # 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 

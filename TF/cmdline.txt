@@ -78,15 +78,9 @@ rmdir /S /Q d:\Models\model_1920_pistor
 rmdir /S /Q d:\Models\model_1920_sky
 rmdir /S /Q d:\Models\model_1920_gd
 cd c:\git\football\TF\	
-python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
 python model_1920.py --modes=train --train_steps=100000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
 python model_1920.py --modes=train --train_steps=100000 --target_system=Sky --model_dir=d:/Models/model_1920_sky
-
-activate tf
-cd c:\git\football\TF\	
-python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
-python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
-python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
 
 activate tf
 cd c:\git\football\TF\	
@@ -94,14 +88,28 @@ python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pisto
 python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
 python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
 
+activate tf
+cd c:\git\football\TF\	
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+
+
+activate tfgpu
+rmdir /S /Q d:\Models\model_1920_pistor
+cd c:\git\football\TF\	
+python model_1920.py --modes=train --train_steps=100000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+
 
 tensorboard --logdir d:/Models/model_1920_pistor
 
 activate tf
 cd c:\git\football\TF\	
+python model_1920.py --modes=eval --checkpoints=100: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 python model_1920.py --modes=eval --checkpoints=100: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
 
-python model_1920.py --modes=eval --checkpoints=100000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
 
 
@@ -110,19 +118,24 @@ cd c:\git\football\TF\
 python model_1920.py --modes=train --train_steps=100000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 activate tf
 cd c:\git\football\TF\	
-python model_1920.py --modes=eval_stop --checkpoints=100000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=120000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 activate tfgpu
 cd c:\git\football\TF\	
 python model_1920.py --modes=train --train_steps=100000 --target_system=Sky --model_dir=d:/Models/model_1920_sky
 activate tf
 cd c:\git\football\TF\	
+
+python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+python model_1920.py --modes=eval_stop --checkpoints=100000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+python model_1920.py --modes=train --train_steps=100000 --target_system=Sky --model_dir=d:/Models/model_1920_sky
 python model_1920.py --modes=eval_stop --checkpoints=100000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
 
 
 
 
 
-python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_rnn
 
+python model_1920.py --modes=predict --checkpoints=220000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
 

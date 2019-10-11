@@ -89,6 +89,9 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   if 'BW1' in feature_names:
     # place 'BW1', 'BW2', 'BW0' first is list, so that they have a fixed colunm position
     feature_names = pd.Series(['BW1', 'BW2', 'BW0'] + feature_names).drop_duplicates().tolist()
+  
+  feature_names = ['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw']  
+    
   all_features = all_data[feature_names]
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
@@ -1132,6 +1135,10 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
         new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
 
+ind_win = [  i_gs*7+i_gc for i_gs in range(7) for i_gc in range(7) if i_gs>i_gc]
+ind_loss = [  i_gs*7+i_gc for i_gs in range(7) for i_gc in range(7) if i_gs<i_gc]
+ind_draw = [  i_gs*7+i_gc for i_gs in range(7) for i_gc in range(7) if i_gs==i_gc]
+
 def enrich_predictions(predictions, features, labels, team1, team2, datetimes, prefix, dataset, global_step, sess=None, calc_points_eval = None):
 
 #  print("features.shape", features.shape)
@@ -1163,12 +1170,8 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
 #  df['pGC'] = [p[prefix+"pred"][1] for p in predictions]
 
   if prefix!="ens/":
-#    est1 = pd.Series([p[prefix+"ev_goals_1"] for p in predictions], name="est1")
-#    est2 = pd.Series([p[prefix+"ev_goals_2"] for p in predictions], name="est2")
-    est1 = pd.Series(predictions[prefix+"ev_goals_1"], name="est1")
-    est2 = pd.Series(predictions[prefix+"ev_goals_2"], name="est2")
-    df['est1'] = est1
-    df['est2'] = est2
+    df['est1'] = predictions[prefix+"ev_goals_1"]
+    df['est2'] = predictions[prefix+"ev_goals_2"]
     df['Strategy'] = ''
   else:
     strategy_list = themodel.ens_prefix_list # ["p1", "p2","p3","p4","p5","p7","sp","sm","p1pt", "p2pt", "p4pt", "sppt", "smpt"]
@@ -1186,24 +1189,13 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   df["pred"] = [str(gs)+':'+str(gc) for gs,gc in zip(df["pGS"],df["pGC"]) ]
   #print(df.shape)
   if prefix!="ens/":
-    df["win"]=0.0
-    df["loss"]=0.0
-    df["draw"]=0.0
-    df["winPt"]=0.0
-    df["lossPt"]=0.0
-    df["drawPt"]=0.0
-    for i_gs in range(7):
-      for i_gc in range(7):
-        i = i_gs*7+i_gc
-        if i_gs>i_gc:
-          df["win"]+=predictions[prefix+"p_pred_12"][:,i] 
-          df["winPt"]=pd.concat([df["winPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
-        if i_gs<i_gc:
-          df["loss"]+=predictions[prefix+"p_pred_12"][:,i]
-          df["lossPt"]=pd.concat([df["lossPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
-        if i_gs==i_gc:
-          df["draw"]+=predictions[prefix+"p_pred_12"][:,i] 
-          df["drawPt"]=pd.concat([df["drawPt"], pd.Series(predictions[prefix+"ev_points"][:,i])], axis=1).max(axis=1)
+      
+    df["win"]=  np.sum(predictions[prefix+"p_pred_12"][:,ind_win],  axis=1)
+    df["winPt"]=  np.max(predictions[prefix+"ev_points"][:,ind_win],  axis=1)
+    df["draw"]=  np.sum(predictions[prefix+"p_pred_12"][:,ind_draw],  axis=1)
+    df["drawPt"]=  np.max(predictions[prefix+"ev_points"][:,ind_draw],  axis=1)
+    df["loss"]=  np.sum(predictions[prefix+"p_pred_12"][:,ind_loss],  axis=1)
+    df["lossPt"]=  np.max(predictions[prefix+"ev_points"][:,ind_loss],  axis=1)
     df["win"]*=100.0
     df["loss"]*=100.0
     df["draw"]*=100.0
@@ -1241,7 +1233,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   scores_wide = pd.pivot_table(scores.to_frame(), index=["Prefix", "global_step"],
                      columns=['dataset'], aggfunc=np.mean)
   scores_wide.columns = scores_wide.columns.droplevel(level=0)
-  print(scores_wide)
+  #print(scores_wide)
   df = df.join(scores, on = ["dataset", "Prefix", "global_step"])
   df = df.join(scores_wide, on = ["Prefix", "global_step"], rsuffix="score")
     
@@ -1438,8 +1430,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
