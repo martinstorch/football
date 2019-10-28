@@ -14,14 +14,14 @@ human_level_median <- 449 / 9 / 31
 
 point_type<-"p_points"
 cut_off_level_low<-0.7
-cut_off_level_high<-1.4
+cut_off_level_high<-1.0
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
 predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
 
 point_type<-"s_points"
-cut_off_level_low<-1.20
-cut_off_level_high<-2.8
+cut_off_level_low<-1.15
+cut_off_level_high<-1.5
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
 predictions_file<-"d:\\Models\\model_1920_sky2/new_predictions_df.csv"
@@ -38,6 +38,7 @@ season<-"2018/19"
 predictions_data <- read.csv(predictions_file)
 
 predictions_data<-predictions_data%>%filter(train>cut_off_level_low & test>cut_off_level_low)
+predictions_data<-predictions_data%>%filter(train<cut_off_level_high & test<cut_off_level_high)
 
 table(predictions_data$pred)
 table(predictions_data$pred, predictions_data$Prefix)
@@ -171,7 +172,7 @@ evaluate2<-function(t){
   onematch <- rbind(onematch1, onematch2)
   #onematch <- onematch %>% filter(!Prefix %in% c("pg2", "xpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pgpt" )) # 
-  #onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
+  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
   onematch <- onematch %>% group_by(pred) %>% mutate(N=n()) %>% filter(N > 2) %>% ungroup() %>% mutate(legend_text=factor(pred)) 
@@ -185,7 +186,7 @@ evaluate2<-function(t){
     facet_wrap(~Prefix)+  
     stat_summary(fun.y = "mean", geom = "point", shape = 8, size = 3, color = "midnightblue") +
     #stat_summary(fun.y = "median", geom = "point", shape = 2, size = 3, color = "black")+
-    geom_dotplot(binaxis="y", stackdir="center", position="dodge", dotsize=0.5, binwidth=0.001)+
+    geom_dotplot(binaxis="y", stackdir="center", position="dodge", dotsize=0.5, binwidth=0.002)+
     ggtitle(matchname)+ theme(legend.position="top")
     
 }
@@ -194,7 +195,20 @@ evaluate2(4)
 evaluate2(3)
 evaluate2(2)
 evaluate2(1)
+evaluate2(6)
+evaluate2(7)
+evaluate2(8)
+evaluate2(9)
 
+evaluate2(10)
+evaluate2(11)
+evaluate2(12)
+evaluate2(13)
+evaluate2(14)
+evaluate2(15)
+evaluate2(16)
+evaluate2(17)
+evaluate2(18)
 
 v<-predictions_data[predictions_data$Where=="Home" & predictions_data$Prefix!="pgpt" & predictions_data$Prefix!="av",]
 v$match<-paste(v$Team1, v$Team2, sep=" - ")

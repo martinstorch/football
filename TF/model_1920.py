@@ -1133,7 +1133,8 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
       new_results = results.loc[results.dataset=="pred"]  
       #print(new_results)
       with open(model_dir+'/new_predictions_df.csv', 'a') as f:
-        new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
+          print(model_dir+'/new_predictions_df.csv')
+          new_results.to_csv(f, header=f.tell()==0, quoting=csv.QUOTE_NONNUMERIC, index=False, line_terminator='\n')
 
 ind_win = [  i_gs*7+i_gc for i_gs in range(7) for i_gc in range(7) if i_gs>i_gc]
 ind_loss = [  i_gs*7+i_gc for i_gs in range(7) for i_gc in range(7) if i_gs<i_gc]
@@ -1403,7 +1404,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--save_steps", type=int,
       #default=200,
-      default=500,
+      default=200,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(

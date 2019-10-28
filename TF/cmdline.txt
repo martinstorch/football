@@ -102,6 +102,7 @@ python model_1920.py --modes=train --train_steps=100000 --target_system=Pistor -
 python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
+python model_1920.py --modes=eval --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
 tensorboard --logdir d:/Models/model_1920_pistor
 
@@ -138,4 +139,15 @@ python model_1920.py --modes=train --train_steps=100000 --target_system=GoalDiff
 
 python model_1920.py --modes=predict --checkpoints=220000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
+python model_1920.py --modes=eval --checkpoints=300000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 
+
+python model_1920.py --modes=train --train_steps=30000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=train --train_steps=30000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=360000:380000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=390000:410000 --target_system=Sky --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=eval_stop --checkpoints=420000:440000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=360000:380000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=390000:410000 --target_system=Sky --model_dir=d:/Models/model_1920_pistor
+python model_1920.py --modes=predict --checkpoints=420000:440000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_pistor
