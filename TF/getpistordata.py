@@ -264,10 +264,13 @@ all_user_data.to_csv("user_tipps.csv", encoding = "utf-8", index=False)
 known_users = all_user_data.Userid.unique()
 len(known_users)
 
-user_data_sp = collect_user_tipps(session, roundfrom=33, roundto=33, userid=10) # Sven Pistor
-user_data_ms = collect_user_tipps(session, roundfrom=33, roundto=33, userid=218206) # ich
+user_data_sp = collect_user_tipps(session, roundfrom=1, roundto=9, userid=10) # Sven Pistor
+user_data_ms = collect_user_tipps(session, roundfrom=1, roundto=9, userid=218206) # ich
+user_data_udo = collect_user_tipps(session, roundfrom=1, roundto=9, userid=339368) # udo-h
+user_data_anke = collect_user_tipps(session, roundfrom=1, roundto=9, userid=334333) # hatatitla13
 
-all_user_data = pd.concat([user_data_ms, user_data_sp, all_user_data], axis=0, ignore_index=True)
+all_user_data = pd.DataFrame()
+all_user_data = pd.concat([user_data_ms, user_data_sp, user_data_anke, user_data_udo, all_user_data], axis=0, ignore_index=True)
 
 for i,userid in enumerate(ranking_data.Userid.iloc[6000:10000]):
   if userid not in known_users:

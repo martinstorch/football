@@ -845,8 +845,8 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("condprob"):
         cond_probs = build_cond_prob_layer(X, labels, mode, 
-                                           regularizer1 = l2_regularizer(scale=0.8), 
-                                           regularizer2 = l2_regularizer(scale=0.4), 
+                                           regularizer1 = l2_regularizer(scale=2.0), 
+                                           regularizer2 = l2_regularizer(scale=0.6), 
                                            keep_prob=1.0, eval_metric_ops=eval_metric_ops) 
         #cb1_logits,_ = build_dense_layer(X, 49, mode, regularizer = l2_regularizer(scale=1.2), keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
 
@@ -857,13 +857,13 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         with tf.variable_scope("GD"):
           sp_logits_2,_ = build_dense_layer(X, 11, mode, 
-                                        regularizer = l2_regularizer(scale=0.10002), # 2.0
+                                        regularizer = l2_regularizer(scale=0.20002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
   
         with tf.variable_scope("FS"):
           sp_logits_3,_ = build_dense_layer(X, 49, mode, 
                                         #regularizer = None, 
-                                        regularizer = l2_regularizer(scale=2.00002), # 2.0
+                                        regularizer = l2_regularizer(scale=8.00002), # 2.0
                                         keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         sp_logits = (sp_logits_1, sp_logits_2, sp_logits_3)
 
@@ -872,12 +872,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         p_pred_12_h2 = cond_probs[8]
         p_pred_12_h2 = tf.concat([X, p_pred_12_h2], axis=1)
         p_pred_12_h2 = tf.stop_gradient(p_pred_12_h2)
-        cbsp_logits,_ = build_dense_layer(p_pred_12_h2, 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.000020002), # 2.0
-                                      keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         
       
-      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, cbsp_logits #, decode_t1, decode_t2, decode_t12 
+      return outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs #, decode_t1, decode_t2, decode_t12 
         
   def create_predictions(outputs, logits, t_is_home_bool, tc, use_max_points=False, p_pred_12=None):
     with tf.variable_scope("Prediction"):
@@ -1972,8 +1969,9 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       t_is_home_bool = tf.equal(features["newgame"][:,1] , 1)
       graph_outputs = buildGraph(features, labels, mode, params, t_is_home_bool)
       #outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, decode_t1, decode_t2, decode_t12  = graph_outputs
-      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs, cbsp_logits = graph_outputs
+      outputs, sp_logits, hidden_layer, eval_metric_ops, cond_probs = graph_outputs
 #      t_is_train_bool = tf.equal(features["Train"] , True)
+
 
       def apply_prefix(predictions, prefix):
         return {prefix+k:v for k,v in predictions.items() }
@@ -2002,7 +2000,6 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         predictions["cp1/labels"] = label_features_h1
         predictions["cp/labels"] = label_features_h2
             
-      cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
       # select largest p_pred_12 after smoothing
 #      cbsp_predictions ["p_pred_12_sm"] = apply_kernel_smoothing(cbsp_predictions ["p_pred_12"])
 #      a = tf.argmax(cbsp_predictions ["p_pred_12_sm"], axis=1)
@@ -2010,13 +2007,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 #      pred = tf.cast(pred, tf.int32)
 #      cbsp_predictions ["pred"]=pred 
 
-      cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)
-      cbsp_predictions = apply_poisson_summary(cbsp_predictions["p_pred_12"], t_is_home_bool, tc, predictions = cbsp_predictions)
-      predictions.update(apply_prefix(cbsp_predictions , "cbsp/"))
-
       with tf.variable_scope("cp"):
           #cp_predictions = create_hierarchical_predictions(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp")
           cp_predictions = create_quantile_scheme_prediction(outputs, h2_logits, t_is_home_bool, tc, mode, prefix="cp", p_pred_12 = predictions["cp/p_pred_12_h2"])
+
       predictions.update(apply_prefix(cp_predictions, "cp/"))
       cp1_predictions = create_predictions(outputs, h1_logits, t_is_home_bool, tc, False)
       predictions.update(apply_prefix(cp1_predictions, "cp1/"))
@@ -2048,6 +2042,15 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         cpmx_predictions = calc_probabilities(cpmx_predictions["p_pred_12"], cpmx_predictions)
         predictions.update(apply_prefix(cpmx_predictions, "cpmx/"))
 
+      with tf.variable_scope("cbsp"):
+        cbsp_logits,_ = build_dense_layer(tf.concat([predictions["cp/p_marg_1"], predictions["cp/p_marg_2"]], axis=1), 49, mode, 
+                                      regularizer = l2_regularizer(scale=0.000020002), # 2.0
+                                      keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
+        cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
+        cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)
+        cbsp_predictions = apply_poisson_summary(cbsp_predictions["p_pred_12"], t_is_home_bool, tc, predictions = cbsp_predictions)
+        predictions.update(apply_prefix(cbsp_predictions , "cbsp/"))
+
       T1_GFT = tf.exp(outputs[:,0])
       T2_GFT = tf.exp(outputs[:,1])
       T1_GHT = tf.exp(outputs[:,2])
@@ -2071,8 +2074,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #predictions["index"] = index
       
       ########################################
+      #tf.concat([predictions["cp/p_marg_1"], predictions["cp/p_marg_2"]], axis=1)
       with tf.variable_scope("xpt"):
-          xpt_predictions = point_maximization_layer(outputs, tf.concat([predictions["cp/p_pred_12_h2"]], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=False)
+          xpt_predictions = point_maximization_layer(outputs, 
+                                                     tf.stack([tf.log(predictions["cp/ev_goals_1"]), tf.log(predictions["cp/ev_goals_2"]), predictions["cp/p_marg_1"][:,0], predictions["cp/p_marg_2"][:,0]], axis=1), "xpt", t_is_home_bool, tc, mode, use_max_points=False)
 
           xpt_predictions  = calc_probabilities(xpt_predictions ["p_pred_12"], xpt_predictions)
           xpt_predictions = apply_poisson_summary(xpt_predictions["p_pred_12"], t_is_home_bool, tc, predictions = xpt_predictions)
