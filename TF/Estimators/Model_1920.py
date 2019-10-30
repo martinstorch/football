@@ -777,7 +777,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 16, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.2), # 0.9 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.4), # 0.9 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -785,7 +785,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 16, mode, 
-                                    regularizer = l1_regularizer(scale=0.2), # 0.9 100.0
+                                    regularizer = l1_regularizer(scale=0.4), # 0.9 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -2044,7 +2044,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("cbsp"):
         cbsp_logits,_ = build_dense_layer(tf.concat([predictions["cp/p_marg_1"], predictions["cp/p_marg_2"]], axis=1), 49, mode, 
-                                      regularizer = l2_regularizer(scale=0.000020002), # 2.0
+                                      regularizer = l2_regularizer(scale=0.2000020002), # 2.0
                                       keep_prob=1.0, batch_norm=False, activation=None, eval_metric_ops=eval_metric_ops, use_bias=True)
         cbsp_predictions = create_predictions(outputs, cbsp_logits, t_is_home_bool, tc, False)
         cbsp_predictions = calc_probabilities(cbsp_predictions["p_pred_12"], cbsp_predictions)

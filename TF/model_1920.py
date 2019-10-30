@@ -1404,7 +1404,7 @@ if __name__ == "__main__":
   parser.add_argument(
       "--save_steps", type=int,
       #default=200,
-      default=200,
+      default=500,
       help="Number of training steps between checkpoint files."
   )
   parser.add_argument(
@@ -1431,8 +1431,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
