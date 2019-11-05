@@ -24,7 +24,7 @@ cut_off_level_low<-1.15
 cut_off_level_high<-1.5
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"d:\\Models\\model_1920_sky2/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
 
 
 point_type<-"d_points"
@@ -170,9 +170,9 @@ evaluate2<-function(t){
   onematch1 <- predictions_data %>% filter(Team1==hometeams$Team1[t] & Team2==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1, Team2, Prefix, pred, train, test)
   onematch2 <- predictions_data %>% filter(Team2==hometeams$Team1[t] & Team1==hometeams$Team2[t] & !is.na(train) & !is.na(test)) %>% dplyr::select(Team1=Team2, Team2=Team1, Prefix, pred, train, test) %>% mutate(pred=stringi::stri_reverse(pred))
   onematch <- rbind(onematch1, onematch2)
-  #onematch <- onematch %>% filter(!Prefix %in% c("pg2", "xpt"))
+  #onematch <- onematch %>% filter(!Prefix %in% c("xpt"))
   #onematch <- onematch %>% filter(Prefix %in% c("av", "cp", "sp", "pgpt" )) # 
-  onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx")) # 
+  #onematch <- onematch %>% filter(Prefix %in% c("cbsp", "cpmx", "pgpt", "avmx", "xpt")) # 
   # eliminate groups with only one sample
   onematch <- onematch %>% group_by(pred, Prefix) %>% mutate(N=n()) %>% filter(N > 0) %>% ungroup() %>% mutate(legend_text=factor(paste(Prefix, pred, "-", N) )) 
   onematch <- onematch %>% group_by(pred) %>% mutate(N=n()) %>% filter(N > 2) %>% ungroup() %>% mutate(legend_text=factor(pred)) 
@@ -190,11 +190,11 @@ evaluate2<-function(t){
     ggtitle(matchname)+ theme(legend.position="top")
     
 }
-evaluate2(5)
-evaluate2(4)
-evaluate2(3)
-evaluate2(2)
 evaluate2(1)
+evaluate2(2)
+evaluate2(3)
+evaluate2(4)
+evaluate2(5)
 evaluate2(6)
 evaluate2(7)
 evaluate2(8)
