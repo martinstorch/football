@@ -17,14 +17,14 @@ cut_off_level_low<-0.74
 cut_off_level_high<-1.0
 human_level<-320/9/31
 human_level_median <- 219 / 9 / 31
-predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_pistor_verify//new_predictions_df.csv"
 
 point_type<-"s_points"
 cut_off_level_low<-1.24
 cut_off_level_high<-1.5
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"d:\\Models\\model_1920_sky/new_predictions_df.csv"
+predictions_file<-"d:\\Models\\model_1920_sky_verify/new_predictions_df.csv"
 
 
 point_type<-"d_points"
@@ -32,7 +32,7 @@ cut_off_level_low<-4.1
 cut_off_level_high<-8.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"D:\\Models\\model_1920_gd//new_predictions_df.csv"
+predictions_file<-"D:\\Models\\model_1920_gd_verify/new_predictions_df.csv"
 
 season<-"2018/19"
 predictions_data <- read.csv(predictions_file)

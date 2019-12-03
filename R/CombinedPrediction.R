@@ -22,6 +22,7 @@ result_file     <-"D:\\Models\\model_gen2_pistor_1819//results_df.csv"
 predictions_file<-"D:\\Models\\model_gen2_pistor_1819/new_predictions_df.csv"
 result_file     <-"D:\\Models\\simple36_pistor_1819//results_df.csv"
 predictions_file<-"D:\\Models\\simple36_pistor_1819/new_predictions_df.csv"
+predictions_file<-"D:\\Models\\model_1920_pistor/new_predictions_df.csv"
 #result_file     <-"D:\\Models\\model_gen_pistor_1819_2//results_df\ -\ Copy.csv"
 #predictions_file<-"D:\\Models\\model_gen_pistor_1819_2/new_predictions_df\ -\ Copy.csv"
 
