@@ -73,7 +73,17 @@ SEQ_LENGTH = 10
 TIMESERIES_COL = 'rawdata'
 
 
-def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
+def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWIN):
+  print("train_seasons")
+  print(train_seasons)
+  print(type(train_seasons))
+  print("test_seasons")
+  print(test_seasons)
+  print(type(test_seasons))
+  print("useBWIN")
+  print(useBWIN)
+  print(type(useBWIN))
+
   full_data =   pd.read_csv(data_dir+"/full_data.csv")
   is_train = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(train_seasons).repeat(2)
   is_test = full_data.Season.astype(str).apply(lambda x: x.zfill(4)).isin(test_seasons).repeat(2)
@@ -96,6 +106,11 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir):
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
 
+  if not useBWIN and 'BW1' in feature_names:  
+    all_data["BW1"]=0.0
+    all_data["BW0"]=0.0
+    all_data["BW2"]=0.0
+    print("BWIN features set to zero")
 #  all_labels["Train"]=is_train.values
 #  all_labels["Test"]=is_test.values
 #  all_labels["Predict"] = all_data["Predict"]
@@ -867,8 +882,8 @@ def plot_checkpoints(df, predictions):
   plot_point_summary(df)
     
 
-def get_input_data(model_dir, train_data, test_data, data_dir):
-  all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir)
+def get_input_data(model_dir, train_data, test_data, data_dir, useBWIN):
+  all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir, useBWIN)
   features_arrays, labels_array, team_onehot_encoder, label_column_names = build_features(all_data.copy(), all_labels, all_features, teamnames, team_mapping)
   data = (all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names)
   return data
@@ -1252,7 +1267,7 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   
 def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data, 
                    checkpoints, save_steps, data_dir, max_to_keep, 
-                   reset_variables, skip_plotting, target_system, modes, use_swa, histograms):
+                   reset_variables, skip_plotting, target_system, modes, use_swa, histograms, useBWIN):
   tf.logging.set_verbosity(tf.logging.INFO)
   
   """Train and evaluate the model."""
@@ -1278,8 +1293,11 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     raise Exception("Unknown point scheme")
     
   global_prepare()
-
-  all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names = get_input_data(model_dir, train_data, test_data, data_dir)
+  
+  train_data = [s.strip() for s in train_data.strip('[]').split(',')]
+  test_data = [s.strip() for s in test_data.strip('[]').split(',')]
+  
+  all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names = get_input_data(model_dir, train_data, test_data, data_dir, useBWIN)
 
 #  train_idx = range(2*306*len(train_data))
 #  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
@@ -1377,7 +1395,9 @@ def main(_):
     dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                      FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                      FLAGS.save_steps, FLAGS.data_dir, FLAGS.max_to_keep, 
-                     FLAGS.reset_variables, FLAGS.skip_plotting, FLAGS.target_system, FLAGS.modes, FLAGS.swa, FLAGS.histograms)
+                     FLAGS.reset_variables, FLAGS.skip_plotting, FLAGS.target_system, 
+                     FLAGS.modes, FLAGS.swa, FLAGS.histograms, 
+                     FLAGS.useBWIN)
   
   
 
@@ -1420,12 +1440,12 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
-      default=["1314","1415", "1516", "1617", "1718", "1819"]+["1920"], #
+      default="1314,1415,1516,1617,1718,1819,1920", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
-      default=["0910", "1011", "1112", "1213"], #
+      default="0910,1011,1112,1213", #
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1457,10 +1477,16 @@ if __name__ == "__main__":
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
+      "--useBWIN", type=bool,
+      #default=True,
+      default=False,
+      help="Run in Stochastic Weight Averaging mode."
+  )
+  parser.add_argument(
       "--modes",
       type=str,
-      #default="static",
-      default="train",
+      default="static",
+      #default="train",
       #default="eval_stop",
       #default="eval",
       #default="predict",

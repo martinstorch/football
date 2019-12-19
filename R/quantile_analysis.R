@@ -1,7 +1,7 @@
 setwd("~/LearningR/Bundesliga/Analysis")
 setwd("c:/users/marti")
 setwd("C:/git/football/TF")
-setwd("d:/gitrepository/Football/football/TF")
+#setwd("d:/gitrepository/Football/football/TF")
 
 library(metR)
 library(ggExtra)
@@ -78,6 +78,13 @@ alldata[,normalized_quote_names[1:3]]<-alldata[,normalized_quote_names[1:3]]/row
 #alldata[,normalized_quote_names[4:6]]<-alldata[,normalized_quote_names[4:6]]/rowSums(alldata[,normalized_quote_names[4:6]])
 
 ggplot(alldata, aes(x=pBWH, y=pBWA, color=FTR))+facet_wrap(aes(season))+geom_point(alpha=0.3)
+
+ggplot(alldata, aes(x=FTHG, y=FTAG))+facet_wrap(aes(season))+geom_bin2d()
+ggplot(alldata, aes(x=FTHG, y=FTAG, color=FTR))+facet_wrap(aes(season))+geom_count()
+alldata%>%group_by(season, FTR, FTHG, FTAG)%>%tally()%>%ggplot(aes(x=FTHG, y=FTAG, color=FTR, alpha=n))+facet_wrap(aes(season))+geom_count()
+alldata%>%group_by(season, FTR, FTHG, FTAG)%>%tally()%>%ggplot(aes(x=FTHG, y=FTAG, fill=FTR, alpha=n))+facet_wrap(aes(season))+geom_tile()
+alldata%>%group_by(season, FTR, FTHG, FTAG)%>%tally()%>%ggplot(aes(x=FTHG, y=FTAG, col=FTR, alpha=n))+facet_wrap(aes(season))+geom_point(aes(size=n))
+
 
 
 #########################################################################################################################
