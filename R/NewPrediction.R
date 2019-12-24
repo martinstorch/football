@@ -182,7 +182,7 @@ evaluate2<-function(t){
   print(onematch %>% group_by(pred) %>% summarise(N=n(), TrainMean=mean(train, na.rm = T), TestMean=mean(test, na.rm = T), TrainStddev=sd(train, na.rm = T), TestStddev=sd(test, na.rm = T) ) %>% arrange(-TestMean) )
   ggplot(onematch, aes(x=pred, y=test, fill=pred))+
     geom_violin(scale = "count", draw_quantiles = c(0.25, 0.5, 0.75))+
-    facet_wrap(~Prefix)+  
+    facet_wrap(~Prefix, nrow=2)+  
     stat_summary(fun.y = "mean", geom = "point", shape = 8, size = 3, color = "midnightblue") +
     #stat_summary(fun.y = "median", geom = "point", shape = 2, size = 3, color = "black")+
     geom_dotplot(binaxis="y", stackdir="center", position="dodge", dotsize=0.5, binwidth=0.002)+
