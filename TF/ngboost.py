@@ -1,21 +1,20 @@
-# Copyright 2016 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-"""Example code for TensorFlow Wide & Deep Tutorial using TF.Learn API."""
-#from __future__ import absolute_import
-#from __future__ import division
-#from __future__ import print_function
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jan 27 17:23:02 2020
+
+@author: marti
+"""
+from ngboost import NGBRegressor
+from ngboost.scores import CRPS, MLE
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, confusion_matrix, accuracy_score, classification_report
+from sklearn.tree import DecisionTreeRegressor
+from ngboost import NGBClassifier
+from ngboost.distns import k_categorical
+from ngboost.learners import default_tree_learner
+
+import seaborn as sns
 
 import argparse
 #import shutil
@@ -34,11 +33,8 @@ import os
 from threading import Event
 import signal
 
-import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-from Estimators import Model_1920 as themodel
-from Estimators import Utilities as utils
 
 #from tensorflow.python.training.session_run_hook import SessionRunHook
 #from tensorflow.contrib.layers import l2_regularizer
@@ -48,7 +44,6 @@ from collections import Counter
 from sklearn.metrics import confusion_matrix
 import random
 import itertools
-from tensorflow.python import debug as tf_debug
 
 #@ops.RegisterGradient("BernoulliSample_ST")
 #def bernoulliSample_ST(op, grad):
@@ -169,6 +164,7 @@ def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
 #  match_input_layer[:, j:j+fc] = features[feature_column_names]
 #  
 #  #labels = features [label_column_names].values.astype(np.float32)
+  print(label_column_names)
   return {
       "match_input_layer": match_input_layer,
       "gameindex": all_data.gameindex.values.astype(np.int16), 
@@ -298,18 +294,6 @@ def plot_softprob(pred, gs, gc, title="", prefix=""):
       bars[1-i].set_hatch("x")
   plt.show()
 
-def global_prepare():
-  global CALC_GRAPH, calc_points_tensor
-  global pl_pGS, pl_pGC, pl_GS, pl_GC, pl_is_home
-  CALC_GRAPH = tf.Graph()
-  with CALC_GRAPH.as_default():
-    pl_pGS = tf.placeholder(tf.int64, name="pl_pGS")
-    pl_pGC = tf.placeholder(tf.int64, name="pl_pGC")
-    pl_GS = tf.placeholder(tf.int64, name="pl_GS")
-    pl_GC = tf.placeholder(tf.int64, name="pl_GC")
-    pl_is_home = tf.placeholder(tf.bool, name="pl_is_home")
-    calc_points_tensor = themodel.calc_points(pl_pGS,pl_pGC, pl_GS, pl_GC, pl_is_home)[0]
-
 
 def print_match_dates(X, team_onehot_encoder):
   features = X["newgame"]
@@ -320,17 +304,6 @@ def print_match_dates(X, team_onehot_encoder):
   print(len(features))
   print(match_dates)
   return match_dates
-
-def static_probabilities(model_data):
-  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
-  with tf.Session() as sess:
-    sess=sess
-    train_X = {k: v[train_idx] for k, v in features_arrays.items()}
-    train_y = labels_array[train_idx]
-    test_X = {k: v[test_idx] for k, v in features_arrays.items()}
-    test_y = labels_array[test_idx]
-    plot_softprob(themodel.makeStaticPrediction((train_X), (train_y)),6,6,"Static Prediction Train Data")
-    plot_softprob(themodel.makeStaticPrediction((test_X), (test_y)),6,6,"Static Prediction Test Data")
 
 def plot_predictions_3(df, prefix, dataset):
   df = df.loc[(df.Prefix==prefix)&(df.dataset==dataset)].copy()
@@ -864,7 +837,7 @@ def plot_point_summary(results):
   plt.show()
  
 def plot_checkpoints(df, predictions):
-  for prefix in themodel.prefix_list: 
+  for prefix in ["ngb"]: 
     prefix_df = df.loc[df.Prefix==prefix[:-1]]
     s = random.sample(range(len(prefix_df)), 1)[0]
     print(prefix, s)
@@ -889,76 +862,60 @@ def get_input_data(model_dir, train_data, test_data, data_dir, useBWIN):
   return data
 
 
-class IteratorInitializerHook(tf.train.SessionRunHook):
-    """Hook to initialise data iterator after Session is created."""
-
-    def __init__(self, features, labels):
-        super(IteratorInitializerHook, self).__init__()
-        self.iterator_initializer_func = None
-        self.feed_dict = {"alllabels:0":labels,
-                          "alldata:0": features['match_input_layer'] }
-
-    def after_create_session(self, session, coord):
-        """Initialise the iterator after the session has been created."""
-        self.iterator_initializer_func(session)
-    
-    def before_run(self, run_context):
-#        a = run_context.original_args
-#        if a.feed_dict is None:
-#          a.feed_dict = self.feed_dict
-#        else:
-#          a.feed_dict.update(self.feed_dict)
-        return tf.train.SessionRunArgs(run_context.original_args.fetches,
-                                       self.feed_dict,
-                                       run_context.original_args.options)
-
-def get_input_fn(features, labels, mode=tf.estimator.ModeKeys.TRAIN, 
-                 data_index=[]):
-  #assert features.shape[0] == labels.shape[0]
-
-  iterator_initializer_hook = IteratorInitializerHook(features, labels)
-
-  def train_inputs():
-    features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features.items()}
-    print("features_placeholder: ", features_placeholder)
-    label_placeholder=tf.placeholder(labels.dtype,shape=[None]+[x for x in labels.shape[1:]])
-    feed_dict = {features_placeholder[k]:v[data_index] for k,v in features.items()}
-    feed_dict[label_placeholder]=labels[data_index]
-    #dataset = tf.data.Dataset.from_tensors((features_placeholder, label_placeholder))
-    dataset = tf.data.Dataset.from_tensor_slices((features_placeholder, label_placeholder))
-    if mode==tf.estimator.ModeKeys.TRAIN:
-      dataset = dataset.shuffle(buffer_size=6000).batch(256).repeat()
-    else:
-      dataset = dataset.batch(len(labels[data_index])).repeat(1)
-    #print(data_index)
-    print("dataset: ", dataset)
-    iterator = dataset.make_initializable_iterator()
-    next_example, next_label = iterator.get_next()
-    # Set runhook to initialize iterator
-    print("feed_dict", feed_dict.keys())
-    print("next_example", next_example)
-    print("next_label", next_label)
-    iterator_initializer_hook.iterator_initializer_func = \
-        lambda sess: sess.run(
-            iterator.initializer,
-            feed_dict=feed_dict)
-    # Return batched (features, labels)
-    return next_example, next_label
-
-  # Return function and hook
-  return train_inputs, iterator_initializer_hook
-
 def train_model(model_data, train_steps):
-  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
-  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
+  features_arrays, labels_array, train_idx, test_idx, pred_idx = model_data
+  
+  #print(label_column_names)
+  print(features_arrays["match_input_layer"].shape)
+  print(labels_array.shape)
+  
+  
+  X = features_arrays["match_input_layer"]
+  Y = np.sign(labels_array[:,0]-labels_array[:,1]).astype(int)+1
+  X_train = X[train_idx]
+  X_test= X[test_idx]
+  Y_train = Y[train_idx]
+  Y_test= Y[test_idx]
+  
+  ngb = NGBClassifier(Dist=k_categorical(3),
+                      n_estimators=500,
+                 learning_rate=0.01,
+                 minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
+  print(X_train)
+  print(Y_train)
+  ngb.fit(X_train, Y_train) # Y should have only 3 values: {0,1,2}
 
-  DEBUG =False
-  if DEBUG:
-    debug_hook = tf_debug.LocalCLIDebugHook(ui_type='readline', dump_root='C:/tmp/Football/debug_dump')
-    debug_hook.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
-    hooks = [debug_hook]
-  else:
-    hooks = []
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y_pred = ngb.predict_proba(X_test)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y_pred, axis=1))
+  print(accuracy_score(Y_test, np.argmax(Y_pred, axis=1)))
+  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y_test, np.argmax(Y_pred, axis=1), labels=lb))
+  
+  Y_pred_train = ngb.predict_proba(X_train)
+  print(accuracy_score(Y_train, np.argmax(Y_pred_train, axis=1)))
+  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+#        "match_input_layer": match_input_layer,
+#      "gameindex": all_data.gameindex.values.astype(np.int16), 
+#      "match_history_t1": mh1,
+#      "match_history_t2": mh2,
+#      "match_history_t12": mh12,
+#      }, all_labels.values, team_mapping, label_column_names
+#  with open('ngb.pickle', 'wb') as f:
+#      pickle.dump(ngb, f)  
+  
+  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+                                   'importance':ngb.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots()
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance)
+
+  train_input_fn, train_iterator_hook = get_input_fn(features_arrays, labels_array, mode=tf.estimator.ModeKeys.TRAIN, data_index=train_idx)
 
   model.train(
         input_fn=train_input_fn,
@@ -987,110 +944,6 @@ def train_eval_model(model_data, train_steps):
 
 
   
-def find_checkpoints_in_scope(model_dir, checkpoints, use_swa):
-  export_dir = model_dir 
-#  if use_swa:
-#    export_dir = export_dir + "/swa"
-  print(export_dir)
-  checkpoint_paths = tf.train.get_checkpoint_state(export_dir).all_model_checkpoint_paths
-  global_steps = [int(os.path.basename(str(cp)).split('-')[1]) for cp in checkpoint_paths]
-  cp_df_all = pd.DataFrame({"global_step":global_steps, "checkpoint":checkpoint_paths})
-  cp_df_final = pd.DataFrame()
-  for cp in checkpoints.split(","):
-    fromto = cp.split(":")
-    fromto = [ft.strip() for ft in fromto]
-    fromto = [int(ft) if ft!="" else None for ft in fromto]
-    if len(fromto)==1:
-      # no separator
-      r = fromto[0]
-      if r is None:
-        cp_df = cp_df_all
-      elif r < 0:
-        # slice
-        cp_df = cp_df_all.iloc[slice(r, None)]
-      else:
-        cp_df = cp_df_all.loc[cp_df_all.global_step==r]
-    elif len(fromto)==2:
-      # range
-      ffrom = fromto[0]
-      tto = fromto[1]
-      if ffrom is None:
-        ffrom=0
-      else:
-        ffrom=int(ffrom)
-      if tto is None:
-        tto = 100000000
-      else:
-        tto=int(tto)+1
-      cp_df = cp_df_all.loc[cp_df_all.global_step.between(ffrom, tto, inclusive=True)]
-    else:
-      raise("wrong number of colon characters in "+fromto)  
-    cp_df_final = cp_df_final.append(cp_df)
-  if len(cp_df_final)==0:
-    print("No checkpoints selected in {} using filter \"{}\"".format(export_dir, checkpoints))
-  return cp_df_final.sort_values("global_step")
-
-def evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=False):
-  model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx = model_data
-  #tf.reset_default_graph()
-  est_spec = model.model_fn(features=features_placeholder, labels=labels_array, mode="eval", config = model.config)
-  cps = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
-  if len(cps)==0:
-    return
-  model_dir = os.path.dirname(cps.iloc[0].checkpoint)
-  train_writer = tf.summary.FileWriter( model_dir+'/eval_train')
-  test_writer = tf.summary.FileWriter( model_dir+'/eval_test')
-
-  eval_metric_ops = est_spec.eval_metric_ops
-  for key, value in eval_metric_ops.items():
-    tf.summary.scalar(key, value[1])
-  
-  summary_op=tf.summary.merge_all()
-  init_l = tf.local_variables_initializer() # take care of summary metrics initialization
-  loss = est_spec.loss
-  
-  data_index = test_idx
-  feed_dict = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
-  feed_dict[ "alldata:0"]=features_arrays['match_input_layer']
-  feed_dict[ "alllabels:0"]=labels_array
-
-  data_index = train_idx
-  feed_dict_train = {features_placeholder[k] : v[data_index] for k,v in features_arrays.items() if k!='match_input_layer'}
-  feed_dict_train[ "alldata:0"]=features_arrays['match_input_layer']
-  feed_dict_train[ "alllabels:0"]=labels_array
-
-  saver = tf.train.Saver()
-  cps_done = []
-  for sig in ('TERM', 'INT'):
-      signal.signal(getattr(signal, 'SIG'+sig), quit);
-  exit_ = Event()
-  with tf.Session() as sess:
-    while not exit_.is_set():
-      if len(cps)>0:
-        for cp, global_step in zip(cps.checkpoint, cps.global_step):
-          print(cp)
-          saver.restore(sess, cp)
-          _, outputs = sess.run([init_l, loss], feed_dict=feed_dict)
-          summary = sess.run(summary_op, feed_dict=feed_dict)
-          test_writer.add_summary(summary, global_step)
-          print("test", global_step, outputs)
-          _, outputs = sess.run([init_l, loss], feed_dict=feed_dict_train)
-          summary = sess.run(summary_op, feed_dict=feed_dict_train)
-          train_writer.add_summary(summary, global_step)
-          print("train", global_step, outputs)
-        cps_done.extend(cps.global_step)
-        #print("cps_done", cps_done)
-      else:
-        if eval_stop:
-          return
-        else:
-          exit_.wait(10)
-      cps2 = find_checkpoints_in_scope(model.model_dir, checkpoints, use_swa)
-      #print("cps2", cps2)
-      cps = cps2.loc[~cps2.global_step.isin(cps_done)]
-      #print("cps", cps)
-  train_writer.close()
-  test_writer.close()        
 
 
 def predict_checkpoints(model_data, cps, all_data, skip_plotting):
@@ -1268,7 +1121,6 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
 def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data, 
                    checkpoints, save_steps, data_dir, max_to_keep, 
                    reset_variables, skip_plotting, target_system, modes, use_swa, histograms, useBWIN):
-  tf.logging.set_verbosity(tf.logging.INFO)
   
   """Train and evaluate the model."""
   #train_file_name, test_file_name, teamnames = maybe_download(train_data, test_data)
@@ -1279,21 +1131,15 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   global point_scheme 
   if target_system=="TCS":
     point_scheme = point_scheme_tcs
-    themodel.point_scheme = point_scheme_tcs
   elif target_system=="Pistor":
     point_scheme = point_scheme_pistor
-    themodel.point_scheme = point_scheme_pistor
   elif target_system=="Sky":
     point_scheme = point_scheme_sky
-    themodel.point_scheme = point_scheme_sky
   elif target_system=="GoalDiff":
     point_scheme = point_scheme_goal_diff
-    themodel.point_scheme = point_scheme_goal_diff
   else:
     raise Exception("Unknown point scheme")
     
-  global_prepare()
-  
   train_data = [s.strip() for s in train_data.strip('[]').split(',')]
   test_data = [s.strip() for s in test_data.strip('[]').split(',')]
   
@@ -1333,35 +1179,24 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
   
 
-  tf.reset_default_graph()
-  #print({k: v.shape for k, v in features_arrays.items()})
-  my_feature_columns = [tf.feature_column.numeric_column(key=k, shape=v.shape[1:]) for k, v in features_arrays.items() if k != 'match_input_layer']
-  #print(my_feature_columns)  
+  model_data = (features_arrays, labels_array, train_idx, test_idx, pred_idx)
+#  if modes == "static":
+#    static_probabilities(model_data)    
+#  elif "upgrade" in modes: # change to True if model structure has been changed
+#    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array, reset_variables=reset_variables)
+#  elif modes == "train": 
+#    train_model(model_data, train_steps)
+#  elif modes == "train_eval": 
+#    train_eval_model(model_data, train_steps)
+#  elif modes == "eval": 
+#    evaluate_checkpoints(model_data, checkpoints, use_swa)
+#  elif modes == "eval_stop":
+#    evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=True)
+#  elif modes == "predict": 
+#    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
+#    predict_checkpoints(model_data, cps, all_data, skip_plotting)    
   
-  features_placeholder={k:tf.placeholder(v.dtype,shape=[None]+[x for x in v.shape[1:]]) for k,v in features_arrays.items() if k!='match_input_layer'}
-  features_placeholder["alllabels"]=tf.placeholder(labels_array.dtype, labels_array.shape)
-  features_placeholder["alldata"]=tf.placeholder(features_arrays['match_input_layer'].dtype, features_arrays['match_input_layer'].shape)
-  print(label_column_names)
-  model = themodel.create_estimator(model_dir, label_column_names, my_feature_columns, features_arrays['match_input_layer'], labels_array, save_steps, max_to_keep, len(teamnames), use_swa, histograms, target_distr)
-  
-  model_data = (model, features_arrays, labels_array, features_placeholder, train_idx, test_idx, pred_idx)
-  if modes == "static":
-    static_probabilities(model_data)    
-  elif "upgrade" in modes: # change to True if model structure has been changed
-    utils.upgrade_estimator_model(model_dir, model, features=features_placeholder, labels=labels_array, reset_variables=reset_variables)
-  elif modes == "train": 
-    train_model(model_data, train_steps)
-  elif modes == "train_eval": 
-    train_eval_model(model_data, train_steps)
-  elif modes == "eval": 
-    evaluate_checkpoints(model_data, checkpoints, use_swa)
-  elif modes == "eval_stop":
-    evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=True)
-  elif modes == "predict": 
-    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
-    predict_checkpoints(model_data, cps, all_data, skip_plotting)    
-  
-  return    
+  return    model_data, point_scheme
     
 
 FLAGS = None
@@ -1392,7 +1227,7 @@ def main(_):
     else:
         raise("Wrong system")
     
-    dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
+    return dispatch_main(target_distr, FLAGS.model_dir, FLAGS.train_steps,
                      FLAGS.train_data, FLAGS.test_data, FLAGS.checkpoints,
                      FLAGS.save_steps, FLAGS.data_dir, FLAGS.max_to_keep, 
                      FLAGS.reset_variables, FLAGS.skip_plotting, FLAGS.target_system, 
@@ -1440,14 +1275,14 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
-      #default="1314,1415,1516,1617,1718,1819,1920", #
-      default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
+      default="1314,1415,1516,1617,1718,1819,1920", #
+      #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
-      #default="0910,1011,1112,1213", #
-      default="1920",
+      default="0910,1011,1112,1213", #
+      #default="1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1487,8 +1322,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="static",
-      #default="train",
+      #default="static",
+      default="train",
       #default="eval_stop",
       #default="eval",
       #default="predict",
@@ -1508,8 +1343,457 @@ if __name__ == "__main__":
   )
   FLAGS, unparsed = parser.parse_known_args()
   print([sys.argv[0]] + unparsed)
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  print(FLAGS)
+  model_data, point_scheme = main([sys.argv[0]] + unparsed)
 
 
 # Path('C:/tmp/Football/models/reset.txt').touch()
 
+
+
+
+  features_arrays, labels_array, train_idx, test_idx, pred_idx = model_data
+  
+  #print(label_column_names)
+  print(features_arrays["match_input_layer"].shape)
+  print(labels_array.shape)
+  
+  if point_scheme == point_scheme_pistor:
+    point_matrix =  np.array([[3 if (i//7 == j//7) and (np.mod(i, 7)==np.mod(j, 7)) else 
+                               2 if (i//7 - np.mod(i, 7) == j//7 - np.mod(j, 7)) else
+                               1 if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+  elif point_scheme == point_scheme_sky:
+    point_matrix =  np.array([[5 if (i//7 == j//7) and (np.mod(i, 7)==np.mod(j, 7)) else 
+                               2 if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+  if point_scheme == point_scheme_goal_diff:
+    point_matrix =  np.array([[np.maximum(5, 10 - np.abs(i//7 - j//7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+  
+  X = features_arrays["match_input_layer"]
+  X_train = X[train_idx]
+  X_test= X[test_idx]
+
+  Y1 = np.sign(labels_array[:,0]-labels_array[:,1]).astype(int)+1
+  Y1_train = Y1[train_idx]
+  Y1_test= Y1[test_idx]
+
+  Y2 = (np.minimum(labels_array[:,0], 6)-np.minimum(labels_array[:,1], 6)).astype(int)+6
+  Y2_train = Y2[train_idx]
+  Y2_test= Y2[test_idx]
+
+  Y3 = (np.minimum(labels_array[:,0], 6)*7+np.minimum(labels_array[:,1], 6)).astype(int)
+  Y3_train = Y3[train_idx]
+  Y3_test= Y3[test_idx]
+
+  Y4 = np.minimum(labels_array[:,0], 6).astype(int)
+  Y4_train = Y4[train_idx]
+  Y4_test= Y4[test_idx]
+
+  Y5 = np.minimum(labels_array[:,1], 6).astype(int)
+  Y5_train = Y5[train_idx]
+  Y5_test= Y5[test_idx]
+
+  Y0 = set(range(49))-set(Y3_train) # dummy rows for missing categories
+  X0 = X[np.random.choice(train_idx, len(Y0))]  
+  X_train = np.concatenate((X_train, X0))
+  Y3_train = np.concatenate((Y3_train, np.array(list(Y0))))
+  Y1_train = np.concatenate((Y1_train, np.sign(np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+1))
+  Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
+  Y4_train = np.concatenate((Y4_train, (np.array(list(Y0))//7).astype(int)))
+  Y5_train = np.concatenate((Y5_train, (np.mod(np.array(list(Y0)),7)).astype(int)))
+  
+  ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(3),
+                      n_estimators=150, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
+                     early_stopping_rounds = 30, 
+                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y1_pred = ngb.predict_proba(X_test)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y1_pred, axis=1))
+  print(accuracy_score(Y1_test, np.argmax(Y1_pred, axis=1)))
+  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y1_test, np.argmax(Y1_pred, axis=1), labels=lb))
+  print(np.mean(Y1_pred, axis=0))    
+  print(Counter(np.argmax(Y1_pred, axis=1)))
+  
+  Y1_pred_train = ngb.predict_proba(X_train)
+  print(accuracy_score(Y1_train, np.argmax(Y1_pred_train, axis=1)))
+  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y1_train, np.argmax(Y1_pred_train, axis=1), labels=lb))
+  print(np.mean(Y1_pred_train, axis=0))    
+  print(Counter(np.argmax(Y1_pred_train, axis=1)))
+  
+#        "match_input_layer": match_input_layer,
+#      "gameindex": all_data.gameindex.values.astype(np.int16), 
+#      "match_history_t1": mh1,
+#      "match_history_t2": mh2,
+#      "match_history_t12": mh12,
+#      }, all_labels.values, team_mapping, label_column_names
+#  with open('ngb.pickle', 'wb') as f:
+#      pickle.dump(ngbmodel, f)  
+  
+  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+                                   'importance':ngb.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots(figsize=(20, 10))
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
+
+
+
+  ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+        Dist=k_categorical(13),
+                      n_estimators=250, verbose_eval=1,
+                 learning_rate=0.02,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel2 = ngb2.fit(X_train, Y2_train, X_val = X_test, Y_val = Y2_test,
+                       early_stopping_rounds = 30, 
+                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+  max_iter=ngb2.best_val_loss_itr
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y2_pred = ngb2.predict_proba(X_test, max_iter=max_iter)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y2_pred, axis=1))
+  print(accuracy_score(Y2_test, np.argmax(Y2_pred, axis=1)))
+  print(confusion_matrix(Y2_test, np.argmax(Y2_pred, axis=1), labels=lb))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y2_test, np.argmax(Y2_pred, axis=1), labels=lb))
+  print(np.mean(Y2_pred, axis=0))    
+  print(Counter(np.argmax(Y2_pred, axis=1)))
+
+  Y_pred_train = ngb2.predict_proba(X_train, max_iter=max_iter)
+  print(accuracy_score(Y2_train, np.argmax(Y_pred_train, axis=1)))
+  print(confusion_matrix(Y2_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y2_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  print(np.mean(Y_pred_train, axis=0))    
+  print(Counter(np.argmax(Y_pred_train, axis=1)))
+
+  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+                                   'importance':ngb2.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots(figsize=(20, 10))
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
+
+
+  ngb4 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(7),
+                      n_estimators=150, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
+                     early_stopping_rounds = 30, 
+                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y4_pred = ngb4.predict_proba(X_test)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y4_pred, axis=1))
+  print(accuracy_score(Y4_test, np.argmax(Y4_pred, axis=1)))
+  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y4_test, np.argmax(Y4_pred, axis=1), labels=lb))
+  print(np.mean(Y4_pred, axis=0))    
+  print(Counter(np.argmax(Y4_pred, axis=1)))
+  
+  Y4_pred_train = ngb4.predict_proba(X_train)
+  print(accuracy_score(Y4_train, np.argmax(Y4_pred_train, axis=1)))
+  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y4_train, np.argmax(Y4_pred_train, axis=1), labels=lb))
+  print(np.mean(Y4_pred_train, axis=0))    
+  print(Counter(np.argmax(Y4_pred_train, axis=1)))
+
+
+
+  ngb5 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(7),
+                      n_estimators=150, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
+                     early_stopping_rounds = 30, 
+                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y5_pred = ngb5.predict_proba(X_test)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y5_pred, axis=1))
+  print(accuracy_score(Y5_test, np.argmax(Y5_pred, axis=1)))
+  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y5_test, np.argmax(Y5_pred, axis=1), labels=lb))
+  print(np.mean(Y5_pred, axis=0))    
+  print(Counter(np.argmax(Y5_pred, axis=1)))
+  
+  Y5_pred_train = ngb5.predict_proba(X_train)
+  print(accuracy_score(Y5_train, np.argmax(Y5_pred_train, axis=1)))
+  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y5_train, np.argmax(Y5_pred_train, axis=1), labels=lb))
+  print(np.mean(Y5_pred_train, axis=0))    
+  print(Counter(np.argmax(Y5_pred_train, axis=1)))
+
+
+
+
+  def  calc_softpoints(Y, prob):
+      return np.matmul(prob, point_matrix).flatten()[np.arange(Y.shape[0])*49+Y]
+
+  
+
+
+  ngb3 = NGBClassifier(
+          Base=DecisionTreeRegressor(max_features=0.2, #"auto",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(49), 
+                       Score=MLE, 
+                      n_estimators=50, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
+  ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
+                       early_stopping_rounds = 20, 
+                     train_loss_monitor=lambda D,Y: 
+                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+                     val_loss_monitor=lambda D,Y: 
+                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+#                     train_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_softpoints(Y, D.to_prob())),
+#                     val_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_softpoints(Y, D.to_prob())),
+                     #train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     #val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     
+                     ) # Y should have only 3 values: {0,1,2}
+  max_iter=ngb3.best_val_loss_itr
+  max_iter=227
+  
+  def argmax_softpoint(prob):
+      return np.argmax(np.matmul(prob, point_matrix), axis=1)
+  
+  def calc_points(Y_true, Y_pred):
+      oh = np.zeros((Y_true.size, 49))
+      oh[np.arange(Y_true.size), Y_pred] = 1
+      return calc_softpoints(Y_true, oh)
+
+  def beautify(c):
+      return Counter({str(k//7)+":"+str(np.mod(k,7)):v for k,v in c.items()})
+  
+  def invert(is_home, pred):
+      return np.where(is_home, pred, 7*np.mod(pred,7)+pred//7)
+  
+  def point_dist(points):
+      vc = pd.DataFrame({"Points":points}).Points.value_counts()
+      df = pd.DataFrame({"Points":vc, "Percent":(vc / vc.sum()) * 100})
+      return df
+  
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y3_pred = ngbmodel3.predict_proba(X_test)
+  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
+  print(np.mean(calc_softpoints(Y3_test, Y3_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_pred))))
+  print(accuracy_score(Y3_test, argmax_softpoint(Y3_pred)))
+  print(beautify(Counter(invert(X_test[:,1], np.argmax(Y3_pred, axis=1)))))
+  print(np.mean(calc_points(Y3_test, np.argmax(Y3_pred, axis=1))))
+  print(point_dist(calc_points(Y3_test, np.argmax(Y3_pred, axis=1))))
+  print(accuracy_score(Y3_test, np.argmax(Y3_pred, axis=1)))
+
+  
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y3_pred, axis=1))
+  print(confusion_matrix(Y3_test, np.argmax(Y3_pred, axis=1), labels=lb))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y3_test, np.argmax(Y3_pred, axis=1), labels=lb))
+  print(np.mean(Y3_pred, axis=0)*100)    
+  print(np.sqrt(np.var(Y3_pred, axis=0))*100)    
+  print(np.max(Y3_pred, axis=0)*100)    
+  print(np.min(Y3_pred, axis=0)*100)    
+  print(np.sqrt(np.var(Y3_pred, axis=0))/np.mean(Y3_pred, axis=0))    
+
+  print(classification_report(Y3_test, argmax_softpoint(Y3_pred)))
+  
+  Y_pred_train = ngb3.predict_proba(X_train)
+  Y_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
+
+  print(np.mean(calc_softpoints(Y3_train, Y_pred_train)))
+  print(beautify(Counter(invert(X_train[:,1], argmax_softpoint(Y_pred_train)))))
+  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y_pred_train))))
+  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y_pred_train))))
+  print(accuracy_score(Y3_train, argmax_softpoint(Y_pred_train)))
+  print(beautify(Counter(invert(X_train[:,1], np.argmax(Y_pred_train, axis=1)))))
+  print(np.mean(calc_points(Y3_train, np.argmax(Y_pred_train, axis=1))))
+  print(point_dist(calc_points(Y3_train, np.argmax(Y_pred_train, axis=1))))
+  print(accuracy_score(Y3_train, np.argmax(Y_pred_train, axis=1)))
+
+  print(confusion_matrix(Y3_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y3_train, argmax_softpoint(Y_pred_train)))
+  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
+  print(classification_report(Y3_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  print(np.mean(Y_pred_train, axis=0)*100)    
+  print(np.sqrt(np.var(Y_pred_train, axis=0))*100)    
+  print(np.max(Y_pred_train, axis=0)*100)    
+  print(np.min(Y_pred_train, axis=0)*100)    
+  print(classification_report(Y3_train, argmax_softpoint(Y_pred_train)))
+
+  
+  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+                                   'importance':ngb3.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots(figsize=(20, 10))
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
+
+  Y3_1_pred = np.stack([Y1_pred[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+  Y3_1_pred = np.stack([Y3_1_pred[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred[:, i]/21 for i in range(49)], axis=1)
+
+  Y3_2_pred = np.stack([Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
+  Y3_2_pred = np.stack([Y3_2_pred[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
+
+  Y3_4_pred = np.stack([Y4_pred[:, (i//7)]/7 for i in range(49)], axis=1)
+  Y3_5_pred = np.stack([Y5_pred[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
+
+  Y7_pred = (3*Y3_pred+Y3_1_pred+Y3_2_pred+Y3_4_pred+Y3_5_pred)/8
+
+  print(np.mean(calc_softpoints(Y3_test, Y7_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y7_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
+
+  Y3_2_pred[0].reshape((7,7))
+  Y2_pred[0]
+
+  
+  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+
+  Y3_1_pred[0].reshape((7,7))
+  np.mean(np.sum(Y3_1_pred, axis=1) )
+  Y3_5_pred[0].reshape((7,7))
+  np.mean(np.sum(Y3_2_pred, axis=1) )
+  np.mean(np.sum(Y3_4_pred, axis=1) )
+  np.mean(np.sum(Y3_5_pred, axis=1) )
+  np.mean(np.sum(Y3_pred, axis=1) )
+  np.mean(np.sum(Y1_pred, axis=1) )
+  np.mean(np.sum(Y2_pred, axis=1) )
+  np.mean(np.sum(Y4_pred, axis=1) )
+
+  Y1_pred[0]
+  
+  print(np.mean(calc_softpoints(Y3_test, Y3_1_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_1_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
+
+  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+
+  print(np.mean(calc_softpoints(Y3_test, Y3_4_pred)))
+  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_4_pred)))))
+  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
+  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
+
+
+#
+#
+#
+#X, Y = load_boston(True)
+#X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+#
+#ngb = NGBRegressor().fit(X_train, Y_train)
+#Y_preds = ngb.predict(X_test)
+#Y_dists = ngb.pred_dist(X_test)
+#
+#
+## test Mean Squared Error
+#test_MSE = mean_squared_error(Y_preds, Y_test)
+#print('Test MSE', test_MSE)
+#
+## test Negative Log Likelihood
+#test_NLL = -Y_dists.logpdf(Y_test.flatten()).mean()
+#print('Test NLL', test_NLL)
+#
+#Y_preds_train = ngb.predict(X_train)
+#Y_dists_train = ngb.pred_dist(X_train)
+#
+## test Mean Squared Error
+#train_MSE = mean_squared_error(Y_preds_train, Y_train)
+#print('Train MSE', train_MSE)
+#
+## test Negative Log Likelihood
+#train_NLL = -Y_dists_train.logpdf(Y_train.flatten()).mean()
+#print('Train NLL', train_NLL)
+#
+#

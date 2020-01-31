@@ -32,19 +32,20 @@ cut_off_level_low<-4.1
 cut_off_level_high<-8.8
 human_level<-297/6/30
 human_level_median <- 282 / 6 / 30
-predictions_file<-"D:\\Models\\model_1920_gd_verify///new_predictions_df.csv"
+predictions_file<-"D:\\Models\\model_1920_gd///new_predictions_df.csv"
 
 predictions_data <- read.csv(predictions_file)
+predictions_data<-predictions_data%>%filter(global_step>271600)
 
 predictions_data<-predictions_data%>%filter(train>cut_off_level_low & test>cut_off_level_low)
 predictions_data<-predictions_data%>%filter(train<cut_off_level_high & test<cut_off_level_high)
 
+print(range(as.character(predictions_data$Date)))
 table(predictions_data$pred)
 table(predictions_data$pred, predictions_data$Prefix)
-summary(predictions_data$Date)
-print(unique(predictions_data$Date))
+#summary(predictions_data$Date)
 table(predictions_data$Prefix)
-table(predictions_data$global_step)
+unique(predictions_data$global_step)
 
 
 
