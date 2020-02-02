@@ -8,7 +8,7 @@ from ngboost import NGBRegressor
 from ngboost.scores import CRPS, MLE
 from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, confusion_matrix, accuracy_score, classification_report
+from sklearn.metrics import mean_squared_error, confusion_matrix, accuracy_score, cohen_kappa_score, balanced_accuracy_score, classification_report, log_loss
 from sklearn.tree import DecisionTreeRegressor
 from ngboost import NGBClassifier
 from ngboost.distns import k_categorical
@@ -890,15 +890,15 @@ def train_model(model_data, train_steps):
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y_pred, axis=1))
   print(accuracy_score(Y_test, np.argmax(Y_pred, axis=1)))
-  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), labels=lb))
-  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y_test, np.argmax(Y_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1)))
+  print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+  print(classification_report(Y_test, np.argmax(Y_pred, axis=1)))
   
   Y_pred_train = ngb.predict_proba(X_train)
   print(accuracy_score(Y_train, np.argmax(Y_pred_train, axis=1)))
-  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), labels=lb))
-  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y_train, np.argmax(Y_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1)))
+  print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y_train, np.argmax(Y_pred_train, axis=1)))
 #        "match_input_layer": match_input_layer,
 #      "gameindex": all_data.gameindex.values.astype(np.int16), 
 #      "match_history_t1": mh1,
@@ -1275,14 +1275,16 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
+      #default="0910,1112,1314,1516,1718,1920", #
       default="1314,1415,1516,1617,1718,1819,1920", #
-      #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
+      #default="0910,1011,1112,1213,1314,1415,1516,1617", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
+      #default="1011,1213,1415,1617,1819", #
       default="0910,1011,1112,1213", #
-      #default="1920",
+      #default="1718,1819,1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1395,6 +1397,17 @@ if __name__ == "__main__":
   Y5_train = Y5[train_idx]
   Y5_test= Y5[test_idx]
 
+  Y6 = (np.minimum(labels_array[:,0], 6)+np.minimum(labels_array[:,1], 6)).astype(int)
+  Y6_train = Y6[train_idx]
+  Y6_test= Y6[test_idx]
+
+  Y8 = (np.minimum(labels_array[:,0], 6)-np.minimum(labels_array[:,1], 6)).astype(int)
+  Y8 = np.minimum(Y8, 2)
+  Y8 = np.maximum(Y8, -2)
+  Y8 = Y8 + 2
+  Y8_train = Y8[train_idx]
+  Y8_test= Y8[test_idx]
+
   Y0 = set(range(49))-set(Y3_train) # dummy rows for missing categories
   X0 = X[np.random.choice(train_idx, len(Y0))]  
   X_train = np.concatenate((X_train, X0))
@@ -1403,8 +1416,30 @@ if __name__ == "__main__":
   Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
   Y4_train = np.concatenate((Y4_train, (np.array(list(Y0))//7).astype(int)))
   Y5_train = np.concatenate((Y5_train, (np.mod(np.array(list(Y0)),7)).astype(int)))
+  Y6_train = np.concatenate((Y6_train, (np.array(list(Y0))//7+np.mod(np.array(list(Y0)),7)).astype(int)))
+  Y8_train = np.concatenate((Y8_train, np.maximum(-2, np.minimum(2, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)))+2))
   
-  ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+  def model_progress(model, X_train, X_test, Y1_train, Y1_test):
+      spd1_train = model.staged_pred_dist(X_train)
+      spd1_test = model.staged_pred_dist(X_test)
+      fig, axs = plt.subplots(2, 2, constrained_layout=True, figsize=(16,10))
+      axs[0][0].set_title('Accuracy')
+      axs[0][0].plot([accuracy_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1)) for i in range(len(spd1_train))])
+      axs[0][0].plot([accuracy_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1)) for i in range(len(spd1_test))])
+      axs[0][1].set_title('Balanced Accuracy Max. Prob')
+      axs[0][1].plot([balanced_accuracy_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1))for i in range(len(spd1_train))])
+      axs[0][1].plot([balanced_accuracy_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1))for i in range(len(spd1_test))])
+      axs[1][0].set_title('Log Loss')
+      axs[1][0].plot([log_loss(Y1_train, spd1_train[i].to_prob())for i in range(len(spd1_train))])
+      axs[1][0].plot([log_loss(Y1_test, spd1_test[i].to_prob(), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
+      axs[1][1].set_title('Cohen Kappa Score')
+      axs[1][1].plot([cohen_kappa_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1))for i in range(len(spd1_train))])
+      axs[1][1].plot([cohen_kappa_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
+      plt.show()
+      return spd1_train, spd1_test
+
+  
+  ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.1,
                                                  ccp_alpha=0.0,
                                          criterion='friedman_mse', max_depth=3,
                                          max_leaf_nodes=None,
@@ -1416,31 +1451,32 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=150, verbose_eval=1,
+                      n_estimators=350, verbose_eval=1,
                  learning_rate=0.01,
-                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+                 minibatch_frac=0.15) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
-                     early_stopping_rounds = 30, 
-                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     early_stopping_rounds = 50, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
+
+  spd1_train, spd1_test = model_progress(ngb, X_train, X_test, Y1_train, Y1_test)  
 
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y1_pred = ngb.predict_proba(X_test)
-  lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y1_pred, axis=1))
   print(accuracy_score(Y1_test, np.argmax(Y1_pred, axis=1)))
-  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1), labels=lb))
-  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y1_test, np.argmax(Y1_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1)))
+  print(confusion_matrix(Y1_test, np.argmax(Y1_pred, axis=1), normalize='all'))
+  print(classification_report(Y1_test, np.argmax(Y1_pred, axis=1)))
   print(np.mean(Y1_pred, axis=0))    
   print(Counter(np.argmax(Y1_pred, axis=1)))
   
   Y1_pred_train = ngb.predict_proba(X_train)
   print(accuracy_score(Y1_train, np.argmax(Y1_pred_train, axis=1)))
-  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1), labels=lb))
-  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y1_train, np.argmax(Y1_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1)))
+  print(confusion_matrix(Y1_train, np.argmax(Y1_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y1_train, np.argmax(Y1_pred_train, axis=1)))
   print(np.mean(Y1_pred_train, axis=0))    
   print(Counter(np.argmax(Y1_pred_train, axis=1)))
   
@@ -1452,17 +1488,17 @@ if __name__ == "__main__":
 #      }, all_labels.values, team_mapping, label_column_names
 #  with open('ngb.pickle', 'wb') as f:
 #      pickle.dump(ngbmodel, f)  
-  
-  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+  feature_names = ['t1histlen', 'where', 't2histlen','t12histlen']+['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw']  
+  feature_importance = pd.DataFrame({'feature':feature_names , 
                                    'importance':ngb.feature_importances_[0]})\
     .sort_values('importance',ascending=False).reset_index().drop(columns='index')
-  fig, ax = plt.subplots(figsize=(20, 10))
+  fig, ax = plt.subplots(figsize=(20, 20))
   plt.title('Feature Importance Plot')
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
 
 
-  ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+  ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.2,
                                                  ccp_alpha=0.0,
                                          criterion='friedman_mse', max_depth=3,
                                          max_leaf_nodes=None,
@@ -1475,42 +1511,127 @@ if __name__ == "__main__":
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
                       n_estimators=250, verbose_eval=1,
-                 learning_rate=0.02,
-                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+                 learning_rate=0.01,
+                 minibatch_frac=0.25) # tell ngboost that there are 3 possible outcomes
   ngbmodel2 = ngb2.fit(X_train, Y2_train, X_val = X_test, Y_val = Y2_test,
-                       early_stopping_rounds = 30, 
-                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                       early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
+  spd2_train, spd2_test = model_progress(ngb2, X_train, X_test, Y2_train, Y2_test)  
+
   max_iter=ngb2.best_val_loss_itr
+  max_iter=300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y2_pred = ngb2.predict_proba(X_test, max_iter=max_iter)
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y2_pred, axis=1))
   print(accuracy_score(Y2_test, np.argmax(Y2_pred, axis=1)))
-  print(confusion_matrix(Y2_test, np.argmax(Y2_pred, axis=1), labels=lb))
-  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y2_test, np.argmax(Y2_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y2_test, np.argmax(Y2_pred, axis=1)))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+  print(classification_report(Y2_test, np.argmax(Y2_pred, axis=1)))
   print(np.mean(Y2_pred, axis=0))    
   print(Counter(np.argmax(Y2_pred, axis=1)))
 
-  Y_pred_train = ngb2.predict_proba(X_train, max_iter=max_iter)
-  print(accuracy_score(Y2_train, np.argmax(Y_pred_train, axis=1)))
-  print(confusion_matrix(Y2_train, np.argmax(Y_pred_train, axis=1), labels=lb))
-  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y2_train, np.argmax(Y_pred_train, axis=1), labels=lb))
-  print(np.mean(Y_pred_train, axis=0))    
-  print(Counter(np.argmax(Y_pred_train, axis=1)))
+  Y2_pred_train = ngb2.predict_proba(X_train, max_iter=max_iter)
+  print(accuracy_score(Y2_train, np.argmax(Y2_pred_train, axis=1)))
+  print(confusion_matrix(Y2_train, np.argmax(Y2_pred_train, axis=1)))
+  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y2_train, np.argmax(Y2_pred_train, axis=1)))
+  print(np.mean(Y2_pred_train, axis=0))    
+  print(Counter(np.argmax(Y2_pred_train, axis=1)))
 
-  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
-                                   'importance':ngb2.feature_importances_[0]})\
+  ngb6 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=10,
+                                         min_samples_split=20,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+        Dist=k_categorical(13),
+                      n_estimators=250, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel6 = ngb6.fit(X_train, Y6_train, X_val = X_test, Y_val = Y6_test,
+                       early_stopping_rounds = 30, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,6}
+  spd6_train, spd6_test = model_progress(ngb6, X_train, X_test, Y6_train, Y6_test)  
+  max_iter=ngb6.best_val_loss_itr
+  # predicted probabilities of class 0, 1, and 6 (columns) for each observation (row)
+  Y6_pred = ngb6.predict_proba(X_test, max_iter=max_iter)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y6_pred, axis=1))
+  print(accuracy_score(Y6_test, np.argmax(Y6_pred, axis=1)))
+  print(confusion_matrix(Y6_test, np.argmax(Y6_pred, axis=1)))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+  print(classification_report(Y6_test, np.argmax(Y6_pred, axis=1)))
+  print(np.mean(Y6_pred, axis=0))    
+  print(Counter(np.argmax(Y6_pred, axis=1)))
+
+  Y6_pred_train = ngb6.predict_proba(X_train, max_iter=max_iter)
+  print(accuracy_score(Y6_train, np.argmax(Y6_pred_train, axis=1)))
+  print(confusion_matrix(Y6_train, np.argmax(Y6_pred_train, axis=1)))
+  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y6_train, np.argmax(Y6_pred_train, axis=1)))
+  print(np.mean(Y6_pred_train, axis=0))    
+  print(Counter(np.argmax(Y6_pred_train, axis=1)))
+
+  feature_importance = pd.DataFrame({'feature':feature_names , 
+                                   'importance':ngb6.feature_importances_[0]})\
     .sort_values('importance',ascending=False).reset_index().drop(columns='index')
-  fig, ax = plt.subplots(figsize=(20, 10))
+  fig, ax = plt.subplots(figsize=(20, 20))
   plt.title('Feature Importance Plot')
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
 
-  ngb4 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+  ngb8 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=3,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+        Dist=k_categorical(5),
+                      n_estimators=250, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel8 = ngb8.fit(X_train, Y8_train, X_val = X_test, Y_val = Y8_test,
+                       early_stopping_rounds = 30, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+  spd8_train, spd8_test = model_progress(ngb8, X_train, X_test, Y8_train, Y8_test)  
+  max_iter=ngb8.best_val_loss_itr
+  # predicted probabilities of class 0, 1, and 8 (columns) for each observation (row)
+  Y8_pred = ngb8.predict_proba(X_test, max_iter=max_iter)
+  lb = None #["Loss", "Draw", "Win"]
+  print(np.argmax(Y8_pred, axis=1))
+  print(accuracy_score(Y8_test, np.argmax(Y8_pred, axis=1)))
+  print(confusion_matrix(Y8_test, np.argmax(Y8_pred, axis=1)))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+  print(classification_report(Y8_test, np.argmax(Y8_pred, axis=1)))
+  print(np.mean(Y8_pred, axis=0))    
+  print(Counter(np.argmax(Y8_pred, axis=1)))
+
+  Y8_pred_train = ngb8.predict_proba(X_train, max_iter=max_iter)
+  print(accuracy_score(Y8_train, np.argmax(Y8_pred_train, axis=1)))
+  print(confusion_matrix(Y8_train, np.argmax(Y8_pred_train, axis=1)))
+  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y8_train, np.argmax(Y8_pred_train, axis=1)))
+  print(np.mean(Y8_pred_train, axis=0))    
+  print(Counter(np.argmax(Y8_pred_train, axis=1)))
+
+  ngb4 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
                                                  ccp_alpha=0.0,
                                          criterion='friedman_mse', max_depth=3,
                                          max_leaf_nodes=None,
@@ -1522,37 +1643,39 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=150, verbose_eval=1,
+                      n_estimators=250, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
-                     early_stopping_rounds = 30, 
-                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
-
+  spd4_train, spd4_test = model_progress(ngb4, X_train, X_test, Y4_train, Y4_test)  
+  max_iter = 300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
-  Y4_pred = ngb4.predict_proba(X_test)
-  lb = None #["Loss", "Draw", "Win"]
+  #Y4_pred = ngb4.predict_proba(X_test)
+  Y4_pred = spd4_test[max_iter].to_prob() 
   print(np.argmax(Y4_pred, axis=1))
   print(accuracy_score(Y4_test, np.argmax(Y4_pred, axis=1)))
-  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1), labels=lb))
-  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y4_test, np.argmax(Y4_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1)))
+  print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1), normalize='all'))
+  print(classification_report(Y4_test, np.argmax(Y4_pred, axis=1)))
   print(np.mean(Y4_pred, axis=0))    
   print(Counter(np.argmax(Y4_pred, axis=1)))
   
-  Y4_pred_train = ngb4.predict_proba(X_train)
+  #Y4_pred_train = ngb4.predict_proba(X_train)
+  Y4_pred_train = spd4_train[max_iter].to_prob() 
   print(accuracy_score(Y4_train, np.argmax(Y4_pred_train, axis=1)))
-  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), labels=lb))
-  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y4_train, np.argmax(Y4_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1)))
+  print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y4_train, np.argmax(Y4_pred_train, axis=1)))
   print(np.mean(Y4_pred_train, axis=0))    
   print(Counter(np.argmax(Y4_pred_train, axis=1)))
 
 
 
-  ngb5 = NGBClassifier(Base=DecisionTreeRegressor(max_features="sqrt",
+  ngb5 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
                                                  ccp_alpha=0.0,
                                          criterion='friedman_mse', max_depth=3,
                                          max_leaf_nodes=None,
@@ -1564,31 +1687,35 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=150, verbose_eval=1,
+                      n_estimators=250, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
-                     early_stopping_rounds = 30, 
-                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
+  spd5_train, spd5_test = model_progress(ngb5, X_train, X_test, Y5_train, Y5_test)  
+  max_iter = 400
 
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
-  Y5_pred = ngb5.predict_proba(X_test)
+  #Y5_pred = ngb5.predict_proba(X_test)
+  Y5_pred = spd5_test[max_iter].to_prob() 
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y5_pred, axis=1))
   print(accuracy_score(Y5_test, np.argmax(Y5_pred, axis=1)))
-  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1), labels=lb))
-  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y5_test, np.argmax(Y5_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1)))
+  print(confusion_matrix(Y5_test, np.argmax(Y5_pred, axis=1), normalize='all'))
+  print(classification_report(Y5_test, np.argmax(Y5_pred, axis=1)))
   print(np.mean(Y5_pred, axis=0))    
   print(Counter(np.argmax(Y5_pred, axis=1)))
   
-  Y5_pred_train = ngb5.predict_proba(X_train)
+  #Y5_pred_train = ngb5.predict_proba(X_train)
+  Y5_pred_train = spd5_train[max_iter].to_prob() 
   print(accuracy_score(Y5_train, np.argmax(Y5_pred_train, axis=1)))
-  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), labels=lb))
-  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y5_train, np.argmax(Y5_pred_train, axis=1), labels=lb))
+  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1)))
+  print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y5_train, np.argmax(Y5_pred_train, axis=1)))
   print(np.mean(Y5_pred_train, axis=0))    
   print(Counter(np.argmax(Y5_pred_train, axis=1)))
 
@@ -1598,43 +1725,6 @@ if __name__ == "__main__":
   def  calc_softpoints(Y, prob):
       return np.matmul(prob, point_matrix).flatten()[np.arange(Y.shape[0])*49+Y]
 
-  
-
-
-  ngb3 = NGBClassifier(
-          Base=DecisionTreeRegressor(max_features=0.2, #"auto",
-                                                 ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=3,
-                                         max_leaf_nodes=None,
-                                         min_impurity_decrease=0.0,
-                                         min_impurity_split=None,
-                                         min_samples_leaf=1,
-                                         min_samples_split=2,
-                                         min_weight_fraction_leaf=0.0,
-                                         presort='deprecated',
-                                         random_state=None, splitter='best'),
-          Dist=k_categorical(49), 
-                       Score=MLE, 
-                      n_estimators=50, verbose_eval=1,
-                 learning_rate=0.01,
-                 minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
-  ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
-                       early_stopping_rounds = 20, 
-                     train_loss_monitor=lambda D,Y: 
-                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
-                     val_loss_monitor=lambda D,Y: 
-                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
-#                     train_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_softpoints(Y, D.to_prob())),
-#                     val_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_softpoints(Y, D.to_prob())),
-                     #train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     #val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
-                     
-                     ) # Y should have only 3 values: {0,1,2}
-  max_iter=ngb3.best_val_loss_itr
-  max_iter=227
-  
   def argmax_softpoint(prob):
       return np.argmax(np.matmul(prob, point_matrix), axis=1)
   
@@ -1653,26 +1743,98 @@ if __name__ == "__main__":
       vc = pd.DataFrame({"Points":points}).Points.value_counts()
       df = pd.DataFrame({"Points":vc, "Percent":(vc / vc.sum()) * 100})
       return df
+
+  def point_summary(points, pred):
+      df = pd.DataFrame({"Points":points, "Pred":[str(k//7)+":"+str(np.mod(k,7)) for k in pred]})
+      pv = df.pivot_table(index="Pred", columns="Points", aggfunc=[len], fill_value=0, margins=True)                
+      pv2 = pv.div( pv.iloc[:,-1], axis=0 )
+      pv3 = pv.div( pv.iloc[-1,:], axis=1 )
+      return pd.concat([pv, 100*pv2.iloc[:,:-1], 100*pv3.iloc[:,-1]], axis=1)
+
   
+  ngb3 = NGBClassifier(
+          Base=DecisionTreeRegressor(max_features=0.2, #"auto",
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=2,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(49), 
+                       Score=MLE, 
+                      n_estimators=150, verbose_eval=1,
+                 learning_rate=0.01,
+                 minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
+  ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
+                       early_stopping_rounds = 100, 
+#                     train_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+#                     val_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+#                     train_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_softpoints(Y, D.to_prob())),
+#                     val_loss_monitor=lambda D,Y: 
+#                         -np.mean(calc_softpoints(Y, D.to_prob())),
+                     #train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
+                     #val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     
+                     ) # Y should have only 3 values: {0,1,2}
+  ngb3.n_estimators
+  max_iter=ngb3.best_val_loss_itr
+  #max_iter=227
+  
+  spd_train = ngb3.staged_pred_dist(X_train)
+  spd_test = ngb3.staged_pred_dist(X_test)
+  fig, axs = plt.subplots(3, 2, constrained_layout=True, figsize=(15,10))
+  axs[0][0].set_title('Softpoints')
+  axs[0][0].plot([np.mean(calc_softpoints(Y3_train, spd_train[i].to_prob())) for i in range(len(spd_train))])
+  axs[0][0].plot([np.mean(calc_softpoints(Y3_test, spd_test[i].to_prob())) for i in range(len(spd_test))])
+  axs[0][1].set_title('Points')
+  axs[0][1].plot([np.mean(calc_points(Y3_train, argmax_softpoint(spd_train[i].to_prob()))) for i in range(len(spd_train))])
+  axs[0][1].plot([np.mean(calc_points(Y3_test, argmax_softpoint(spd_test[i].to_prob()))) for i in range(len(spd_test))])
+  axs[1][0].set_title('Accuracy')
+  axs[1][0].plot([accuracy_score(Y3_train, np.argmax(spd_train[i].to_prob(), axis=1))for i in range(len(spd_train))])
+  axs[1][0].plot([accuracy_score(Y3_test, np.argmax(spd_test[i].to_prob(), axis=1))for i in range(len(spd_test))])
+  axs[1][1].set_title('Log Loss')
+  axs[1][1].plot([log_loss(Y3_train, spd_train[i].to_prob())for i in range(len(spd_train))])
+  axs[1][1].plot([log_loss(y_true = Y3_test, y_pred = spd_test[i].to_prob(), labels = range(49))for i in range(len(spd_test))])
+  axs[2][0].set_title('Balanced Accuracy Max. Prob')
+  axs[2][0].plot([balanced_accuracy_score(Y3_train, np.argmax(spd_train[i].to_prob(), axis=1))for i in range(len(spd_train))])
+  axs[2][0].plot([balanced_accuracy_score(Y3_test, np.argmax(spd_test[i].to_prob(), axis=1))for i in range(len(spd_test))])
+  axs[2][1].set_title('Balanced Accurancy Max. Points')
+  axs[2][1].plot([balanced_accuracy_score(Y3_train, argmax_softpoint(spd_train[i].to_prob()))for i in range(len(spd_train))])
+  axs[2][1].plot([balanced_accuracy_score(Y3_test, argmax_softpoint(spd_test[i].to_prob()))for i in range(len(spd_test))])
+  plt.show()
+  
+  spd_train, spd_test = model_progress(ngb3, X_train, X_test, Y3_train, Y3_test)  
+
+  max_iter=-1    
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
-  Y3_pred = ngbmodel3.predict_proba(X_test)
-  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
+#  Y3_pred = ngbmodel3.predict_proba(X_test)
+#  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
+  Y3_pred = spd_test[max_iter].to_prob() 
+
   print(np.mean(calc_softpoints(Y3_test, Y3_pred)))
   print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_pred)))))
   print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_pred))))
   print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_pred))))
+  print(point_summary(calc_points(Y3_test, argmax_softpoint(Y3_pred)), invert(X_test[:,1], argmax_softpoint(Y3_pred))))
   print(accuracy_score(Y3_test, argmax_softpoint(Y3_pred)))
   print(beautify(Counter(invert(X_test[:,1], np.argmax(Y3_pred, axis=1)))))
   print(np.mean(calc_points(Y3_test, np.argmax(Y3_pred, axis=1))))
   print(point_dist(calc_points(Y3_test, np.argmax(Y3_pred, axis=1))))
   print(accuracy_score(Y3_test, np.argmax(Y3_pred, axis=1)))
+  print(point_summary(calc_points(Y3_test, np.argmax(Y3_pred, axis=1)), invert(X_test[:,1], np.argmax(Y3_pred, axis=1))))
 
   
-  lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y3_pred, axis=1))
-  print(confusion_matrix(Y3_test, np.argmax(Y3_pred, axis=1), labels=lb))
-  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y3_test, np.argmax(Y3_pred, axis=1), labels=lb))
+  print(confusion_matrix(Y3_test, np.argmax(Y3_pred, axis=1)))
+  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+  print(classification_report(Y3_test, np.argmax(Y3_pred, axis=1)))
   print(np.mean(Y3_pred, axis=0)*100)    
   print(np.sqrt(np.var(Y3_pred, axis=0))*100)    
   print(np.max(Y3_pred, axis=0)*100)    
@@ -1681,89 +1843,194 @@ if __name__ == "__main__":
 
   print(classification_report(Y3_test, argmax_softpoint(Y3_pred)))
   
-  Y_pred_train = ngb3.predict_proba(X_train)
-  Y_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
+#  Y3_pred_train = ngb3.predict_proba(X_train)
+#  Y3_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
+  Y3_pred_train = spd_train[max_iter].to_prob() 
+  
+  
+  print(np.mean(calc_softpoints(Y3_train, Y3_pred_train)))
+  print(beautify(Counter(invert(X_train[:,1], argmax_softpoint(Y3_pred_train)))))
+  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y3_pred_train))))
+  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y3_pred_train))))
+  print(point_summary(calc_points(Y3_train, argmax_softpoint(Y3_pred_train)), invert(X_train[:,1], argmax_softpoint(Y3_pred_train))))
+  print(accuracy_score(Y3_train, argmax_softpoint(Y3_pred_train)))
+  print(beautify(Counter(invert(X_train[:,1], np.argmax(Y3_pred_train, axis=1)))))
+  print(np.mean(calc_points(Y3_train, np.argmax(Y3_pred_train, axis=1))))
+  print(point_dist(calc_points(Y3_train, np.argmax(Y3_pred_train, axis=1))))
+  print(point_summary(calc_points(Y3_train, np.argmax(Y3_pred_train, axis=1)), invert(X_train[:,1], np.argmax(Y3_pred_train, axis=1))))
+  print(accuracy_score(Y3_train, np.argmax(Y3_pred_train, axis=1)))
 
-  print(np.mean(calc_softpoints(Y3_train, Y_pred_train)))
-  print(beautify(Counter(invert(X_train[:,1], argmax_softpoint(Y_pred_train)))))
-  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y_pred_train))))
-  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y_pred_train))))
-  print(accuracy_score(Y3_train, argmax_softpoint(Y_pred_train)))
-  print(beautify(Counter(invert(X_train[:,1], np.argmax(Y_pred_train, axis=1)))))
-  print(np.mean(calc_points(Y3_train, np.argmax(Y_pred_train, axis=1))))
-  print(point_dist(calc_points(Y3_train, np.argmax(Y_pred_train, axis=1))))
-  print(accuracy_score(Y3_train, np.argmax(Y_pred_train, axis=1)))
-
-  print(confusion_matrix(Y3_train, np.argmax(Y_pred_train, axis=1), labels=lb))
-  print(confusion_matrix(Y3_train, argmax_softpoint(Y_pred_train)))
-  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all', labels=lb))
-  print(classification_report(Y3_train, np.argmax(Y_pred_train, axis=1), labels=lb))
-  print(np.mean(Y_pred_train, axis=0)*100)    
-  print(np.sqrt(np.var(Y_pred_train, axis=0))*100)    
-  print(np.max(Y_pred_train, axis=0)*100)    
-  print(np.min(Y_pred_train, axis=0)*100)    
-  print(classification_report(Y3_train, argmax_softpoint(Y_pred_train)))
+#  print(confusion_matrix(Y3_train, np.argmax(Y_pred_train, axis=1)))
+#  print(confusion_matrix(Y3_train, argmax_softpoint(Y_pred_train)))
+#  #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
+#  print(classification_report(Y3_train, np.argmax(Y_pred_train, axis=1)))
+#  print(np.mean(Y_pred_train, axis=0)*100)    
+#  print(np.sqrt(np.var(Y_pred_train, axis=0))*100)    
+#  print(np.max(Y_pred_train, axis=0)*100)    
+#  print(np.min(Y_pred_train, axis=0)*100)    
+#  print(classification_report(Y3_train, argmax_softpoint(Y_pred_train)))
 
   
-  feature_importance = pd.DataFrame({'feature':["F"+str(i) for i in range(X_train.shape[1])], 
+  feature_importance = pd.DataFrame({'feature':feature_names , 
                                    'importance':ngb3.feature_importances_[0]})\
     .sort_values('importance',ascending=False).reset_index().drop(columns='index')
-  fig, ax = plt.subplots(figsize=(20, 10))
+  fig, ax = plt.subplots(figsize=(20, 20))
   plt.title('Feature Importance Plot')
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
+
+  Y3_1_pred_train = np.stack([Y1_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+  Y3_1_pred_train = np.stack([Y3_1_pred_train[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred_train[:, i]/21 for i in range(49)], axis=1)
+
+  Y3_8_pred_train = np.stack([Y8_pred_train[:,2] /7 if i//7-np.mod(i,7)==0 else 
+                        Y8_pred_train[:,1] /6 if i//7-np.mod(i,7)==-1 else 
+                        Y8_pred_train[:,3] /6 if i//7-np.mod(i,7)==1 else 
+                        Y8_pred_train[:,0] /5 if i//7-np.mod(i,7)==-2 else 
+                        Y8_pred_train[:,4] /5 if i//7-np.mod(i,7)==2 else 
+                        0.0*Y8_pred_train[:,4] for i in range(49)], axis=1)
+
+  Y3_2_pred_train = np.stack([Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
+  Y3_2_pred_train = np.stack([Y3_2_pred_train[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
+
+  Y3_4_pred_train = np.stack([Y4_pred_train[:, (i//7)]/7 for i in range(49)], axis=1)
+  Y3_5_pred_train = np.stack([Y5_pred_train[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
+  Y3_45_pred_train = np.stack([Y4_pred_train[:, (i//7)]*Y5_pred_train[:, np.mod(i,7)] for i in range(49)], axis=1)
+  Y3_45_pred_train = Y3_45_pred_train / np.sum(Y3_45_pred_train, axis=1, keepdims=True)
+  Y3_6_pred_train = np.stack([Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
+
+  Y3_2b_pred_train = np.stack([Y3_2_pred_train[:, i]/np.sum([Y3_2_pred_train[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
+  Y3_26_pred_train = Y3_2b_pred_train * Y3_6_pred_train
+
+  Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
+
+  #Y3_26_pred_train = np.stack([(Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
+  #Y3_26_pred_train = Y3_26_pred_train / np.sum(Y3_26_pred_train, axis=1, keepdims=True)
+
+  Y7_pred_train = (Y3_pred_train+Y3_8_pred_train)/2
+  np.mean(np.sum(Y7_pred_train, axis=1) )
+
+  Y7_pred_train = (Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5
+  np.mean(np.sum(Y7_pred_train, axis=1) )
+
+  Y7_pred_train = (Y3_8_pred_train + 4*Y3_pred_train+Y3_1_pred_train+Y3_26_pred_train+Y3_45_pred_train)/8 #(Y3_26_pred_train +Y3_45_pred_train + Y3_pred)/3
+  np.mean(np.sum(Y7_pred_train, axis=1) )
+
+  #Y7_pred_train = Y3_pred_train
+  print(np.mean(calc_softpoints(Y3_train, Y7_pred_train)))
+  print(beautify(Counter(invert(X_train[:,1], argmax_softpoint(Y7_pred_train)))))
+  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y7_pred_train))))
+  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y7_pred_train))))
+  print(point_summary(calc_points(Y3_train, argmax_softpoint(Y7_pred_train)), invert(X_train[:,1], argmax_softpoint(Y7_pred_train))))
 
   Y3_1_pred = np.stack([Y1_pred[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
   Y3_1_pred = np.stack([Y3_1_pred[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred[:, i]/21 for i in range(49)], axis=1)
 
+  Y3_8_pred = np.stack([Y8_pred[:,2] /7 if i//7-np.mod(i,7)==0 else 
+                        Y8_pred[:,1] /6 if i//7-np.mod(i,7)==-1 else 
+                        Y8_pred[:,3] /6 if i//7-np.mod(i,7)==1 else 
+                        Y8_pred[:,0] /5 if i//7-np.mod(i,7)==-2 else 
+                        Y8_pred[:,4] /5 if i//7-np.mod(i,7)==2 else 
+                        0.0*Y8_pred[:,4] for i in range(49)], axis=1)
+
   Y3_2_pred = np.stack([Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
   Y3_2_pred = np.stack([Y3_2_pred[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
+  np.mean(np.sum(Y3_2_pred, axis=1) )
 
   Y3_4_pred = np.stack([Y4_pred[:, (i//7)]/7 for i in range(49)], axis=1)
   Y3_5_pred = np.stack([Y5_pred[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
+  Y3_45_pred = np.stack([Y4_pred[:, (i//7)]*Y5_pred[:, np.mod(i,7)] for i in range(49)], axis=1)
+  Y3_45_pred = Y3_45_pred / np.sum(Y3_45_pred, axis=1, keepdims=True)
+  Y3_6_pred = np.stack([Y6_pred[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
 
-  Y7_pred = (3*Y3_pred+Y3_1_pred+Y3_2_pred+Y3_4_pred+Y3_5_pred)/8
+  #Y3_26_pred = np.stack([(Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
 
+  Y3_2b_pred = np.stack([Y3_2_pred[:, i]/np.sum([Y3_2_pred[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
+
+  Y3_26_pred = Y3_2b_pred * Y3_6_pred
+  #Y3_26_pred = Y3_26_pred / np.sum(Y3_26_pred, axis=1, keepdims=True)
+  np.mean(np.sum(Y3_26_pred, axis=1) )
+  Y3_6_pred = np.stack([Y3_6_pred[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
+  np.mean(np.sum(Y3_6_pred, axis=1) )
+
+  Y7_pred = (Y3_pred+Y3_8_pred)/2
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+  Y7_pred = (Y3_pred+Y3_45_pred)/2
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+  Y7_pred = (Y3_pred+Y3_26_pred)/2
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+  Y7_pred = (Y3_pred+Y3_45_pred+Y3_26_pred)/3
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+  Y7_pred = (Y3_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+  Y7_pred = (Y3_8_pred + 4*Y3_pred+Y3_1_pred+Y3_26_pred+Y3_45_pred)/8 #(Y3_26_pred +Y3_45_pred + Y3_pred)/3
+  np.mean(np.sum(Y7_pred, axis=1) )
+
+#  np.matmul(Y3_4_pred, point_matrix)[1000].reshape((7,7))
+#  Y3_45_pred[1000].reshape((7,7))*100
+#  np.round(Y3_2_pred[1000].reshape((7,7))*100, 1)
+#  np.round(Y3_2b_pred[1000].reshape((7,7))*100, 1)
+#  np.round(Y3_6_pred[1000].reshape((7,7))*100, 1)
+#  np.round(Y3_26_pred[1000].reshape((7,7))*100, 1)
+#  np.round(Y3_pred[1000].reshape((7,7))*100, 1)
+  
+  #Y7_pred =   Y3_26_pred
   print(np.mean(calc_softpoints(Y3_test, Y7_pred)))
   print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y7_pred)))))
   print(np.mean(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
   print(point_dist(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
+  print(point_summary(calc_points(Y3_test, argmax_softpoint(Y7_pred)), invert(X_test[:,1], argmax_softpoint(Y7_pred))))
 
-  Y3_2_pred[0].reshape((7,7))
-  Y2_pred[0]
+  Y7_pred[1000].reshape((7,7))*100
+  #Y2_pred[0]
 
+  plt.figure(figsize=(15,10))        
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob())/1))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob())/1))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
+  plt.show()
   
-  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
-  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
-  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
-  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
-
-  Y3_1_pred[0].reshape((7,7))
-  np.mean(np.sum(Y3_1_pred, axis=1) )
-  Y3_5_pred[0].reshape((7,7))
-  np.mean(np.sum(Y3_2_pred, axis=1) )
-  np.mean(np.sum(Y3_4_pred, axis=1) )
-  np.mean(np.sum(Y3_5_pred, axis=1) )
-  np.mean(np.sum(Y3_pred, axis=1) )
-  np.mean(np.sum(Y1_pred, axis=1) )
-  np.mean(np.sum(Y2_pred, axis=1) )
-  np.mean(np.sum(Y4_pred, axis=1) )
-
-  Y1_pred[0]
   
-  print(np.mean(calc_softpoints(Y3_test, Y3_1_pred)))
-  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_1_pred)))))
-  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
-  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
-
-  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
-  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
-  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
-  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
-
-  print(np.mean(calc_softpoints(Y3_test, Y3_4_pred)))
-  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_4_pred)))))
-  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
-  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
+#  
+#  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
+#  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
+#  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+#  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+#
+#  Y3_1_pred[0].reshape((7,7))
+#  np.mean(np.sum(Y3_1_pred, axis=1) )
+#  Y3_5_pred[0].reshape((7,7))
+#  np.mean(np.sum(Y3_2_pred, axis=1) )
+#  np.mean(np.sum(Y3_4_pred, axis=1) )
+#  np.mean(np.sum(Y3_5_pred, axis=1) )
+#  np.mean(np.sum(Y3_6_pred, axis=1) )
+#  np.mean(np.sum(Y3_pred, axis=1) )
+#  np.mean(np.sum(Y1_pred, axis=1) )
+#  np.mean(np.sum(Y2_pred, axis=1) )
+#  np.mean(np.sum(Y4_pred, axis=1) )
+#
+#  Y1_pred[0]
+#  
+#  print(np.mean(calc_softpoints(Y3_test, Y3_1_pred)))
+#  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_1_pred)))))
+#  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
+#  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_1_pred))))
+#
+#  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
+#  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
+#  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+#  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_2_pred))))
+#
+#  print(np.mean(calc_softpoints(Y3_test, Y3_4_pred)))
+#  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_4_pred)))))
+#  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
+#  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y3_4_pred))))
 
 
 #
