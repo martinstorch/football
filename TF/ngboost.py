@@ -1524,6 +1524,9 @@ if __name__ == "__main__":
   max_iter=300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y2_pred = ngb2.predict_proba(X_test, max_iter=max_iter)
+  Y2_pred = np.mean([x.to_prob() for x in spd2_test[100:400]], axis=0)
+  Y2_pred_train = np.mean([x.to_prob() for x in spd2_train[100:400]], axis=0)
+  
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y2_pred, axis=1))
   print(accuracy_score(Y2_test, np.argmax(Y2_pred, axis=1)))
@@ -1816,7 +1819,9 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
 #  Y3_pred = ngbmodel3.predict_proba(X_test)
 #  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
-  Y3_pred = spd_test[max_iter].to_prob() 
+  Y3_pred = spd_test[max_iter-10].to_prob() 
+  Y3_pred = np.mean([x.to_prob() for x in spd_test[100:]] , axis=0)
+  
 
   print(np.mean(calc_softpoints(Y3_test, Y3_pred)))
   print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_pred)))))
@@ -1939,12 +1944,10 @@ if __name__ == "__main__":
   Y3_5_pred = np.stack([Y5_pred[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
   Y3_45_pred = np.stack([Y4_pred[:, (i//7)]*Y5_pred[:, np.mod(i,7)] for i in range(49)], axis=1)
   Y3_45_pred = Y3_45_pred / np.sum(Y3_45_pred, axis=1, keepdims=True)
+
   Y3_6_pred = np.stack([Y6_pred[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
-
   #Y3_26_pred = np.stack([(Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
-
   Y3_2b_pred = np.stack([Y3_2_pred[:, i]/np.sum([Y3_2_pred[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
-
   Y3_26_pred = Y3_2b_pred * Y3_6_pred
   #Y3_26_pred = Y3_26_pred / np.sum(Y3_26_pred, axis=1, keepdims=True)
   np.mean(np.sum(Y3_26_pred, axis=1) )
