@@ -1317,8 +1317,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--useBWIN", type=bool,
-      #default=True,
-      default=False,
+      default=True,
+      #default=False,
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
@@ -1452,11 +1452,11 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=350, verbose_eval=1,
+                      n_estimators=550, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.15) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
-                     early_stopping_rounds = 50, 
+                     early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
@@ -1516,7 +1516,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=250, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.25) # tell ngboost that there are 3 possible outcomes
   ngbmodel2 = ngb2.fit(X_train, Y2_train, X_val = X_test, Y_val = Y2_test,
@@ -1563,11 +1563,11 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=250, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel6 = ngb6.fit(X_train, Y6_train, X_val = X_test, Y_val = Y6_test,
-                       early_stopping_rounds = 30, 
+                       early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,6}
@@ -1613,11 +1613,11 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(5),
-                      n_estimators=250, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel8 = ngb8.fit(X_train, Y8_train, X_val = X_test, Y_val = Y8_test,
-                       early_stopping_rounds = 30, 
+                       early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
@@ -1655,7 +1655,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=250, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
@@ -1668,7 +1668,8 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   #Y4_pred = ngb4.predict_proba(X_test)
   Y4_pred_new = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_pred)[100:]], axis=0)
-  Y4_pred = spd4_test[max_iter].to_prob() 
+  Y4_pred = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_test)[100:]], axis=0)
+  #Y4_pred = spd4_test[max_iter].to_prob() 
   print(np.argmax(Y4_pred, axis=1))
   print(accuracy_score(Y4_test, np.argmax(Y4_pred, axis=1)))
   print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1)))
@@ -1678,7 +1679,8 @@ if __name__ == "__main__":
   print(Counter(np.argmax(Y4_pred, axis=1)))
   
   #Y4_pred_train = ngb4.predict_proba(X_train)
-  Y4_pred_train = spd4_train[max_iter].to_prob() 
+#  Y4_pred_train = spd4_train[max_iter].to_prob() 
+  Y4_pred_train = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_train)[100:]], axis=0)
   print(accuracy_score(Y4_train, np.argmax(Y4_pred_train, axis=1)))
   print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1)))
   print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), normalize='all'))
@@ -1700,7 +1702,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=250, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
@@ -1714,7 +1716,8 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   #Y5_pred = ngb5.predict_proba(X_test)
   Y5_pred_new = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_pred)[100:]], axis=0)
-  Y5_pred = spd5_test[max_iter].to_prob() 
+  Y5_pred = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_test)[100:]], axis=0)
+  #Y5_pred = spd5_test[max_iter].to_prob() 
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y5_pred, axis=1))
   print(accuracy_score(Y5_test, np.argmax(Y5_pred, axis=1)))
@@ -1725,7 +1728,8 @@ if __name__ == "__main__":
   print(Counter(np.argmax(Y5_pred, axis=1)))
   
   #Y5_pred_train = ngb5.predict_proba(X_train)
-  Y5_pred_train = spd5_train[max_iter].to_prob() 
+  #Y5_pred_train = spd5_train[max_iter].to_prob() 
+  Y5_pred_train = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_train)[100:]], axis=0)
   print(accuracy_score(Y5_train, np.argmax(Y5_pred_train, axis=1)))
   print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1)))
   print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), normalize='all'))
@@ -1780,12 +1784,12 @@ if __name__ == "__main__":
                                          random_state=None, splitter='best'),
           Dist=k_categorical(49), 
                        Score=MLE, 
-                      n_estimators=150, verbose_eval=1,
+                      n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
 
   ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
-                       early_stopping_rounds = 100, 
+                       early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: 
 #                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
 #                     val_loss_monitor=lambda D,Y: 
@@ -1831,7 +1835,7 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
 #  Y3_pred = ngbmodel3.predict_proba(X_test)
 #  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
-  Y3_pred = spd_test[max_iter-10].to_prob() 
+  #Y3_pred = spd_test[max_iter-10].to_prob() 
   Y3_pred = np.mean([x.to_prob() for x in spd_test[100:]] , axis=0)
   Y3_pred_new = np.mean([x.to_prob() for x in ngb3.staged_pred_dist(X_pred)[100:]], axis=0)
   
@@ -1849,21 +1853,21 @@ if __name__ == "__main__":
   print(point_summary(calc_points(Y3_test, np.argmax(Y3_pred, axis=1)), invert(X_test[:,1], np.argmax(Y3_pred, axis=1))))
 
   
-  print(np.argmax(Y3_pred, axis=1))
-  print(confusion_matrix(Y3_test, np.argmax(Y3_pred, axis=1)))
-  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
-  print(classification_report(Y3_test, np.argmax(Y3_pred, axis=1)))
-  print(np.mean(Y3_pred, axis=0)*100)    
-  print(np.sqrt(np.var(Y3_pred, axis=0))*100)    
-  print(np.max(Y3_pred, axis=0)*100)    
-  print(np.min(Y3_pred, axis=0)*100)    
-  print(np.sqrt(np.var(Y3_pred, axis=0))/np.mean(Y3_pred, axis=0))    
-
-  print(classification_report(Y3_test, argmax_softpoint(Y3_pred)))
+#  print(np.argmax(Y3_pred, axis=1))
+#  print(confusion_matrix(Y3_test, np.argmax(Y3_pred, axis=1)))
+#  #print(confusion_matrix(Y_test, np.argmax(Y_pred, axis=1), normalize='all'))
+#  print(classification_report(Y3_test, np.argmax(Y3_pred, axis=1)))
+#  print(np.mean(Y3_pred, axis=0)*100)    
+#  print(np.sqrt(np.var(Y3_pred, axis=0))*100)    
+#  print(np.max(Y3_pred, axis=0)*100)    
+#  print(np.min(Y3_pred, axis=0)*100)    
+#  print(np.sqrt(np.var(Y3_pred, axis=0))/np.mean(Y3_pred, axis=0))    
+#
+#  print(classification_report(Y3_test, argmax_softpoint(Y3_pred)))
   
 #  Y3_pred_train = ngb3.predict_proba(X_train)
 #  Y3_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
-  Y3_pred_train = spd_train[max_iter].to_prob() 
+  #Y3_pred_train = spd_train[max_iter].to_prob() 
   Y3_pred_train = np.mean([x.to_prob() for x in spd_train[100:]] , axis=0)
    
   
@@ -1897,109 +1901,57 @@ if __name__ == "__main__":
   plt.title('Feature Importance Plot')
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
-  Y3_1_pred_train = np.stack([Y1_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
-  Y3_1_pred_train = np.stack([Y3_1_pred_train[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred_train[:, i]/21 for i in range(49)], axis=1)
+  def print_evaluation(labels, probs, where):  
+      print(np.mean(calc_softpoints(labels, probs)))
+    #  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y7_pred)))))
+      print(np.mean(calc_points(labels, argmax_softpoint(probs))))
+    #  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
+      print(point_summary(calc_points(labels, argmax_softpoint(probs)), invert(where, argmax_softpoint(probs))))
 
-  Y3_8_pred_train = np.stack([Y8_pred_train[:,2] /7 if i//7-np.mod(i,7)==0 else 
-                        Y8_pred_train[:,1] /6 if i//7-np.mod(i,7)==-1 else 
-                        Y8_pred_train[:,3] /6 if i//7-np.mod(i,7)==1 else 
-                        Y8_pred_train[:,0] /5 if i//7-np.mod(i,7)==-2 else 
-                        Y8_pred_train[:,4] /5 if i//7-np.mod(i,7)==2 else 
-                        0.0*Y8_pred_train[:,4] for i in range(49)], axis=1)
 
-  Y3_2_pred_train = np.stack([Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
-  Y3_2_pred_train = np.stack([Y3_2_pred_train[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
+  def combine_probs(probsarray):    
+      Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train = probsarray 
+    
+        
+      Y3_1_pred_train = np.stack([Y1_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+      Y3_1_pred_train = np.stack([Y3_1_pred_train[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred_train[:, i]/21 for i in range(49)], axis=1)
+    
+      Y3_8_pred_train = np.stack([Y8_pred_train[:,2] /7 if i//7-np.mod(i,7)==0 else 
+                            Y8_pred_train[:,1] /6 if i//7-np.mod(i,7)==-1 else 
+                            Y8_pred_train[:,3] /6 if i//7-np.mod(i,7)==1 else 
+                            Y8_pred_train[:,0] /5 if i//7-np.mod(i,7)==-2 else 
+                            Y8_pred_train[:,4] /5 if i//7-np.mod(i,7)==2 else 
+                            0.0*Y8_pred_train[:,4] for i in range(49)], axis=1)
+    
+      Y3_2_pred_train = np.stack([Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
+      Y3_2_pred_train = np.stack([Y3_2_pred_train[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
 
-  Y3_4_pred_train = np.stack([Y4_pred_train[:, (i//7)]/7 for i in range(49)], axis=1)
-  Y3_5_pred_train = np.stack([Y5_pred_train[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
-  Y3_45_pred_train = np.stack([Y4_pred_train[:, (i//7)]*Y5_pred_train[:, np.mod(i,7)] for i in range(49)], axis=1)
-  Y3_45_pred_train = Y3_45_pred_train / np.sum(Y3_45_pred_train, axis=1, keepdims=True)
-  Y3_6_pred_train = np.stack([Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
-
-  Y3_2b_pred_train = np.stack([Y3_2_pred_train[:, i]/np.sum([Y3_2_pred_train[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
-  Y3_26_pred_train = Y3_2b_pred_train * Y3_6_pred_train
-
-  Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
-
+#      Y3_4_pred_train = np.stack([Y4_pred_train[:, (i//7)]/7 for i in range(49)], axis=1)
+#      Y3_5_pred_train = np.stack([Y5_pred_train[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
+      Y3_45_pred_train = np.stack([Y4_pred_train[:, (i//7)]*Y5_pred_train[:, np.mod(i,7)] for i in range(49)], axis=1)
+      Y3_45_pred_train = Y3_45_pred_train / np.sum(Y3_45_pred_train, axis=1, keepdims=True)
+      Y3_6_pred_train = np.stack([Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
+    
+      Y3_2b_pred_train = np.stack([Y3_2_pred_train[:, i]/np.sum([Y3_2_pred_train[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
+      Y3_26_pred_train = Y3_2b_pred_train * Y3_6_pred_train
+    
+      Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
+      
+      Y7_pred_train = (Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5
+      
+      combined_probs = [Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y7_pred_train]
+      return combined_probs
+  
   #Y3_26_pred_train = np.stack([(Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
   #Y3_26_pred_train = Y3_26_pred_train / np.sum(Y3_26_pred_train, axis=1, keepdims=True)
 
-  Y7_pred_train = (Y3_pred_train+Y3_8_pred_train)/2
-  np.mean(np.sum(Y7_pred_train, axis=1) )
+  Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y7_pred_train = combine_probs([Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train])
+  Y3_1_pred, Y3_8_pred, Y3_26_pred, Y3_45_pred, Y7_pred = combine_probs([Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])
+  Y3_1_pred_new, Y3_8_pred_new, Y3_26_pred_new, Y3_45_pred_new, Y7_pred_new = combine_probs([Y1_pred_new, Y2_pred_new, Y3_pred_new, Y4_pred_new, Y5_pred_new, Y6_pred_new, Y8_pred_new])
 
-  Y7_pred_train = (Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5
-  np.mean(np.sum(Y7_pred_train, axis=1) )
+  print_evaluation(Y3_train, Y7_pred_train, X_train[:,1])
+  print_evaluation(Y3_test, Y7_pred, X_test[:,1])
 
-  Y7_pred_train = (Y3_8_pred_train + 4*Y3_pred_train+Y3_1_pred_train+Y3_26_pred_train+Y3_45_pred_train)/8 #(Y3_26_pred_train +Y3_45_pred_train + Y3_pred)/3
-  np.mean(np.sum(Y7_pred_train, axis=1) )
-
-  #Y7_pred_train = Y3_pred_train
-  print(np.mean(calc_softpoints(Y3_train, Y7_pred_train)))
-  print(beautify(Counter(invert(X_train[:,1], argmax_softpoint(Y7_pred_train)))))
-  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y7_pred_train))))
-  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y7_pred_train))))
-  print(point_summary(calc_points(Y3_train, argmax_softpoint(Y7_pred_train)), invert(X_train[:,1], argmax_softpoint(Y7_pred_train))))
-
-  Y3_1_pred = np.stack([Y1_pred[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
-  Y3_1_pred = np.stack([Y3_1_pred[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred[:, i]/21 for i in range(49)], axis=1)
-
-  Y3_8_pred = np.stack([Y8_pred[:,2] /7 if i//7-np.mod(i,7)==0 else 
-                        Y8_pred[:,1] /6 if i//7-np.mod(i,7)==-1 else 
-                        Y8_pred[:,3] /6 if i//7-np.mod(i,7)==1 else 
-                        Y8_pred[:,0] /5 if i//7-np.mod(i,7)==-2 else 
-                        Y8_pred[:,4] /5 if i//7-np.mod(i,7)==2 else 
-                        0.0*Y8_pred[:,4] for i in range(49)], axis=1)
-
-  Y3_2_pred = np.stack([Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
-  Y3_2_pred = np.stack([Y3_2_pred[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
-  np.mean(np.sum(Y3_2_pred, axis=1) )
-
-  Y3_4_pred = np.stack([Y4_pred[:, (i//7)]/7 for i in range(49)], axis=1)
-  Y3_5_pred = np.stack([Y5_pred[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
-  Y3_45_pred = np.stack([Y4_pred[:, (i//7)]*Y5_pred[:, np.mod(i,7)] for i in range(49)], axis=1)
-  Y3_45_pred = Y3_45_pred / np.sum(Y3_45_pred, axis=1, keepdims=True)
-
-  Y3_6_pred = np.stack([Y6_pred[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
-  #Y3_26_pred = np.stack([(Y2_pred[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
-  Y3_2b_pred = np.stack([Y3_2_pred[:, i]/np.sum([Y3_2_pred[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
-  Y3_26_pred = Y3_2b_pred * Y3_6_pred
-  #Y3_26_pred = Y3_26_pred / np.sum(Y3_26_pred, axis=1, keepdims=True)
-  np.mean(np.sum(Y3_26_pred, axis=1) )
-  Y3_6_pred = np.stack([Y3_6_pred[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
-  np.mean(np.sum(Y3_6_pred, axis=1) )
-
-  Y7_pred = (Y3_pred+Y3_8_pred)/2
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-  Y7_pred = (Y3_pred+Y3_45_pred)/2
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-  Y7_pred = (Y3_pred+Y3_26_pred)/2
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-  Y7_pred = (Y3_pred+Y3_45_pred+Y3_26_pred)/3
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-  Y7_pred = (Y3_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-  Y7_pred = (Y3_8_pred + 4*Y3_pred+Y3_1_pred+Y3_26_pred+Y3_45_pred)/8 #(Y3_26_pred +Y3_45_pred + Y3_pred)/3
-  np.mean(np.sum(Y7_pred, axis=1) )
-
-#  np.matmul(Y3_4_pred, point_matrix)[1000].reshape((7,7))
-#  Y3_45_pred[1000].reshape((7,7))*100
-#  np.round(Y3_2_pred[1000].reshape((7,7))*100, 1)
-#  np.round(Y3_2b_pred[1000].reshape((7,7))*100, 1)
-#  np.round(Y3_6_pred[1000].reshape((7,7))*100, 1)
-#  np.round(Y3_26_pred[1000].reshape((7,7))*100, 1)
-#  np.round(Y3_pred[1000].reshape((7,7))*100, 1)
-  
-  #Y7_pred =   Y3_26_pred
-  print(np.mean(calc_softpoints(Y3_test, Y7_pred)))
-  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y7_pred)))))
-  print(np.mean(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
-  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
-  print(point_summary(calc_points(Y3_test, argmax_softpoint(Y7_pred)), invert(X_test[:,1], argmax_softpoint(Y7_pred))))
 
   Y7_pred[1000].reshape((7,7))*100
   #Y2_pred[0]
@@ -2014,59 +1966,83 @@ if __name__ == "__main__":
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((4*spd_test[i].to_prob()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))])
   plt.show()
   
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, spd_test[i].to_prob(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [spd1_test[i].to_prob(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd1_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, spd2_test[i].to_prob(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd2_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].to_prob(), Y8_pred])[-1])))
+        for i in range(len(spd6_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, spd4_test[i].to_prob(), Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd4_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].to_prob(), Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd5_test))])
 
+  sample_len = 300
+  distribution_array=[spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
+  dsi = [np.random.randint(50, len(d), size=sample_len) for d in distribution_array]
+  points = [np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [spd1_test[dsi[0][i]].to_prob(), 
+                   spd2_test[dsi[1][i]].to_prob(), 
+                   spd_test[dsi[2][i]].to_prob(), 
+                   spd4_test[dsi[3][i]].to_prob(), 
+                   spd5_test[dsi[4][i]].to_prob(), 
+                   spd6_test[dsi[5][i]].to_prob(), 
+                   spd8_test[dsi[6][i]].to_prob(), 
+                   ])[-1])))
+        for i in range(sample_len)]
+  plt.figure(figsize=(15,10))        
+  plt.plot(points)
+  plt.hlines(y=np.mean(points), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(points)+2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(points)-2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
+  plt.show()
+  print(np.mean(points))      
+  print(np.sqrt(np.var(points)))
+  plt.boxplot(points)
 
-  Y3_1_pred_new = np.stack([Y1_pred_new[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
-  Y3_1_pred_new = np.stack([Y3_1_pred_new[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred_new[:, i]/21 for i in range(49)], axis=1)
-
-  Y3_8_pred_new = np.stack([Y8_pred_new[:,2] /7 if i//7-np.mod(i,7)==0 else 
-                        Y8_pred_new[:,1] /6 if i//7-np.mod(i,7)==-1 else 
-                        Y8_pred_new[:,3] /6 if i//7-np.mod(i,7)==1 else 
-                        Y8_pred_new[:,0] /5 if i//7-np.mod(i,7)==-2 else 
-                        Y8_pred_new[:,4] /5 if i//7-np.mod(i,7)==2 else 
-                        0.0*Y8_pred_new[:,4] for i in range(49)], axis=1)
-
-  Y3_2_pred_new = np.stack([Y2_pred_new[:, (i//7-np.mod(i,7)).astype(int)+6 ] for i in range(49)], axis=1)
-  Y3_2_pred_new = np.stack([Y3_2_pred_new[:, i]/(7-np.abs(i//7-np.mod(i,7)))  for i in range(49)], axis=1)
-
-  Y3_4_pred_new = np.stack([Y4_pred_new[:, (i//7)]/7 for i in range(49)], axis=1)
-  Y3_5_pred_new = np.stack([Y5_pred_new[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
-  Y3_45_pred_new = np.stack([Y4_pred_new[:, (i//7)]*Y5_pred_new[:, np.mod(i,7)] for i in range(49)], axis=1)
-  Y3_45_pred_new = Y3_45_pred_new / np.sum(Y3_45_pred_new, axis=1, keepdims=True)
-  Y3_6_pred_new = np.stack([Y6_pred_new[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
-
-  Y3_2b_pred_new = np.stack([Y3_2_pred_new[:, i]/np.sum([Y3_2_pred_new[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
-  Y3_26_pred_new = Y3_2b_pred_new * Y3_6_pred_new
-
-  Y3_6_pred_new = np.stack([Y3_6_pred_new[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
-
-  #Y3_26_pred_new = np.stack([(Y2_pred_new[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred_new[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
-  #Y3_26_pred_new = Y3_26_pred_new / np.sum(Y3_26_pred_new, axis=1, keepdims=True)
-
-  Y7_pred_new = (Y3_pred_new+Y3_8_pred_new)/2
-  np.mean(np.sum(Y7_pred_new, axis=1) )
-
-  Y7_pred_new = (Y3_pred_new+Y3_1_pred_new+Y3_8_pred_new+Y3_45_pred_new+Y3_26_pred_new)/5
-  np.mean(np.sum(Y7_pred_new, axis=1) )
-
-  Y7_pred_new = (Y3_8_pred_new + 4*Y3_pred_new+Y3_1_pred_new+Y3_26_pred_new+Y3_45_pred_new)/8 #(Y3_26_pred_new +Y3_45_pred_new + Y3_pred)/3
-  np.mean(np.sum(Y7_pred_new, axis=1) )
-
-  #Y7_pred_new = Y3_pred_new
-  print(np.mean(calc_softpoints(Y3_pred, Y7_pred_new)))
-  print(beautify(Counter(invert(X_pred[:,1], argmax_softpoint(Y7_pred_new)))))
-  print(np.mean(calc_points(Y3_train, argmax_softpoint(Y7_pred_new))))
-  print(point_dist(calc_points(Y3_train, argmax_softpoint(Y7_pred_new))))
-  print(point_summary(calc_points(Y3_train, argmax_softpoint(Y7_pred_new)), invert(X_train[:,1], argmax_softpoint(Y7_pred_train))))
-
+  Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
   prednew = argmax_softpoint(Y7_pred_new)
-  prednewdf = pd.DataFrame({"GS":prednew//7, "GC":np.mod(prednew, 7)})
-  print(prednewdf)
+  prednew2 = argmax_softpoint(Y7_pred_new2)
+  #Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49))
+  
+  all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
 
-  i = 34    
+  prednewdf = pd.DataFrame({
+          "GS":prednew[::2]//7, "GC":np.mod(prednew[::2], 7), 
+          "GSA":np.mod(prednew[1::2], 7), "GCA":prednew[1::2]//7,
+          "GS2":prednew2//7, "GC2":np.mod(prednew2, 7) 
+          })
+  print(pd.concat([prednewdf, all_quotes], axis=1))
+
+  i = 13   
   print(np.round(Y7_pred_new [i].reshape((7,7))*100, 1))
   print(np.round(np.matmul(Y7_pred_new [i:(i+1)], point_matrix).reshape((7,7)), 3))
   
+  i = 3  
+  print(np.round(Y7_pred_new2 [i].reshape((7,7))*100, 1))
+  print(np.round(np.matmul(Y7_pred_new2 [i:(i+1)], point_matrix).reshape((7,7)), 3))
+
+  if point_scheme == point_scheme_pistor:
+    point_matrix =  np.array([[3 if (i//7 == j//7) and (np.mod(i, 7)==np.mod(j, 7)) else 
+                               2 if (i//7 - np.mod(i, 7) == j//7 - np.mod(j, 7)) else
+                               1 if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+  elif point_scheme == point_scheme_sky:
+    point_matrix =  np.array([[5 if (i//7 == j//7) and (np.mod(i, 7)==np.mod(j, 7)) else 
+                               2 if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+  if point_scheme == point_scheme_goal_diff:
+    point_matrix =  np.array([[np.maximum(5, 10 - np.abs(i//7 - j//7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (np.sign(i//7 - np.mod(i, 7)) == np.sign(j//7 - np.mod(j, 7))) else
+                               0  for i in range(49)]  for j in range(49)] )
+
 #  
 #  print(np.mean(calc_softpoints(Y3_test, Y3_2_pred)))
 #  print(beautify(Counter(invert(X_test[:,1], argmax_softpoint(Y3_2_pred)))))
