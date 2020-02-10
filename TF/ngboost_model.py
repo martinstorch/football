@@ -4,13 +4,12 @@ Created on Mon Jan 27 17:23:02 2020
 
 @author: marti
 """
-from ngboost import NGBRegressor
-from ngboost.scores import CRPS, MLE
 from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, confusion_matrix, accuracy_score, cohen_kappa_score, balanced_accuracy_score, classification_report, log_loss
 from sklearn.tree import DecisionTreeRegressor
-from ngboost import NGBClassifier
+from ngboost.scores import CRPS, MLE
+from ngboost import NGBClassifier, NGBRegressor
 from ngboost.distns import k_categorical
 from ngboost.learners import default_tree_learner
 
@@ -31,7 +30,6 @@ import numpy as np
 from datetime import datetime
 import os
 from threading import Event
-import signal
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -44,6 +42,9 @@ from collections import Counter
 from sklearn.metrics import confusion_matrix
 import random
 import itertools
+
+import shap
+shap.initjs()  
 
 #@ops.RegisterGradient("BernoulliSample_ST")
 #def bernoulliSample_ST(op, grad):
@@ -105,7 +106,11 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWI
     all_data["BW1"]=0.0
     all_data["BW0"]=0.0
     all_data["BW2"]=0.0
+    all_features.loc[:,"BW1"]=0.0
+    all_features.loc[:,"BW0"]=0.0
+    all_features.loc[:,"BW2"]=0.0
     print("BWIN features set to zero")
+    
 #  all_labels["Train"]=is_train.values
 #  all_labels["Test"]=is_test.values
 #  all_labels["Predict"] = all_data["Predict"]
@@ -114,7 +119,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWI
 #  all_features["Test"]=is_test.values
 #  all_features["Predict"] = all_data["Predict"]
   teamnames = team_mapping.Teamname.tolist()
-
+  print(all_data.iloc[1000])
   return all_data, all_labels, all_features, teamnames, team_mapping
 
 def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
@@ -148,6 +153,9 @@ def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
   match_input_layer = np.concatenate([prefix, all_features.values], axis=1)
   print("prefix.columns.tolist()+all_features.columns.tolist()")
   print(prefix0.columns.tolist()+all_features.columns.tolist())
+  
+  print("match_input_layer [:,23:26]")
+  print(match_input_layer [:,23:26])
 #  tn = len(teamnames)
 #  #lc = len(label_column_names)
 #  fc = len(feature_column_names)
@@ -857,7 +865,10 @@ def plot_checkpoints(df, predictions):
 
 def get_input_data(model_dir, train_data, test_data, data_dir, useBWIN):
   all_data, all_labels, all_features, teamnames, team_mapping = get_train_test_data(model_dir, train_data, test_data, data_dir, useBWIN)
+  print(all_data.iloc[1000])
+
   features_arrays, labels_array, team_onehot_encoder, label_column_names = build_features(all_data.copy(), all_labels, all_features, teamnames, team_mapping)
+  print(features_arrays["match_input_layer"][:,23:26])
   data = (all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names)
   return data
 
@@ -1144,6 +1155,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
   test_data = [s.strip() for s in test_data.strip('[]').split(',')]
   
   all_data, teamnames, features_arrays, labels_array, team_onehot_encoder, label_column_names = get_input_data(model_dir, train_data, test_data, data_dir, useBWIN)
+  print(features_arrays["match_input_layer"][:,23:26])
 
 #  train_idx = range(2*306*len(train_data))
 #  test_idx = range(2*306*len(train_data), 2*306*len(train_data)+2*306*len(test_data))
@@ -1178,7 +1190,6 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
     print("Test index {}-{}".format(np.min(test_idx), np.max(test_idx)))
   print("Prediction index {}-{}".format(np.min(pred_idx), np.max(pred_idx)))
   
-
   model_data = (features_arrays, labels_array, train_idx, test_idx, pred_idx)
 #  if modes == "static":
 #    static_probabilities(model_data)    
@@ -1196,7 +1207,7 @@ def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
 #    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
 #    predict_checkpoints(model_data, cps, all_data, skip_plotting)    
   
-  return    model_data, point_scheme
+  return    model_data, point_scheme, label_column_names
     
 
 FLAGS = None
@@ -1317,8 +1328,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--useBWIN", type=bool,
-      default=True,
-      #default=False,
+      #default=True,
+      default=False,
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
@@ -1346,7 +1357,7 @@ if __name__ == "__main__":
   FLAGS, unparsed = parser.parse_known_args()
   print([sys.argv[0]] + unparsed)
   print(FLAGS)
-  model_data, point_scheme = main([sys.argv[0]] + unparsed)
+  model_data, point_scheme, label_column_names = main([sys.argv[0]] + unparsed)
 
 
 # Path('C:/tmp/Football/models/reset.txt').touch()
@@ -1374,6 +1385,26 @@ if __name__ == "__main__":
                                0  for i in range(49)]  for j in range(49)] )
   
   X = features_arrays["match_input_layer"]
+  label_filter = [0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 46, 47]
+  X = np.concatenate([X,
+  np.mean(labels_array[features_arrays["match_history_t1"][:,-5:]][:,:,label_filter], axis=1),
+  np.mean(labels_array[features_arrays["match_history_t2"][:,-5:]][:,:,label_filter], axis=1),
+  np.mean(labels_array[features_arrays["match_history_t12"][:,-2:]][:,:,label_filter], axis=1)
+  #labels_array[features_arrays["match_history_t2"][:,-5:]][:,:,label_filter].reshape((-1,5*len(label_filter))),
+  #labels_array[features_arrays["match_history_t12"][:,-2:]][:,:,label_filter].reshape((-1,2*len(label_filter)))
+  ], axis=1)
+
+  #label_column_sublist = label_column_names[18:21]
+  label_column_sublist = label_column_names[label_filter]
+  #label_column_sublist = label_column_names
+  label_column_names_extended = \
+      ["T1_Hi5_"+x for x in label_column_sublist.tolist()] + \
+      ["T2_Hi5_"+x for x in label_column_sublist.tolist()] + \
+      ["T12_Hi2_"+x for x in label_column_sublist.tolist()] 
+      
+  feature_names = ['t1histlen', 'where', 't2histlen','t12histlen']+['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw'] + label_column_names_extended 
+
+  print(X.shape)          
   X_train = X[train_idx]
   X_test= X[test_idx]
   X_pred= X[pred_idx]
@@ -1423,26 +1454,27 @@ if __name__ == "__main__":
   def model_progress(model, X_train, X_test, Y1_train, Y1_test):
       spd1_train = model.staged_pred_dist(X_train)
       spd1_test = model.staged_pred_dist(X_test)
+      spd1_train
       fig, axs = plt.subplots(2, 2, constrained_layout=True, figsize=(16,10))
       axs[0][0].set_title('Accuracy')
-      axs[0][0].plot([accuracy_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1)) for i in range(len(spd1_train))])
-      axs[0][0].plot([accuracy_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1)) for i in range(len(spd1_test))])
+      axs[0][0].plot([accuracy_score(Y1_train, np.argmax(spd1_train[i].class_probs(), axis=1)) for i in range(len(spd1_train))])
+      axs[0][0].plot([accuracy_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1)) for i in range(len(spd1_test))])
       axs[0][1].set_title('Balanced Accuracy Max. Prob')
-      axs[0][1].plot([balanced_accuracy_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1))for i in range(len(spd1_train))])
-      axs[0][1].plot([balanced_accuracy_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1))for i in range(len(spd1_test))])
+      axs[0][1].plot([balanced_accuracy_score(Y1_train, np.argmax(spd1_train[i].class_probs(), axis=1))for i in range(len(spd1_train))])
+      axs[0][1].plot([balanced_accuracy_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1))for i in range(len(spd1_test))])
       axs[1][0].set_title('Log Loss')
-      axs[1][0].plot([log_loss(Y1_train, spd1_train[i].to_prob())for i in range(len(spd1_train))])
-      axs[1][0].plot([log_loss(Y1_test, spd1_test[i].to_prob(), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
+      axs[1][0].plot([log_loss(Y1_train, spd1_train[i].class_probs())for i in range(len(spd1_train))])
+      axs[1][0].plot([log_loss(Y1_test, spd1_test[i].class_probs(), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
       axs[1][1].set_title('Cohen Kappa Score')
-      axs[1][1].plot([cohen_kappa_score(Y1_train, np.argmax(spd1_train[i].to_prob(), axis=1))for i in range(len(spd1_train))])
-      axs[1][1].plot([cohen_kappa_score(Y1_test, np.argmax(spd1_test[i].to_prob(), axis=1), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
+      axs[1][1].plot([cohen_kappa_score(Y1_train, np.argmax(spd1_train[i].class_probs(), axis=1))for i in range(len(spd1_train))])
+      axs[1][1].plot([cohen_kappa_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
       plt.show()
       return spd1_train, spd1_test
 
   
   ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.1,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=3,
+                                         criterion='friedman_mse', max_depth=2,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -1454,11 +1486,11 @@ if __name__ == "__main__":
           Dist=k_categorical(3),
                       n_estimators=550, verbose_eval=1,
                  learning_rate=0.01,
-                 minibatch_frac=0.15) # tell ngboost that there are 3 possible outcomes
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
-                     early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+                     #early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
 
   spd1_train, spd1_test = model_progress(ngb, X_train, X_test, Y1_train, Y1_test)  
@@ -1466,9 +1498,9 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y1_pred = ngb.predict_proba(X_test)
 
-  Y1_pred = np.mean([x.to_prob() for x in spd1_test[50:]], axis=0)
-  Y1_pred_train = np.mean([x.to_prob() for x in spd1_train[50:]], axis=0)
-  Y1_pred_new = np.mean([x.to_prob() for x in ngb.staged_pred_dist(X_pred)[50:]], axis=0)
+  Y1_pred = np.mean([x.class_probs() for x in spd1_test[50:]], axis=0)
+  Y1_pred_train = np.mean([x.class_probs() for x in spd1_train[50:]], axis=0)
+  Y1_pred_new = np.mean([x.class_probs() for x in ngb.staged_pred_dist(X_pred)[50:]], axis=0)
 
   print(np.argmax(Y1_pred, axis=1))
   print(accuracy_score(Y1_test, np.argmax(Y1_pred, axis=1)))
@@ -1494,19 +1526,78 @@ if __name__ == "__main__":
 #      }, all_labels.values, team_mapping, label_column_names
 #  with open('ngb.pickle', 'wb') as f:
 #      pickle.dump(ngbmodel, f)  
-  feature_names = ['t1histlen', 'where', 't2histlen','t12histlen']+['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw']  
-  feature_importance = pd.DataFrame({'feature':feature_names , 
-                                   'importance':ngb.feature_importances_[0]})\
-    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
-  fig, ax = plt.subplots(figsize=(20, 20))
-  plt.title('Feature Importance Plot')
-  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
+  def plot_feature_importances(model, modelname):
+      feature_importance_loc, feature_importance_scale = model.feature_importances_
+    
+      df_loc = pd.DataFrame({'feature':feature_names, 
+                               'importance':feature_importance_loc})\
+            .sort_values('importance',ascending=False)
+      df_scale = pd.DataFrame({'feature':feature_names, 
+                               'importance':feature_importance_scale})\
+            .sort_values('importance',ascending=False)
+      df_both = pd.DataFrame({'feature':feature_names, 
+                              'location':feature_importance_loc+1e-4,
+                               'scale':feature_importance_scale+1e-4})
+            
+      fig, ax = plt.subplots(figsize=(16,9))
+      fig.suptitle("All Feature importance location vs scale\n"+modelname, fontsize=17)
+      ax.set(xscale="log", yscale="log")  
+      sns.scatterplot(x="location", y="scale", data=df_both)
+      for line in range(0, len(df_both.feature)):
+          ax.text(df_both.location[line], df_both.scale[line]*1.1, df_both.feature[line], horizontalalignment='center', size='x-small', color='black')
+      plt.show()
+     
+      fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16,9))
+      fig.suptitle("Top 50 Feature importance plot for distribution parameters\n"+modelname, fontsize=17)
+      sns.barplot(x='importance',y='feature',ax=ax1,data=df_loc[0:50], color="skyblue").set_title('loc param')
+      ax1.tick_params(labelsize=8)
+      ax2.tick_params(labelsize=8)
+      sns.barplot(x='importance',y='feature',ax=ax2,data=df_scale[0:50], color="skyblue").set_title('scale param')
+      plt.show()
+      
+  plot_feature_importances(ngb, "Model1")    
 
+  #explainer = ngb.get_shap_tree_explainer(param_idx=0)
+  
+  output=0
+  shap_data=X_pred[16:18]
+  shap_data=X_train
+  explainer = shap.TreeExplainer(ngb, model_output=output)
+  shap_values = explainer.shap_values(shap_data)
+  shap.summary_plot(shap_values, features=shap_data, feature_names=feature_names, title="ABC",
+                    max_display=30)
 
+  shap_interaction_values = explainer.shap_interaction_values(X_test, Y1_test)
+  shap.decision_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, feature_display_range=None, link="logit")
+  shap.force_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, link="logit", matplotlib=True, text_rotation=90)
+  plt.show()
+    
+  explainer_draw = shap.TreeExplainer(ngb, model_output=0)
+  explainer_win = shap.TreeExplainer(ngb, model_output=1)
+
+  shap_data=X_pred
+  row_index = 11
+  shap.multioutput_decision_plot(
+      [explainer_draw.expected_value*0, explainer_draw.expected_value, explainer_win.expected_value], 
+      [explainer_draw.shap_values(shap_data)*0, explainer_draw.shap_values(shap_data), explainer_win.shap_values(shap_data)],
+                               row_index=row_index, 
+                               feature_names=feature_names, 
+                               #highlight=[np.argmax(heart_predictions[row_index])],
+                               legend_labels=['Loss', 'Draw', 'Win'],
+                               legend_location='lower right')
+
+  shap.decision_plot(explainer.expected_value, 
+                     shap_interaction_values[0:20], 
+                     feature_names=feature_names, link='logit',
+                     feature_order='hclust', feature_display_range=slice(None, -11, -1))  
+
+  
+  X2_train = X_train
+  X2_train[:,4]=0 
   ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.2,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=3,
+                                         criterion='friedman_mse', max_depth=2,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -1518,21 +1609,21 @@ if __name__ == "__main__":
         Dist=k_categorical(13),
                       n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
-                 minibatch_frac=0.25) # tell ngboost that there are 3 possible outcomes
-  ngbmodel2 = ngb2.fit(X_train, Y2_train, X_val = X_test, Y_val = Y2_test,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
+  ngbmodel2 = ngb2.fit(X2_train, Y2_train, X_val = X_test, Y_val = Y2_test,
                        early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
-  spd2_train, spd2_test = model_progress(ngb2, X_train, X_test, Y2_train, Y2_test)  
+  spd2_train, spd2_test = model_progress(ngb2, X2_train, X_test, Y2_train, Y2_test)  
 
   max_iter=ngb2.best_val_loss_itr
   max_iter=300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y2_pred = ngb2.predict_proba(X_test, max_iter=max_iter)
-  Y2_pred = np.mean([x.to_prob() for x in spd2_test[100:400]], axis=0)
-  Y2_pred_train = np.mean([x.to_prob() for x in spd2_train[100:400]], axis=0)
-  Y2_pred_new = np.mean([x.to_prob() for x in ngb2.staged_pred_dist(X_pred)[100:]], axis=0)
+  Y2_pred = np.mean([x.class_probs() for x in spd2_test[100:400]], axis=0)
+  Y2_pred_train = np.mean([x.class_probs() for x in spd2_train[100:400]], axis=0)
+  Y2_pred_new = np.mean([x.class_probs() for x in ngb2.staged_pred_dist(X_pred)[100:]], axis=0)
   
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y2_pred, axis=1))
@@ -1551,9 +1642,16 @@ if __name__ == "__main__":
   print(np.mean(Y2_pred_train, axis=0))    
   print(Counter(np.argmax(Y2_pred_train, axis=1)))
 
-  ngb6 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
+  feature_importance = pd.DataFrame({'feature':feature_names , 
+                                   'importance':ngb2.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots(figsize=(20, 20))
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
+
+  ngb6 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.2,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=3,
+                                         criterion='friedman_mse', max_depth=2,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -1566,16 +1664,19 @@ if __name__ == "__main__":
                       n_estimators=400, verbose_eval=1,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  ngbmodel6 = ngb6.fit(X_train, Y6_train, X_val = X_test, Y_val = Y6_test,
+  X6_train = X_train
+  X6_train[:,4]=0 
+  ngbmodel6 = ngb6.fit(X6_train, Y6_train, X_val = X_test, Y_val = Y6_test,
                        early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,6}
-  spd6_train, spd6_test = model_progress(ngb6, X_train, X_test, Y6_train, Y6_test)  
+  spd6_train, spd6_test = model_progress(ngb6, X6_train, X_test, Y6_train, Y6_test)  
   max_iter=ngb6.best_val_loss_itr
   # predicted probabilities of class 0, 1, and 6 (columns) for each observation (row)
-  Y6_pred_new = np.mean([x.to_prob() for x in ngb6.staged_pred_dist(X_pred)[100:]], axis=0)
-  Y6_pred = ngb6.predict_proba(X_test, max_iter=max_iter)
+  Y6_pred_new = np.mean([x.class_probs() for x in ngb6.staged_pred_dist(X_pred)[100:]], axis=0)
+  #Y6_pred = ngb6.predict_proba(X_test, max_iter=max_iter)
+  Y6_pred = np.mean([x.class_probs() for x in ngb6.staged_pred_dist(X_test)[100:]], axis=0)
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y6_pred, axis=1))
   print(accuracy_score(Y6_test, np.argmax(Y6_pred, axis=1)))
@@ -1585,7 +1686,8 @@ if __name__ == "__main__":
   print(np.mean(Y6_pred, axis=0))    
   print(Counter(np.argmax(Y6_pred, axis=1)))
 
-  Y6_pred_train = ngb6.predict_proba(X_train, max_iter=max_iter)
+  #Y6_pred_train = ngb6.predict_proba(X_train, max_iter=max_iter)
+  Y6_pred_train = np.mean([x.class_probs() for x in ngb6.staged_pred_dist(X_train)[100:]], axis=0)
   print(accuracy_score(Y6_train, np.argmax(Y6_pred_train, axis=1)))
   print(confusion_matrix(Y6_train, np.argmax(Y6_pred_train, axis=1)))
   #print(confusion_matrix(Y_train, np.argmax(Y_pred_train, axis=1), normalize='all'))
@@ -1618,13 +1720,13 @@ if __name__ == "__main__":
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel8 = ngb8.fit(X_train, Y8_train, X_val = X_test, Y_val = Y8_test,
                        early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
   spd8_train, spd8_test = model_progress(ngb8, X_train, X_test, Y8_train, Y8_test)  
   max_iter=ngb8.best_val_loss_itr
   # predicted probabilities of class 0, 1, and 8 (columns) for each observation (row)
-  Y8_pred_new = np.mean([x.to_prob() for x in ngb8.staged_pred_dist(X_pred)[100:]], axis=0)
+  Y8_pred_new = np.mean([x.class_probs() for x in ngb8.staged_pred_dist(X_pred)[100:]], axis=0)
   Y8_pred = ngb8.predict_proba(X_test, max_iter=max_iter)
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y8_pred, axis=1))
@@ -1660,16 +1762,16 @@ if __name__ == "__main__":
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
                      early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
   spd4_train, spd4_test = model_progress(ngb4, X_train, X_test, Y4_train, Y4_test)  
   max_iter = 300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   #Y4_pred = ngb4.predict_proba(X_test)
-  Y4_pred_new = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_pred)[100:]], axis=0)
-  Y4_pred = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_test)[100:]], axis=0)
-  #Y4_pred = spd4_test[max_iter].to_prob() 
+  Y4_pred_new = np.mean([x.class_probs() for x in ngb4.staged_pred_dist(X_pred)[100:]], axis=0)
+  Y4_pred = np.mean([x.class_probs() for x in ngb4.staged_pred_dist(X_test)[100:]], axis=0)
+  #Y4_pred = spd4_test[max_iter].class_probs() 
   print(np.argmax(Y4_pred, axis=1))
   print(accuracy_score(Y4_test, np.argmax(Y4_pred, axis=1)))
   print(confusion_matrix(Y4_test, np.argmax(Y4_pred, axis=1)))
@@ -1679,8 +1781,8 @@ if __name__ == "__main__":
   print(Counter(np.argmax(Y4_pred, axis=1)))
   
   #Y4_pred_train = ngb4.predict_proba(X_train)
-#  Y4_pred_train = spd4_train[max_iter].to_prob() 
-  Y4_pred_train = np.mean([x.to_prob() for x in ngb4.staged_pred_dist(X_train)[100:]], axis=0)
+#  Y4_pred_train = spd4_train[max_iter].class_probs() 
+  Y4_pred_train = np.mean([x.class_probs() for x in ngb4.staged_pred_dist(X_train)[100:]], axis=0)
   print(accuracy_score(Y4_train, np.argmax(Y4_pred_train, axis=1)))
   print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1)))
   print(confusion_matrix(Y4_train, np.argmax(Y4_pred_train, axis=1), normalize='all'))
@@ -1688,6 +1790,12 @@ if __name__ == "__main__":
   print(np.mean(Y4_pred_train, axis=0))    
   print(Counter(np.argmax(Y4_pred_train, axis=1)))
 
+  feature_importance = pd.DataFrame({'feature':feature_names , 
+                                   'importance':ngb4.feature_importances_[0]})\
+    .sort_values('importance',ascending=False).reset_index().drop(columns='index')
+  fig, ax = plt.subplots(figsize=(20, 20))
+  plt.title('Feature Importance Plot')
+  sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
 
   ngb5 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
@@ -1707,17 +1815,17 @@ if __name__ == "__main__":
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
                      early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
   spd5_train, spd5_test = model_progress(ngb5, X_train, X_test, Y5_train, Y5_test)  
   max_iter = 400
 
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   #Y5_pred = ngb5.predict_proba(X_test)
-  Y5_pred_new = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_pred)[100:]], axis=0)
-  Y5_pred = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_test)[100:]], axis=0)
-  #Y5_pred = spd5_test[max_iter].to_prob() 
+  Y5_pred_new = np.mean([x.class_probs() for x in ngb5.staged_pred_dist(X_pred)[100:]], axis=0)
+  Y5_pred = np.mean([x.class_probs() for x in ngb5.staged_pred_dist(X_test)[100:]], axis=0)
+  #Y5_pred = spd5_test[max_iter].class_probs() 
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y5_pred, axis=1))
   print(accuracy_score(Y5_test, np.argmax(Y5_pred, axis=1)))
@@ -1728,8 +1836,8 @@ if __name__ == "__main__":
   print(Counter(np.argmax(Y5_pred, axis=1)))
   
   #Y5_pred_train = ngb5.predict_proba(X_train)
-  #Y5_pred_train = spd5_train[max_iter].to_prob() 
-  Y5_pred_train = np.mean([x.to_prob() for x in ngb5.staged_pred_dist(X_train)[100:]], axis=0)
+  #Y5_pred_train = spd5_train[max_iter].class_probs() 
+  Y5_pred_train = np.mean([x.class_probs() for x in ngb5.staged_pred_dist(X_train)[100:]], axis=0)
   print(accuracy_score(Y5_train, np.argmax(Y5_pred_train, axis=1)))
   print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1)))
   print(confusion_matrix(Y5_train, np.argmax(Y5_pred_train, axis=1), normalize='all'))
@@ -1791,15 +1899,15 @@ if __name__ == "__main__":
   ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
                        early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+#                         -np.mean(calc_points(Y, argmax_softpoint(D.class_probs()))),
 #                     val_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_points(Y, argmax_softpoint(D.to_prob()))),
+#                         -np.mean(calc_points(Y, argmax_softpoint(D.class_probs()))),
 #                     train_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_softpoints(Y, D.to_prob())),
+#                         -np.mean(calc_softpoints(Y, D.class_probs())),
 #                     val_loss_monitor=lambda D,Y: 
-#                         -np.mean(calc_softpoints(Y, D.to_prob())),
-                     #train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1))),
-                     #val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.to_prob(), axis=1)))
+#                         -np.mean(calc_softpoints(Y, D.class_probs())),
+                     #train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+                     #val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      
                      ) # Y should have only 3 values: {0,1,2}
   ngb3.n_estimators
@@ -1811,23 +1919,23 @@ if __name__ == "__main__":
   spd_train, spd_test = model_progress(ngb3, X_train, X_test, Y3_train, Y3_test)  
   fig, axs = plt.subplots(3, 2, constrained_layout=True, figsize=(15,10))
   axs[0][0].set_title('Softpoints')
-  axs[0][0].plot([np.mean(calc_softpoints(Y3_train, spd_train[i].to_prob())) for i in range(len(spd_train))])
-  axs[0][0].plot([np.mean(calc_softpoints(Y3_test, spd_test[i].to_prob())) for i in range(len(spd_test))])
+  axs[0][0].plot([np.mean(calc_softpoints(Y3_train, spd_train[i].class_probs())) for i in range(len(spd_train))])
+  axs[0][0].plot([np.mean(calc_softpoints(Y3_test, spd_test[i].class_probs())) for i in range(len(spd_test))])
   axs[0][1].set_title('Points')
-  axs[0][1].plot([np.mean(calc_points(Y3_train, argmax_softpoint(spd_train[i].to_prob()))) for i in range(len(spd_train))])
-  axs[0][1].plot([np.mean(calc_points(Y3_test, argmax_softpoint(spd_test[i].to_prob()))) for i in range(len(spd_test))])
+  axs[0][1].plot([np.mean(calc_points(Y3_train, argmax_softpoint(spd_train[i].class_probs()))) for i in range(len(spd_train))])
+  axs[0][1].plot([np.mean(calc_points(Y3_test, argmax_softpoint(spd_test[i].class_probs()))) for i in range(len(spd_test))])
   axs[1][0].set_title('Accuracy')
-  axs[1][0].plot([accuracy_score(Y3_train, np.argmax(spd_train[i].to_prob(), axis=1))for i in range(len(spd_train))])
-  axs[1][0].plot([accuracy_score(Y3_test, np.argmax(spd_test[i].to_prob(), axis=1))for i in range(len(spd_test))])
+  axs[1][0].plot([accuracy_score(Y3_train, np.argmax(spd_train[i].class_probs(), axis=1))for i in range(len(spd_train))])
+  axs[1][0].plot([accuracy_score(Y3_test, np.argmax(spd_test[i].class_probs(), axis=1))for i in range(len(spd_test))])
   axs[1][1].set_title('Log Loss')
-  axs[1][1].plot([log_loss(Y3_train, spd_train[i].to_prob())for i in range(len(spd_train))])
-  axs[1][1].plot([log_loss(y_true = Y3_test, y_pred = spd_test[i].to_prob(), labels = range(49))for i in range(len(spd_test))])
+  axs[1][1].plot([log_loss(Y3_train, spd_train[i].class_probs())for i in range(len(spd_train))])
+  axs[1][1].plot([log_loss(y_true = Y3_test, y_pred = spd_test[i].class_probs(), labels = range(49))for i in range(len(spd_test))])
   axs[2][0].set_title('Balanced Accuracy Max. Prob')
-  axs[2][0].plot([balanced_accuracy_score(Y3_train, np.argmax(spd_train[i].to_prob(), axis=1))for i in range(len(spd_train))])
-  axs[2][0].plot([balanced_accuracy_score(Y3_test, np.argmax(spd_test[i].to_prob(), axis=1))for i in range(len(spd_test))])
+  axs[2][0].plot([balanced_accuracy_score(Y3_train, np.argmax(spd_train[i].class_probs(), axis=1))for i in range(len(spd_train))])
+  axs[2][0].plot([balanced_accuracy_score(Y3_test, np.argmax(spd_test[i].class_probs(), axis=1))for i in range(len(spd_test))])
   axs[2][1].set_title('Balanced Accurancy Max. Points')
-  axs[2][1].plot([balanced_accuracy_score(Y3_train, argmax_softpoint(spd_train[i].to_prob()))for i in range(len(spd_train))])
-  axs[2][1].plot([balanced_accuracy_score(Y3_test, argmax_softpoint(spd_test[i].to_prob()))for i in range(len(spd_test))])
+  axs[2][1].plot([balanced_accuracy_score(Y3_train, argmax_softpoint(spd_train[i].class_probs()))for i in range(len(spd_train))])
+  axs[2][1].plot([balanced_accuracy_score(Y3_test, argmax_softpoint(spd_test[i].class_probs()))for i in range(len(spd_test))])
   plt.show()
   
 
@@ -1835,9 +1943,9 @@ if __name__ == "__main__":
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
 #  Y3_pred = ngbmodel3.predict_proba(X_test)
 #  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
-  #Y3_pred = spd_test[max_iter-10].to_prob() 
-  Y3_pred = np.mean([x.to_prob() for x in spd_test[100:]] , axis=0)
-  Y3_pred_new = np.mean([x.to_prob() for x in ngb3.staged_pred_dist(X_pred)[100:]], axis=0)
+  #Y3_pred = spd_test[max_iter-10].class_probs() 
+  Y3_pred = np.mean([x.class_probs() for x in spd_test[100:]] , axis=0)
+  Y3_pred_new = np.mean([x.class_probs() for x in ngb3.staged_pred_dist(X_pred)[100:]], axis=0)
   
 
   print(np.mean(calc_softpoints(Y3_test, Y3_pred)))
@@ -1867,8 +1975,8 @@ if __name__ == "__main__":
   
 #  Y3_pred_train = ngb3.predict_proba(X_train)
 #  Y3_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
-  #Y3_pred_train = spd_train[max_iter].to_prob() 
-  Y3_pred_train = np.mean([x.to_prob() for x in spd_train[100:]] , axis=0)
+  #Y3_pred_train = spd_train[max_iter].class_probs() 
+  Y3_pred_train = np.mean([x.class_probs() for x in spd_train[100:]] , axis=0)
    
   
   print(np.mean(calc_softpoints(Y3_train, Y3_pred_train)))
@@ -1953,64 +2061,12 @@ if __name__ == "__main__":
   print_evaluation(Y3_test, Y7_pred, X_test[:,1])
 
 
-  Y7_pred[1000].reshape((7,7))*100
-  #Y2_pred[0]
-
-  plt.figure(figsize=(15,10))        
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob())/1))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].to_prob()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob())/1))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].to_prob()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((4*spd_test[i].to_prob()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))])
-  plt.show()
-  
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, spd_test[i].to_prob(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [spd1_test[i].to_prob(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd1_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, spd2_test[i].to_prob(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd2_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].to_prob(), Y8_pred])[-1])))
-        for i in range(len(spd6_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, spd4_test[i].to_prob(), Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd4_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].to_prob(), Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd5_test))])
-
-  sample_len = 300
-  distribution_array=[spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
-  dsi = [np.random.randint(50, len(d), size=sample_len) for d in distribution_array]
-  points = [np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [spd1_test[dsi[0][i]].to_prob(), 
-                   spd2_test[dsi[1][i]].to_prob(), 
-                   spd_test[dsi[2][i]].to_prob(), 
-                   spd4_test[dsi[3][i]].to_prob(), 
-                   spd5_test[dsi[4][i]].to_prob(), 
-                   spd6_test[dsi[5][i]].to_prob(), 
-                   spd8_test[dsi[6][i]].to_prob(), 
-                   ])[-1])))
-        for i in range(sample_len)]
-  plt.figure(figsize=(15,10))        
-  plt.plot(points)
-  plt.hlines(y=np.mean(points), xmin=0, xmax=sample_len)
-  plt.hlines(colors="r", y=np.mean(points)+2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
-  plt.hlines(colors="r", y=np.mean(points)-2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
-  plt.show()
-  print(np.mean(points))      
-  print(np.sqrt(np.var(points)))
-  plt.boxplot(points)
-
+  # point estimate ...  
   Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
   prednew = argmax_softpoint(Y7_pred_new)
   prednew2 = argmax_softpoint(Y7_pred_new2)
+  sp_prednew = calc_softpoints(prednew, Y7_pred_new)
+  sp_prednew2 = calc_softpoints(prednew2, Y7_pred_new2)
   #Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49))
   
   all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
@@ -2018,10 +2074,205 @@ if __name__ == "__main__":
   prednewdf = pd.DataFrame({
           "GS":prednew[::2]//7, "GC":np.mod(prednew[::2], 7), 
           "GSA":np.mod(prednew[1::2], 7), "GCA":prednew[1::2]//7,
-          "GS2":prednew2//7, "GC2":np.mod(prednew2, 7) 
+          "GS2":prednew2//7, "GC2":np.mod(prednew2, 7),
+          "SP":sp_prednew[::2],
+          "SPA":sp_prednew[1::2],
+          "SP2":sp_prednew2
           })
+  prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
+  prednewdf.GSA = prednewdf.GSA.astype(str).str.cat(prednewdf.GCA.astype(str), sep=":")
+  prednewdf.GS2 = prednewdf.GS2.astype(str).str.cat(prednewdf.GC2.astype(str), sep=":")
+  prednewdf.drop(["GC", "GCA", "GC2"], axis=1, inplace=True)
   print(pd.concat([prednewdf, all_quotes], axis=1))
 
+  Y7_pred[1000].reshape((7,7))*100
+  #Y2_pred[0]
+
+  plt.figure(figsize=(15,10))        
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs())/1))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs())/1))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((4*spd_test[i].class_probs()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))])
+  plt.show()
+  
+  plt.figure(figsize=(15,10))        
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, spd_test[i].class_probs(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd_test))], label="Y3")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd1_test))], label="Y1")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, spd2_test[i].class_probs(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd2_test))], label="Y2")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].class_probs(), Y8_pred])[-1])))
+        for i in range(len(spd6_test))], label="Y6")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, spd4_test[i].class_probs(), Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd4_test))], label="Y4")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].class_probs(), Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd5_test))], label="Y5")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
+        for i in range(len(spd8_test))], label="Y8")
+  plt.legend()
+  plt.show()
+
+  plt.plot([np.mean(calc_softpoints(Y3_test, combine_probs(
+                  [spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1]))
+        for i in range(len(spd1_test))])
+
+  sample_len = 300
+  distribution_array=[spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
+  dsi = [np.random.randint(50, len(d), size=sample_len) for d in distribution_array] # 50, len(d)
+  points_per_match = [calc_points(Y3_test, argmax_softpoint(combine_probs(
+                  [spd1_test[dsi[0][i]].class_probs(), 
+                   spd2_test[dsi[1][i]].class_probs(), 
+                   spd_test[dsi[2][i]].class_probs(), 
+                   spd4_test[dsi[3][i]].class_probs(), 
+                   spd5_test[dsi[4][i]].class_probs(), 
+                   spd6_test[dsi[5][i]].class_probs(), 
+                   spd8_test[dsi[6][i]].class_probs(), 
+                   ])[-1]))
+        for i in range(sample_len)]
+
+  points = np.array(points_per_match)
+  homepoints = np.mean(points[:, ::2], axis=1)
+  awaypoints = np.mean(points[:, 1::2], axis=1)
+  allpoints = np.mean(points, axis=1)
+  plt.figure(figsize=(15,10))        
+  plt.plot(allpoints)
+  plt.hlines(y=np.mean(points), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(points)+2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(points)-2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
+  plt.show()
+  print(np.mean(allpoints))      
+  print(np.sqrt(np.var(allpoints)))
+  plt.boxplot(allpoints)
+  plt.violinplot(allpoints, showmedians=True)
+  plt.violinplot(awaypoints, showmedians=True)
+  plt.violinplot(homepoints, showmedians=True)
+  plt.show()
+  df = pd.DataFrame({"points":allpoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50})
+  sns.violinplot(x='dsi', y='points', data=df, scale="count")
+  plt.show()
+  df = pd.concat([pd.DataFrame({"points":homepoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50, "where":"Home"}),
+                  pd.DataFrame({"points":awaypoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50, "where":"Away"})])
+  sns.violinplot(x='dsi', y='points', data=df, hue="where", split=True, scale="count", inner="stick", scale_hue=False)
+  plt.show()
+
+  softpoints_per_match = [calc_softpoints(Y3_test, combine_probs(
+                  [spd1_test[dsi[0][i]].class_probs(), 
+                   spd2_test[dsi[1][i]].class_probs(), 
+                   spd_test[dsi[2][i]].class_probs(), 
+                   spd4_test[dsi[3][i]].class_probs(), 
+                   spd5_test[dsi[4][i]].class_probs(), 
+                   spd6_test[dsi[5][i]].class_probs(), 
+                   spd8_test[dsi[6][i]].class_probs(), 
+                   ])[-1])
+        for i in range(sample_len)]
+  points = np.array(softpoints_per_match)
+  homepoints = np.mean(points[:, ::2], axis=1)
+  awaypoints = np.mean(points[:, 1::2], axis=1)
+  allsoftpoints = np.mean(points, axis=1)
+  plt.figure(figsize=(15,10))        
+  plt.plot(allsoftpoints)
+  plt.hlines(y=np.mean(allsoftpoints), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(allsoftpoints)+2*np.sqrt(np.var(allsoftpoints)), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(allsoftpoints)-2*np.sqrt(np.var(allsoftpoints)), xmin=0, xmax=sample_len)
+  plt.show()
+  print(np.mean(allsoftpoints))      
+  print(np.sqrt(np.var(allsoftpoints)))
+  plt.boxplot(allsoftpoints)
+  plt.violinplot(allsoftpoints, showmedians=True)
+  plt.violinplot(awaypoints, showmedians=True)
+  plt.violinplot(homepoints, showmedians=True)
+  plt.show()
+  df = pd.DataFrame({"points":allsoftpoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50})
+  sns.violinplot(x='dsi', y='points', data=df, scale="count")
+  plt.show()
+  df = pd.concat([pd.DataFrame({"points":homepoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50, "where":"Home"}),
+                  pd.DataFrame({"points":awaypoints, "dsi":(np.mean(np.array(dsi), axis=0)//50)*50, "where":"Away"})])
+  sns.violinplot(x='dsi', y='points', data=df, hue="where", split=True, scale="count", inner="stick", scale_hue=False)
+  plt.show()
+
+
+  spd1_new = ngb.staged_pred_dist(X_pred)
+  spd2_new = ngb2.staged_pred_dist(X_pred)
+  spd3_new = ngb3.staged_pred_dist(X_pred)
+  spd4_new = ngb4.staged_pred_dist(X_pred)
+  spd5_new = ngb5.staged_pred_dist(X_pred)
+  spd6_new = ngb6.staged_pred_dist(X_pred)
+  spd8_new = ngb8.staged_pred_dist(X_pred)
+  new_preds_per_match = [combine_probs(
+                  [spd1_new[dsi[0][i]].class_probs(), 
+                   spd2_new[dsi[1][i]].class_probs(), 
+                   spd3_new[dsi[2][i]].class_probs(), 
+                   spd4_new[dsi[3][i]].class_probs(), 
+                   spd5_new[dsi[4][i]].class_probs(), 
+                   spd6_new[dsi[5][i]].class_probs(), 
+                   spd8_new[dsi[6][i]].class_probs(), 
+                   ])[-1]
+        for i in range(sample_len)]
+  len(new_preds_per_match)      
+  np.array(new_preds_per_match).transpose((1,2,0)).shape
+  
+  
+  sp_new_dist = np.matmul(np.array(new_preds_per_match).reshape((-1, 49)), point_matrix)
+  new_preds = np.argmax(sp_new_dist, axis=1).reshape((sample_len, -1))
+  new_preds_maxsp = np.max(sp_new_dist, axis=1).reshape((sample_len, -1))
+  new_preds.shape
+
+  for i in range(9):
+      print(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
+      prednewdfhome = pd.DataFrame({
+              "GS":new_preds[:,2*i]//7, "GC":np.mod(new_preds[:,2*i], 7), 
+              "SP":new_preds_maxsp[:,2*i], 
+              "HomeTeam":all_quotes.HomeTeam.iloc[i],
+              "AwayTeam":all_quotes.AwayTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Home"
+              })
+      prednewdfaway = pd.DataFrame({
+              "GS":np.mod(new_preds[:,2*i+1], 7), "GC":new_preds[:,2*i+1]//7,
+              "SP":new_preds_maxsp[:,2*i+1],
+              "HomeTeam":all_quotes.AwayTeam.iloc[i],
+              "AwayTeam":all_quotes.HomeTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Away"
+              })
+      prednewdf = pd.concat([prednewdfhome, prednewdfaway], axis=0)      
+      prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
+      prednewdf.drop(["GC"], axis=1, inplace=True)
+      # sns.scatterplot(prednewdf.softpoints, prednewdf.points)
+      # sns.scatterplot(prednewdf.SP, prednewdf.points)
+      # sns.scatterplot(prednewdf.softpoints, prednewdf.SP)
+      # plt.show()
+      #fig,ax = plt.subplots(3,1,figsize=(15,9))        
+      plt.figure(figsize=(15,9))
+      plt.title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
+      #ax[0].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Softpoints")
+      sns.violinplot(y="softpoints",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)    
+      #plt.show()
+      #plt.figure(figsize=(15,3))        
+      #ax[1].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Points")
+      sns.violinplot(y="points",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)
+      # plt.show()
+      # plt.figure(figsize=(15,3))        
+      #ax[2].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Estimated Softpoints")
+      sns.violinplot(y="SP",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)
+      plt.show()
+      print(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
+  
+
+  
   i = 13   
   print(np.round(Y7_pred_new [i].reshape((7,7))*100, 1))
   print(np.round(np.matmul(Y7_pred_new [i:(i+1)], point_matrix).reshape((7,7)), 3))

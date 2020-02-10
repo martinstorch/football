@@ -110,6 +110,9 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWI
     all_data["BW1"]=0.0
     all_data["BW0"]=0.0
     all_data["BW2"]=0.0
+    all_features.loc[:,"BW1"]=0.0
+    all_features.loc[:,"BW0"]=0.0
+    all_features.loc[:,"BW2"]=0.0
     print("BWIN features set to zero")
 #  all_labels["Train"]=is_train.values
 #  all_labels["Test"]=is_test.values
