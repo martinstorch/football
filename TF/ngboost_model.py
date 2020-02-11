@@ -2147,9 +2147,9 @@ if __name__ == "__main__":
   allpoints = np.mean(points, axis=1)
   plt.figure(figsize=(15,10))        
   plt.plot(allpoints)
-  plt.hlines(y=np.mean(points), xmin=0, xmax=sample_len)
-  plt.hlines(colors="r", y=np.mean(points)+2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
-  plt.hlines(colors="r", y=np.mean(points)-2*np.sqrt(np.var(points)), xmin=0, xmax=sample_len)
+  plt.hlines(y=np.mean(allpoints), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(allpoints)+2*np.sqrt(np.var(allpoints)), xmin=0, xmax=sample_len)
+  plt.hlines(colors="r", y=np.mean(allpoints)-2*np.sqrt(np.var(allpoints)), xmin=0, xmax=sample_len)
   plt.show()
   print(np.mean(allpoints))      
   print(np.sqrt(np.var(allpoints)))
@@ -2227,7 +2227,9 @@ if __name__ == "__main__":
   new_preds = np.argmax(sp_new_dist, axis=1).reshape((sample_len, -1))
   new_preds_maxsp = np.max(sp_new_dist, axis=1).reshape((sample_len, -1))
   new_preds.shape
-
+  # sp_new_dist2 = sp_new_dist.copy()
+  # sp_new_dist2[new_preds].shape
+  # sp_new_dist .shape
   for i in range(9):
       print(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
       prednewdfhome = pd.DataFrame({
@@ -2255,21 +2257,20 @@ if __name__ == "__main__":
       # sns.scatterplot(prednewdf.SP, prednewdf.points)
       # sns.scatterplot(prednewdf.softpoints, prednewdf.SP)
       # plt.show()
-      #fig,ax = plt.subplots(3,1,figsize=(15,9))        
-      plt.figure(figsize=(15,9))
-      plt.title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
-      #ax[0].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Softpoints")
-      sns.violinplot(y="softpoints",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)    
+      fig,ax = plt.subplots(3,1,figsize=(15,9))        
+      #plt.figure(figsize=(15,9))
+      fig.suptitle(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i], fontsize=16)
+      ax[0].set_title("Softpoints")
+      sns.violinplot(y="softpoints",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False, ax=ax[0])    
       #plt.show()
       #plt.figure(figsize=(15,3))        
-      #ax[1].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Points")
-      sns.violinplot(y="points",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)
+      ax[1].set_title("Points")
+      sns.violinplot(y="points",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False, ax=ax[1])
       # plt.show()
       # plt.figure(figsize=(15,3))        
-      #ax[2].set_title(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i]+" : Estimated Softpoints")
-      sns.violinplot(y="SP",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False)
+      ax[2].set_title("Estimated Softpoints")
+      sns.violinplot(y="SP",data=prednewdf, x="GS", scale="count", hue="where", split=True, scale_hue=False, ax=ax[2])
       plt.show()
-      print(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
   
 
   
