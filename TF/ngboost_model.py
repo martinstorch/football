@@ -1287,15 +1287,15 @@ if __name__ == "__main__":
   parser.add_argument(
       "--train_data", type=str,
       #default="0910,1112,1314,1516,1718,1920", #
-      default="1314,1415,1516,1617,1718,1819,1920", #
-      #default="0910,1011,1112,1213,1314,1415,1516,1617", #
+      #default="1314,1415,1516,1617,1718,1819,1920", #
+      default="0910,1011,1112,1213,1314,1415,1516,1617", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
       #default="1011,1213,1415,1617,1819", #
-      default="0910,1011,1112,1213", #
-      #default="1718,1819,1920",
+      #default="0910,1011,1112,1213", #
+      default="1718,1819,1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1328,8 +1328,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--useBWIN", type=bool,
-      #default=True,
-      default=False,
+      default=True,
+      #default=False,
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
@@ -1569,9 +1569,9 @@ if __name__ == "__main__":
                     max_display=30)
 
   shap_interaction_values = explainer.shap_interaction_values(X_test, Y1_test)
-  shap.decision_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, feature_display_range=None, link="logit")
-  shap.force_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, link="logit", matplotlib=True, text_rotation=90)
-  plt.show()
+  #shap.decision_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, feature_display_range=None, link="logit")
+  #shap.force_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, link="logit", matplotlib=True, text_rotation=90)
+  #plt.show()
     
   explainer_draw = shap.TreeExplainer(ngb, model_output=0)
   explainer_win = shap.TreeExplainer(ngb, model_output=1)
@@ -2226,10 +2226,14 @@ if __name__ == "__main__":
   sp_new_dist = np.matmul(np.array(new_preds_per_match).reshape((-1, 49)), point_matrix)
   new_preds = np.argmax(sp_new_dist, axis=1).reshape((sample_len, -1))
   new_preds_maxsp = np.max(sp_new_dist, axis=1).reshape((sample_len, -1))
-  new_preds.shape
-  # sp_new_dist2 = sp_new_dist.copy()
-  # sp_new_dist2[new_preds].shape
-  # sp_new_dist .shape
+  sp_new_dist2 = sp_new_dist.copy()
+  sp_new_dist2[range(sp_new_dist2.shape[0]),new_preds.flatten()]=0
+  new_preds2 = np.argmax(sp_new_dist2, axis=1).reshape((sample_len, -1))
+  new_preds2_maxsp = np.max(sp_new_dist2, axis=1).reshape((sample_len, -1))
+  sp_new_dist3 = sp_new_dist2.copy()
+  sp_new_dist3[range(sp_new_dist3.shape[0]),new_preds2.flatten()]=0
+  new_preds3 = np.argmax(sp_new_dist3, axis=1).reshape((sample_len, -1))
+  new_preds3_maxsp = np.max(sp_new_dist3, axis=1).reshape((sample_len, -1))
   for i in range(9):
       print(all_quotes.HomeTeam.iloc[i]+" - "+all_quotes.AwayTeam.iloc[i])
       prednewdfhome = pd.DataFrame({
@@ -2250,7 +2254,43 @@ if __name__ == "__main__":
               "softpoints":allsoftpoints,
               "where":"Away"
               })
-      prednewdf = pd.concat([prednewdfhome, prednewdfaway], axis=0)      
+      prednewdfhome2 = pd.DataFrame({
+              "GS":new_preds2[:,2*i]//7, "GC":np.mod(new_preds2[:,2*i], 7), 
+              "SP":new_preds2_maxsp[:,2*i], 
+              "HomeTeam":all_quotes.HomeTeam.iloc[i],
+              "AwayTeam":all_quotes.AwayTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Home"
+              })
+      prednewdfaway2 = pd.DataFrame({
+              "GS":np.mod(new_preds2[:,2*i+1], 7), "GC":new_preds2[:,2*i+1]//7,
+              "SP":new_preds2_maxsp[:,2*i+1],
+              "HomeTeam":all_quotes.AwayTeam.iloc[i],
+              "AwayTeam":all_quotes.HomeTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Away"
+              })
+      prednewdfhome3 = pd.DataFrame({
+              "GS":new_preds3[:,2*i]//7, "GC":np.mod(new_preds3[:,2*i], 7), 
+              "SP":new_preds3_maxsp[:,2*i], 
+              "HomeTeam":all_quotes.HomeTeam.iloc[i],
+              "AwayTeam":all_quotes.AwayTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Home"
+              })
+      prednewdfaway3 = pd.DataFrame({
+              "GS":np.mod(new_preds3[:,2*i+1], 7), "GC":new_preds3[:,2*i+1]//7,
+              "SP":new_preds3_maxsp[:,2*i+1],
+              "HomeTeam":all_quotes.AwayTeam.iloc[i],
+              "AwayTeam":all_quotes.HomeTeam.iloc[i],
+              "points":allpoints,
+              "softpoints":allsoftpoints,
+              "where":"Away"
+              })
+      prednewdf = pd.concat([prednewdfhome, prednewdfaway, prednewdfhome2, prednewdfaway2, prednewdfhome3, prednewdfaway3], axis=0)      
       prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
       prednewdf.drop(["GC"], axis=1, inplace=True)
       # sns.scatterplot(prednewdf.softpoints, prednewdf.points)
