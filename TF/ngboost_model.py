@@ -1301,8 +1301,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -1409,6 +1409,10 @@ if __name__ == "__main__":
   X_test= X[test_idx]
   X_pred= X[pred_idx]
 
+  X_train_bwin = np.take(X[train_idx], [1, 23, 24, 25], axis=1)
+  X_test_bwin= np.take(X[test_idx], [1, 23, 24, 25], axis=1)
+  X_pred_bwin= np.take(X[pred_idx], [1, 23, 24, 25], axis=1)
+
   Y1 = np.sign(labels_array[:,0]-labels_array[:,1]).astype(int)+1
   Y1_train = Y1[train_idx]
   Y1_test= Y1[test_idx]
@@ -1443,6 +1447,7 @@ if __name__ == "__main__":
   Y0 = set(range(49))-set(Y3_train) # dummy rows for missing categories
   X0 = X[np.random.choice(train_idx, len(Y0))]  
   X_train = np.concatenate((X_train, X0))
+  X_train_bwin = np.concatenate((X_train_bwin, np.take(X0, [1, 23, 24, 25], axis=1)))
   Y3_train = np.concatenate((Y3_train, np.array(list(Y0))))
   Y1_train = np.concatenate((Y1_train, np.sign(np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+1))
   Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
@@ -1470,6 +1475,41 @@ if __name__ == "__main__":
       axs[1][1].plot([cohen_kappa_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
       plt.show()
       return spd1_train, spd1_test
+
+  ngb_bwin = NGBClassifier(Dist=k_categorical(3),
+                      n_estimators=350, verbose_eval=10,
+                 learning_rate=0.01,
+                 minibatch_frac=0.5)
+  
+  ngb_bwin.fit(X_train_bwin, Y1_train, X_val = X_test_bwin, Y_val = Y1_test,
+                     #early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  spd_bwin_train, spd_bwin_test = model_progress(ngb_bwin, X_train_bwin, X_test_bwin, Y1_train, Y1_test)  
+
+  Y_bwin_pred = ngb_bwin.predict_proba(X_test_bwin)
+
+  Y_bwin_pred = np.mean([x.class_probs() for x in spd_bwin_test[50:]], axis=0)
+  Y_bwin_pred_train = np.mean([x.class_probs() for x in spd_bwin_train[50:]], axis=0)
+  Y_bwin_pred_new = np.mean([x.class_probs() for x in ngb_bwin.staged_pred_dist(X_pred_bwin)[50:]], axis=0)
+
+  print(np.argmax(Y_bwin_pred, axis=1))
+  print(accuracy_score(Y1_test, np.argmax(Y_bwin_pred, axis=1)))
+  print(confusion_matrix(Y1_test, np.argmax(Y_bwin_pred, axis=1)))
+  print(confusion_matrix(Y1_test, np.argmax(Y_bwin_pred, axis=1), normalize='all'))
+  print(classification_report(Y1_test, np.argmax(Y_bwin_pred, axis=1)))
+  print(np.mean(Y_bwin_pred, axis=0))    
+  print(Counter(np.argmax(Y_bwin_pred, axis=1)))
+  
+  Y_bwin_pred_train = ngb_bwin.predict_proba(X_train_bwin)
+  print(accuracy_score(Y1_train, np.argmax(Y_bwin_pred_train, axis=1)))
+  print(confusion_matrix(Y1_train, np.argmax(Y_bwin_pred_train, axis=1)))
+  print(confusion_matrix(Y1_train, np.argmax(Y_bwin_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y1_train, np.argmax(Y_bwin_pred_train, axis=1)))
+  print(np.mean(Y_bwin_pred_train, axis=0))    
+  print(Counter(np.argmax(Y_bwin_pred_train, axis=1)))
 
   
   ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.1,
@@ -1560,37 +1600,37 @@ if __name__ == "__main__":
 
   #explainer = ngb.get_shap_tree_explainer(param_idx=0)
   
-  output=0
-  shap_data=X_pred[16:18]
-  shap_data=X_train
-  explainer = shap.TreeExplainer(ngb, model_output=output)
-  shap_values = explainer.shap_values(shap_data)
-  shap.summary_plot(shap_values, features=shap_data, feature_names=feature_names, title="ABC",
-                    max_display=30)
-
-  shap_interaction_values = explainer.shap_interaction_values(X_test, Y1_test)
-  #shap.decision_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, feature_display_range=None, link="logit")
-  #shap.force_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, link="logit", matplotlib=True, text_rotation=90)
-  #plt.show()
-    
-  explainer_draw = shap.TreeExplainer(ngb, model_output=0)
-  explainer_win = shap.TreeExplainer(ngb, model_output=1)
-
-  shap_data=X_pred
-  row_index = 11
-  shap.multioutput_decision_plot(
-      [explainer_draw.expected_value*0, explainer_draw.expected_value, explainer_win.expected_value], 
-      [explainer_draw.shap_values(shap_data)*0, explainer_draw.shap_values(shap_data), explainer_win.shap_values(shap_data)],
-                               row_index=row_index, 
-                               feature_names=feature_names, 
-                               #highlight=[np.argmax(heart_predictions[row_index])],
-                               legend_labels=['Loss', 'Draw', 'Win'],
-                               legend_location='lower right')
-
-  shap.decision_plot(explainer.expected_value, 
-                     shap_interaction_values[0:20], 
-                     feature_names=feature_names, link='logit',
-                     feature_order='hclust', feature_display_range=slice(None, -11, -1))  
+#  output=0
+#  shap_data=X_pred[16:18]
+#  shap_data=X_train
+#  explainer = shap.TreeExplainer(ngb, model_output=output)
+#  shap_values = explainer.shap_values(shap_data)
+#  shap.summary_plot(shap_values, features=shap_data, feature_names=feature_names, title="ABC",
+#                    max_display=30)
+#
+#  shap_interaction_values = explainer.shap_interaction_values(X_test, Y1_test)
+#  #shap.decision_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, feature_display_range=None, link="logit")
+#  #shap.force_plot(explainer.expected_value, shap_values, features=shap_data, feature_names=feature_names, link="logit", matplotlib=True, text_rotation=90)
+#  #plt.show()
+#    
+#  explainer_draw = shap.TreeExplainer(ngb, model_output=0)
+#  explainer_win = shap.TreeExplainer(ngb, model_output=1)
+#
+#  shap_data=X_pred
+#  row_index = 11
+#  shap.multioutput_decision_plot(
+#      [explainer_draw.expected_value*0, explainer_draw.expected_value, explainer_win.expected_value], 
+#      [explainer_draw.shap_values(shap_data)*0, explainer_draw.shap_values(shap_data), explainer_win.shap_values(shap_data)],
+#                               row_index=row_index, 
+#                               feature_names=feature_names, 
+#                               #highlight=[np.argmax(heart_predictions[row_index])],
+#                               legend_labels=['Loss', 'Draw', 'Win'],
+#                               legend_location='lower right')
+#
+#  shap.decision_plot(explainer.expected_value, 
+#                     shap_interaction_values[0:20], 
+#                     feature_names=feature_names, link='logit',
+#                     feature_order='hclust', feature_display_range=slice(None, -11, -1))  
 
   
   X2_train = X_train
