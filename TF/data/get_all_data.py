@@ -173,7 +173,25 @@ def download_data(model_dir, season, skip_download):
     data["Season"]= season
     return data
 
+def getFiveThirtyEightData():
+    url = "https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv"
+    file_name = dir_path + "/spi_matches.csv"
+    print(file_name)
+    print("Downloading %s" % url)
+    request.urlretrieve(
+          url,
+          file_name)  # pylint: disable=line-too-long
+    print("Data is downloaded to %s" % file_name)
+    data = pd.read_csv(
+      file_name,
+      skipinitialspace=True,
+      engine="python",
+      skiprows=0)
+    #data["Season"]= season
+    return data
+    
 
+data538 = getFiveThirtyEightData()
 
 xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019]
 xgdf=pd.DataFrame()

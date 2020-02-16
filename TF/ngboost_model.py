@@ -1328,8 +1328,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--useBWIN", type=bool,
-      default=True,
-      #default=False,
+      #default=True,
+      default=False,
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
