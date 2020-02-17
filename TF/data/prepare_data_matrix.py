@@ -34,7 +34,7 @@ Feature_COLUMNS = ["HomeTeam","AwayTeam"]
 Label_COLUMNS = ["FTHG","FTAG"]
 CSV_COLUMNS = Feature_COLUMNS + Label_COLUMNS
 Derived_COLUMNS = ["t1goals", "t2goals", "t1goals_where", "t2goals_where"]
-COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG"]
+COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG", "HGFTa","AGFTa","Hxsg","Axsg","Hxnsg","Axnsg", "Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe"]
 Meta_COLUMNS = ["t1games", "t2games", "t1games_where", "t2games_where"]
 COLS_Extended = COLS + ['HWin', 'AWin', 'HLoss', 'ALoss', 'HDraw', 'ADraw']
 
@@ -59,9 +59,18 @@ def build_features(df_data):
   # use FTHG / FTAG as xHG/xAG where expected goals are not available
   df_data.loc[pd.isna(df_data.xHG), "xHG"]=df_data.loc[pd.isna(df_data.xHG), "FTHG"]
   df_data.loc[pd.isna(df_data.xAG), "xAG"]=df_data.loc[pd.isna(df_data.xAG), "FTAG"]
+  df_data.loc[pd.isna(df_data.HGFTa), "HGFTa"]=df_data.loc[pd.isna(df_data.HGFTa), "FTHG"]
+  df_data.loc[pd.isna(df_data.AGFTa), "AGFTa"]=df_data.loc[pd.isna(df_data.AGFTa), "FTAG"]
+  df_data.loc[pd.isna(df_data.Hxsg), "Hxsg"]=df_data.loc[pd.isna(df_data.Hxsg), "FTHG"]/2
+  df_data.loc[pd.isna(df_data.Axsg), "Axsg"]=df_data.loc[pd.isna(df_data.Axsg), "FTAG"]/2
+  df_data.loc[pd.isna(df_data.Hxnsg), "Hxnsg"]=df_data.loc[pd.isna(df_data.Hxnsg), "FTHG"]/2
+  df_data.loc[pd.isna(df_data.Axnsg), "Axnsg"]=df_data.loc[pd.isna(df_data.Axnsg), "FTAG"]/2
   df_data.loc[pd.isna(df_data.Time), "Time"]="15:30"
   df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-14.5
   
+  #fill NA with mean() of each column in boston dataset
+  #print(df_data.isna().any())
+  #df_data = df_data.apply(lambda x: x.fillna(x.mean()),axis=0)
   df_data.fillna(value=0, inplace=True)
   
   df_data.rename(columns={
@@ -87,6 +96,9 @@ def build_features(df_data):
   df1['BW2'] = 1/df_data["BWA"]
   df1['BW0'] = 1/df_data["BWD"]
   
+  df1['pp1'] = df_data["ppH"]
+  df1['pp2'] = df_data["ppA"]
+  df1['pp0'] = df_data["ppD"]
 #  df1["T1_xG"] = df_data["xHG"]
 #  df1["T2_xG"] = df_data["xAG"]
     
@@ -106,6 +118,10 @@ def build_features(df_data):
   df2['BW2'] = 1/df_data["BWH"]
   df2['BW1'] = 1/df_data["BWA"]
   df2['BW0'] = 1/df_data["BWD"]
+
+  df2['pp1'] = df_data["ppA"]
+  df2['pp2'] = df_data["ppH"]
+  df2['pp0'] = df_data["ppD"]
   
 #  df2["T1_xG"] = df_data["xAG"]
 #  df2["T2_xG"] = df_data["xHG"]
@@ -123,6 +139,8 @@ def build_features(df_data):
     df2["T2_"+colname] = df_data[homecol]
     label_column_names += ["T1_"+colname, "T2_"+colname]
 
+  label_column_names = label_column_names[:-6] # cut off ["Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe"] # these are not features, not labels
+  
   lb1 = pd.DataFrame()
   lb1['Goals'] = df_data["HGFT"]
   lb2 = pd.DataFrame()
@@ -262,6 +280,7 @@ def build_features(df_data):
                            "t1rank6_attention", "t2rank6_attention", "t1rank16_attention", "t2rank16_attention",
                            "t1cards_ema", "t2cards_ema"]
   
+  feature_column_names += ["T1_spi", "T2_spi", "T1_imp", "T2_imp", "T1_GFTe", "T2_GFTe", "pp1", "pp0", "pp2"]
 #  print(features[["Date", "t1games", "t1points", "t2points", "t1rank", "t2rank", 
 #                           "t1cards", "t2cards",
 #                           "t1cards_ema", "t2cards_ema",
@@ -375,7 +394,14 @@ def build_features(df_data):
   # make sure that xG labels are the last ones in the list, so that tensorflow can apply MSE loss instead of Poisson deviance loss
   label_column_names.remove("T1_xG")
   label_column_names.remove("T2_xG")
-  label_column_names = label_column_names+["T1_xG", "T2_xG"]
+  label_column_names.remove("T1_GFTa")
+  label_column_names.remove("T2_GFTa")
+  label_column_names.remove("T1_xsg")
+  label_column_names.remove("T2_xsg")
+  label_column_names.remove("T1_xnsg")
+  label_column_names.remove("T2_xnsg")
+  
+  label_column_names = label_column_names+["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg", "T1_xG", "T2_xG"]
   labels_df =  features[label_column_names].copy()
   #label_df.describe()
   features_df = features[feature_column_names].copy()

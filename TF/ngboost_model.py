@@ -97,8 +97,10 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWI
     feature_names = pd.Series(['BW1', 'BW2', 'BW0'] + feature_names).drop_duplicates().tolist()
   
   feature_names = ['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw']  
-    
-  all_features = all_data[feature_names]
+  feature_names += ["T1_spi", "T2_spi", "T1_imp", "T2_imp", "T1_GFTe", "T2_GFTe", "pp1", "pp0", "pp2"]  
+  feature_names += ["T1_CUM_T1_GFTa", "T2_CUM_T2_GFTa", "T1_CUM_T1_W_GFTa", "T2_CUM_T2_W_GFTa", "T1_CUM_T2_GFTa", "T2_CUM_T1_GFTa", "T1_CUM_T2_W_GFTa", "T2_CUM_T1_W_GFTa", "T12_CUM_T1_GFTa", "T12_CUM_T1_W_GFTa", "T21_CUM_T2_GFTa", "T21_CUM_T2_W_GFTa", "T12_CUM_T12_GFTa", "T12_CUM_T12_W_GFTa", "T1221_CUM_GFTa", "T1221_CUM_W_GFTa", "T1_CUM_T1_xsg", "T2_CUM_T2_xsg", "T1_CUM_T1_W_xsg", "T2_CUM_T2_W_xsg", "T1_CUM_T2_xsg", "T2_CUM_T1_xsg", "T1_CUM_T2_W_xsg", "T2_CUM_T1_W_xsg", "T12_CUM_T1_xsg", "T12_CUM_T1_W_xsg", "T21_CUM_T2_xsg", "T21_CUM_T2_W_xsg", "T12_CUM_T12_xsg", "T12_CUM_T12_W_xsg", "T1221_CUM_xsg", "T1221_CUM_W_xsg", "T1_CUM_T1_xnsg", "T2_CUM_T2_xnsg", "T1_CUM_T1_W_xnsg", "T2_CUM_T2_W_xnsg", "T1_CUM_T2_xnsg", "T2_CUM_T1_xnsg", "T1_CUM_T2_W_xnsg", "T2_CUM_T1_W_xnsg", "T12_CUM_T1_xnsg", "T12_CUM_T1_W_xnsg", "T21_CUM_T2_xnsg", "T21_CUM_T2_W_xnsg", "T12_CUM_T12_xnsg", "T12_CUM_T12_W_xnsg", "T1221_CUM_xnsg", "T1221_CUM_W_xnsg", "T1_CUM_T1_spi", "T2_CUM_T2_spi", "T1_CUM_T1_W_spi", "T2_CUM_T2_W_spi", "T1_CUM_T2_spi", "T2_CUM_T1_spi", "T1_CUM_T2_W_spi", "T2_CUM_T1_W_spi", "T12_CUM_T1_spi", "T12_CUM_T1_W_spi", "T21_CUM_T2_spi", "T21_CUM_T2_W_spi", "T12_CUM_T12_spi", "T12_CUM_T12_W_spi", "T1221_CUM_spi", "T1221_CUM_W_spi", "T1_CUM_T1_imp", "T2_CUM_T2_imp", "T1_CUM_T1_W_imp", "T2_CUM_T2_W_imp", "T1_CUM_T2_imp", "T2_CUM_T1_imp", "T1_CUM_T2_W_imp", "T2_CUM_T1_W_imp", "T12_CUM_T1_imp", "T12_CUM_T1_W_imp", "T21_CUM_T2_imp", "T21_CUM_T2_W_imp", "T12_CUM_T12_imp", "T12_CUM_T12_W_imp", "T1221_CUM_imp", "T1221_CUM_W_imp", "T1_CUM_T1_GFTe", "T2_CUM_T2_GFTe", "T1_CUM_T1_W_GFTe", "T2_CUM_T2_W_GFTe", "T1_CUM_T2_GFTe", "T2_CUM_T1_GFTe", "T1_CUM_T2_W_GFTe", "T2_CUM_T1_W_GFTe", "T12_CUM_T1_GFTe", "T12_CUM_T1_W_GFTe", "T21_CUM_T2_GFTe", "T21_CUM_T2_W_GFTe", "T12_CUM_T12_GFTe", "T12_CUM_T12_W_GFTe", "T1221_CUM_GFTe", "T1221_CUM_W_GFTe"]
+  
+  all_features = all_data[feature_names].copy()
   all_data["Train"]=is_train.values&(~all_data["Predict"])
   all_data["Test"]=is_test.values&(~all_data["Predict"])
 
@@ -1288,14 +1290,15 @@ if __name__ == "__main__":
       "--train_data", type=str,
       #default="0910,1112,1314,1516,1718,1920", #
       #default="1314,1415,1516,1617,1718,1819,1920", #
-      default="0910,1011,1112,1213,1314,1415,1516,1617", #
+      #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
+      default="1617,1718", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
       #default="1011,1213,1415,1617,1819", #
       #default="0910,1011,1112,1213", #
-      default="1718,1819,1920",
+      default="1819,1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1328,8 +1331,8 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--useBWIN", type=bool,
-      #default=True,
-      default=False,
+      default=True,
+      #default=False,
       help="Run in Stochastic Weight Averaging mode."
   )
   parser.add_argument(
@@ -1385,7 +1388,7 @@ if __name__ == "__main__":
                                0  for i in range(49)]  for j in range(49)] )
   
   X = features_arrays["match_input_layer"]
-  label_filter = [0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 46, 47]
+  label_filter = [0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 46, 47, 48, 49, 50, 51, 52, 53]
   X = np.concatenate([X,
   np.mean(labels_array[features_arrays["match_history_t1"][:,-5:]][:,:,label_filter], axis=1),
   np.mean(labels_array[features_arrays["match_history_t2"][:,-5:]][:,:,label_filter], axis=1),
@@ -1402,16 +1405,23 @@ if __name__ == "__main__":
       ["T2_Hi5_"+x for x in label_column_sublist.tolist()] + \
       ["T12_Hi2_"+x for x in label_column_sublist.tolist()] 
       
-  feature_names = ['t1histlen', 'where', 't2histlen','t12histlen']+['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw'] + label_column_names_extended 
+  feature_names =  ['t1histlen', 'where', 't2histlen','t12histlen']
+  feature_names += ['Time', 't1games', 't1dayssince', 't2dayssince', 't1dayssince_ema', 't2dayssince_ema', 'roundsleft', 't1promoted', 't2promoted', 't1points', 't2points', 't1rank', 't2rank', 't1rank6_attention', 't2rank6_attention', 't1rank16_attention', 't2rank16_attention', 't1cards_ema', 't2cards_ema', 'BW1', 'BW0', 'BW2', 'T1_CUM_T1_GFT', 'T2_CUM_T2_GFT', 'T1_CUM_T1_W_GFT', 'T2_CUM_T2_W_GFT', 'T1_CUM_T2_GFT', 'T2_CUM_T1_GFT', 'T1_CUM_T2_W_GFT', 'T2_CUM_T1_W_GFT', 'T12_CUM_T1_GFT', 'T12_CUM_T1_W_GFT', 'T21_CUM_T2_GFT', 'T21_CUM_T2_W_GFT', 'T12_CUM_T12_GFT', 'T12_CUM_T12_W_GFT', 'T1221_CUM_GFT', 'T1221_CUM_W_GFT', 'T1_CUM_T1_GHT', 'T2_CUM_T2_GHT', 'T1_CUM_T1_W_GHT', 'T2_CUM_T2_W_GHT', 'T1_CUM_T2_GHT', 'T2_CUM_T1_GHT', 'T1_CUM_T2_W_GHT', 'T2_CUM_T1_W_GHT', 'T12_CUM_T1_GHT', 'T12_CUM_T1_W_GHT', 'T21_CUM_T2_GHT', 'T21_CUM_T2_W_GHT', 'T12_CUM_T12_GHT', 'T12_CUM_T12_W_GHT', 'T1221_CUM_GHT', 'T1221_CUM_W_GHT', 'T1_CUM_T1_S', 'T2_CUM_T2_S', 'T1_CUM_T1_W_S', 'T2_CUM_T2_W_S', 'T1_CUM_T2_S', 'T2_CUM_T1_S', 'T1_CUM_T2_W_S', 'T2_CUM_T1_W_S', 'T12_CUM_T1_S', 'T12_CUM_T1_W_S', 'T21_CUM_T2_S', 'T21_CUM_T2_W_S', 'T12_CUM_T12_S', 'T12_CUM_T12_W_S', 'T1221_CUM_S', 'T1221_CUM_W_S', 'T1_CUM_T1_ST', 'T2_CUM_T2_ST', 'T1_CUM_T1_W_ST', 'T2_CUM_T2_W_ST', 'T1_CUM_T2_ST', 'T2_CUM_T1_ST', 'T1_CUM_T2_W_ST', 'T2_CUM_T1_W_ST', 'T12_CUM_T1_ST', 'T12_CUM_T1_W_ST', 'T21_CUM_T2_ST', 'T21_CUM_T2_W_ST', 'T12_CUM_T12_ST', 'T12_CUM_T12_W_ST', 'T1221_CUM_ST', 'T1221_CUM_W_ST', 'T1_CUM_T1_F', 'T2_CUM_T2_F', 'T1_CUM_T1_W_F', 'T2_CUM_T2_W_F', 'T1_CUM_T2_F', 'T2_CUM_T1_F', 'T1_CUM_T2_W_F', 'T2_CUM_T1_W_F', 'T12_CUM_T1_F', 'T12_CUM_T1_W_F', 'T21_CUM_T2_F', 'T21_CUM_T2_W_F', 'T12_CUM_T12_F', 'T12_CUM_T12_W_F', 'T1221_CUM_F', 'T1221_CUM_W_F', 'T1_CUM_T1_C', 'T2_CUM_T2_C', 'T1_CUM_T1_W_C', 'T2_CUM_T2_W_C', 'T1_CUM_T2_C', 'T2_CUM_T1_C', 'T1_CUM_T2_W_C', 'T2_CUM_T1_W_C', 'T12_CUM_T1_C', 'T12_CUM_T1_W_C', 'T21_CUM_T2_C', 'T21_CUM_T2_W_C', 'T12_CUM_T12_C', 'T12_CUM_T12_W_C', 'T1221_CUM_C', 'T1221_CUM_W_C', 'T1_CUM_T1_Y', 'T2_CUM_T2_Y', 'T1_CUM_T1_W_Y', 'T2_CUM_T2_W_Y', 'T1_CUM_T2_Y', 'T2_CUM_T1_Y', 'T1_CUM_T2_W_Y', 'T2_CUM_T1_W_Y', 'T12_CUM_T1_Y', 'T12_CUM_T1_W_Y', 'T21_CUM_T2_Y', 'T21_CUM_T2_W_Y', 'T12_CUM_T12_Y', 'T12_CUM_T12_W_Y', 'T1221_CUM_Y', 'T1221_CUM_W_Y', 'T1_CUM_T1_R', 'T2_CUM_T2_R', 'T1_CUM_T1_W_R', 'T2_CUM_T2_W_R', 'T1_CUM_T2_R', 'T2_CUM_T1_R', 'T1_CUM_T2_W_R', 'T2_CUM_T1_W_R', 'T12_CUM_T1_R', 'T12_CUM_T1_W_R', 'T21_CUM_T2_R', 'T21_CUM_T2_W_R', 'T12_CUM_T12_R', 'T12_CUM_T12_W_R', 'T1221_CUM_R', 'T1221_CUM_W_R', 'T1_CUM_T1_xG', 'T2_CUM_T2_xG', 'T1_CUM_T1_W_xG', 'T2_CUM_T2_W_xG', 'T1_CUM_T2_xG', 'T2_CUM_T1_xG', 'T1_CUM_T2_W_xG', 'T2_CUM_T1_W_xG', 'T12_CUM_T1_xG', 'T12_CUM_T1_W_xG', 'T21_CUM_T2_xG', 'T21_CUM_T2_W_xG', 'T12_CUM_T12_xG', 'T12_CUM_T12_W_xG', 'T1221_CUM_xG', 'T1221_CUM_W_xG', 'T1_CUM_T1_GH2', 'T2_CUM_T2_GH2', 'T1_CUM_T1_W_GH2', 'T2_CUM_T2_W_GH2', 'T1_CUM_T2_GH2', 'T2_CUM_T1_GH2', 'T1_CUM_T2_W_GH2', 'T2_CUM_T1_W_GH2', 'T12_CUM_T1_GH2', 'T12_CUM_T1_W_GH2', 'T21_CUM_T2_GH2', 'T21_CUM_T2_W_GH2', 'T12_CUM_T12_GH2', 'T12_CUM_T12_W_GH2', 'T1221_CUM_GH2', 'T1221_CUM_W_GH2', 'T1_CUM_T1_Win', 'T2_CUM_T2_Win', 'T1_CUM_T1_W_Win', 'T2_CUM_T2_W_Win', 'T1_CUM_T1_HTWin', 'T2_CUM_T2_HTWin', 'T1_CUM_T1_W_HTWin', 'T2_CUM_T2_W_HTWin', 'T1_CUM_T1_Loss', 'T2_CUM_T2_Loss', 'T1_CUM_T1_W_Loss', 'T2_CUM_T2_W_Loss', 'T1_CUM_T1_HTLoss', 'T2_CUM_T2_HTLoss', 'T1_CUM_T1_W_HTLoss', 'T2_CUM_T2_W_HTLoss', 'T1_CUM_T1_Draw', 'T2_CUM_T2_Draw', 'T1_CUM_T1_W_Draw', 'T2_CUM_T2_W_Draw', 'T1_CUM_T1_HTDraw', 'T2_CUM_T2_HTDraw', 'T1_CUM_T1_W_HTDraw', 'T2_CUM_T2_W_HTDraw']  
+  feature_names += ["T1_spi", "T2_spi", "T1_imp", "T2_imp", "T1_GFTe", "T2_GFTe", "pp1", "pp0", "pp2"]  
+  feature_names += ["T1_CUM_T1_GFTa", "T2_CUM_T2_GFTa", "T1_CUM_T1_W_GFTa", "T2_CUM_T2_W_GFTa", "T1_CUM_T2_GFTa", "T2_CUM_T1_GFTa", "T1_CUM_T2_W_GFTa", "T2_CUM_T1_W_GFTa", "T12_CUM_T1_GFTa", "T12_CUM_T1_W_GFTa", "T21_CUM_T2_GFTa", "T21_CUM_T2_W_GFTa", "T12_CUM_T12_GFTa", "T12_CUM_T12_W_GFTa", "T1221_CUM_GFTa", "T1221_CUM_W_GFTa", "T1_CUM_T1_xsg", "T2_CUM_T2_xsg", "T1_CUM_T1_W_xsg", "T2_CUM_T2_W_xsg", "T1_CUM_T2_xsg", "T2_CUM_T1_xsg", "T1_CUM_T2_W_xsg", "T2_CUM_T1_W_xsg", "T12_CUM_T1_xsg", "T12_CUM_T1_W_xsg", "T21_CUM_T2_xsg", "T21_CUM_T2_W_xsg", "T12_CUM_T12_xsg", "T12_CUM_T12_W_xsg", "T1221_CUM_xsg", "T1221_CUM_W_xsg", "T1_CUM_T1_xnsg", "T2_CUM_T2_xnsg", "T1_CUM_T1_W_xnsg", "T2_CUM_T2_W_xnsg", "T1_CUM_T2_xnsg", "T2_CUM_T1_xnsg", "T1_CUM_T2_W_xnsg", "T2_CUM_T1_W_xnsg", "T12_CUM_T1_xnsg", "T12_CUM_T1_W_xnsg", "T21_CUM_T2_xnsg", "T21_CUM_T2_W_xnsg", "T12_CUM_T12_xnsg", "T12_CUM_T12_W_xnsg", "T1221_CUM_xnsg", "T1221_CUM_W_xnsg", "T1_CUM_T1_spi", "T2_CUM_T2_spi", "T1_CUM_T1_W_spi", "T2_CUM_T2_W_spi", "T1_CUM_T2_spi", "T2_CUM_T1_spi", "T1_CUM_T2_W_spi", "T2_CUM_T1_W_spi", "T12_CUM_T1_spi", "T12_CUM_T1_W_spi", "T21_CUM_T2_spi", "T21_CUM_T2_W_spi", "T12_CUM_T12_spi", "T12_CUM_T12_W_spi", "T1221_CUM_spi", "T1221_CUM_W_spi", "T1_CUM_T1_imp", "T2_CUM_T2_imp", "T1_CUM_T1_W_imp", "T2_CUM_T2_W_imp", "T1_CUM_T2_imp", "T2_CUM_T1_imp", "T1_CUM_T2_W_imp", "T2_CUM_T1_W_imp", "T12_CUM_T1_imp", "T12_CUM_T1_W_imp", "T21_CUM_T2_imp", "T21_CUM_T2_W_imp", "T12_CUM_T12_imp", "T12_CUM_T12_W_imp", "T1221_CUM_imp", "T1221_CUM_W_imp", "T1_CUM_T1_GFTe", "T2_CUM_T2_GFTe", "T1_CUM_T1_W_GFTe", "T2_CUM_T2_W_GFTe", "T1_CUM_T2_GFTe", "T2_CUM_T1_GFTe", "T1_CUM_T2_W_GFTe", "T2_CUM_T1_W_GFTe", "T12_CUM_T1_GFTe", "T12_CUM_T1_W_GFTe", "T21_CUM_T2_GFTe", "T21_CUM_T2_W_GFTe", "T12_CUM_T12_GFTe", "T12_CUM_T12_W_GFTe", "T1221_CUM_GFTe", "T1221_CUM_W_GFTe"]
+  feature_names += label_column_names_extended 
 
   print(X.shape)          
   X_train = X[train_idx]
   X_test= X[test_idx]
   X_pred= X[pred_idx]
-
-  X_train_bwin = np.take(X[train_idx], [1, 23, 24, 25], axis=1)
-  X_test_bwin= np.take(X[test_idx], [1, 23, 24, 25], axis=1)
-  X_pred_bwin= np.take(X[pred_idx], [1, 23, 24, 25], axis=1)
+  bwin_index = [23, 24, 25]+[210, 211, 212, 213, 214, 215, 216, 217, 218]
+  #bwin_index = [210, 211, 212, 213, 214, 215, 216, 217, 218]
+  bwin_index = [216, 217, 218]
+  bwin_index = [214, 215, 216, 217, 218]
+  X_train_bwin = np.take(X[train_idx], bwin_index, axis=1)
+  X_test_bwin= np.take(X[test_idx], bwin_index, axis=1)
+  X_pred_bwin= np.take(X[pred_idx], bwin_index, axis=1)
 
   Y1 = np.sign(labels_array[:,0]-labels_array[:,1]).astype(int)+1
   Y1_train = Y1[train_idx]
@@ -1447,7 +1457,7 @@ if __name__ == "__main__":
   Y0 = set(range(49))-set(Y3_train) # dummy rows for missing categories
   X0 = X[np.random.choice(train_idx, len(Y0))]  
   X_train = np.concatenate((X_train, X0))
-  X_train_bwin = np.concatenate((X_train_bwin, np.take(X0, [1, 23, 24, 25], axis=1)))
+  X_train_bwin = np.concatenate((X_train_bwin, np.take(X0, bwin_index, axis=1)))
   Y3_train = np.concatenate((Y3_train, np.array(list(Y0))))
   Y1_train = np.concatenate((Y1_train, np.sign(np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+1))
   Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
@@ -1477,8 +1487,8 @@ if __name__ == "__main__":
       return spd1_train, spd1_test
 
   ngb_bwin = NGBClassifier(Dist=k_categorical(3),
-                      n_estimators=350, verbose_eval=10,
-                 learning_rate=0.01,
+                      n_estimators=750, verbose_eval=10,
+                 learning_rate=0.0015,
                  minibatch_frac=0.5)
   
   ngb_bwin.fit(X_train_bwin, Y1_train, X_val = X_test_bwin, Y_val = Y1_test,
@@ -1491,9 +1501,9 @@ if __name__ == "__main__":
 
   Y_bwin_pred = ngb_bwin.predict_proba(X_test_bwin)
 
-  Y_bwin_pred = np.mean([x.class_probs() for x in spd_bwin_test[50:]], axis=0)
-  Y_bwin_pred_train = np.mean([x.class_probs() for x in spd_bwin_train[50:]], axis=0)
-  Y_bwin_pred_new = np.mean([x.class_probs() for x in ngb_bwin.staged_pred_dist(X_pred_bwin)[50:]], axis=0)
+  Y_bwin_pred = np.mean([x.class_probs() for x in spd_bwin_test[300:]], axis=0)
+  Y_bwin_pred_train = np.mean([x.class_probs() for x in spd_bwin_train[300:]], axis=0)
+  Y_bwin_pred_new = np.mean([x.class_probs() for x in ngb_bwin.staged_pred_dist(X_pred_bwin)[300:]], axis=0)
 
   print(np.argmax(Y_bwin_pred, axis=1))
   print(accuracy_score(Y1_test, np.argmax(Y_bwin_pred, axis=1)))
@@ -1503,7 +1513,7 @@ if __name__ == "__main__":
   print(np.mean(Y_bwin_pred, axis=0))    
   print(Counter(np.argmax(Y_bwin_pred, axis=1)))
   
-  Y_bwin_pred_train = ngb_bwin.predict_proba(X_train_bwin)
+  #Y_bwin_pred_train = ngb_bwin.predict_proba(X_train_bwin)
   print(accuracy_score(Y1_train, np.argmax(Y_bwin_pred_train, axis=1)))
   print(confusion_matrix(Y1_train, np.argmax(Y_bwin_pred_train, axis=1)))
   print(confusion_matrix(Y1_train, np.argmax(Y_bwin_pred_train, axis=1), normalize='all'))
@@ -1524,8 +1534,8 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=550, verbose_eval=1,
-                 learning_rate=0.01,
+                      n_estimators=550, verbose_eval=10,
+                 learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
                      #early_stopping_rounds = 150, 
@@ -1647,7 +1657,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=400, verbose_eval=1,
+                      n_estimators=300, verbose_eval=10,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel2 = ngb2.fit(X2_train, Y2_train, X_val = X_test, Y_val = Y2_test,
@@ -1661,8 +1671,8 @@ if __name__ == "__main__":
   max_iter=300
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   Y2_pred = ngb2.predict_proba(X_test, max_iter=max_iter)
-  Y2_pred = np.mean([x.class_probs() for x in spd2_test[100:400]], axis=0)
-  Y2_pred_train = np.mean([x.class_probs() for x in spd2_train[100:400]], axis=0)
+  Y2_pred = np.mean([x.class_probs() for x in spd2_test[100:300]], axis=0)
+  Y2_pred_train = np.mean([x.class_probs() for x in spd2_train[100:300]], axis=0)
   Y2_pred_new = np.mean([x.class_probs() for x in ngb2.staged_pred_dist(X_pred)[100:]], axis=0)
   
   lb = None #["Loss", "Draw", "Win"]
@@ -1701,8 +1711,8 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=400, verbose_eval=1,
-                 learning_rate=0.01,
+                      n_estimators=300, verbose_eval=10,
+                 learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   X6_train = X_train
   X6_train[:,4]=0 
@@ -1755,8 +1765,8 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(5),
-                      n_estimators=400, verbose_eval=1,
-                 learning_rate=0.01,
+                      n_estimators=400, verbose_eval=10,
+                 learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel8 = ngb8.fit(X_train, Y8_train, X_val = X_test, Y_val = Y8_test,
                        early_stopping_rounds = 150, 
@@ -1797,7 +1807,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=400, verbose_eval=1,
+                      n_estimators=400, verbose_eval=10,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
@@ -1850,7 +1860,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=400, verbose_eval=1,
+                      n_estimators=400, verbose_eval=10,
                  learning_rate=0.01,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
@@ -1932,9 +1942,9 @@ if __name__ == "__main__":
                                          random_state=None, splitter='best'),
           Dist=k_categorical(49), 
                        Score=MLE, 
-                      n_estimators=400, verbose_eval=1,
-                 learning_rate=0.01,
-                 minibatch_frac=0.2) # tell ngboost that there are 3 possible outcomes
+                      n_estimators=400, verbose_eval=10,
+                 learning_rate=0.002,
+                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
 
   ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
                        early_stopping_rounds = 150, 
@@ -1984,8 +1994,8 @@ if __name__ == "__main__":
 #  Y3_pred = ngbmodel3.predict_proba(X_test)
 #  Y3_pred = ngb3.predict_proba(X_test, max_iter=max_iter)
   #Y3_pred = spd_test[max_iter-10].class_probs() 
-  Y3_pred = np.mean([x.class_probs() for x in spd_test[100:]] , axis=0)
-  Y3_pred_new = np.mean([x.class_probs() for x in ngb3.staged_pred_dist(X_pred)[100:]], axis=0)
+  Y3_pred = np.mean([x.class_probs() for x in spd_test[10:20]] , axis=0)
+  Y3_pred_new = np.mean([x.class_probs() for x in ngb3.staged_pred_dist(X_pred)[10:20]], axis=0)
   
 
   print(np.mean(calc_softpoints(Y3_test, Y3_pred)))
@@ -2016,7 +2026,7 @@ if __name__ == "__main__":
 #  Y3_pred_train = ngb3.predict_proba(X_train)
 #  Y3_pred_train = ngb3.predict_proba(X_train, max_iter=max_iter)
   #Y3_pred_train = spd_train[max_iter].class_probs() 
-  Y3_pred_train = np.mean([x.class_probs() for x in spd_train[100:]] , axis=0)
+  Y3_pred_train = np.mean([x.class_probs() for x in spd_train[10:20]] , axis=0)
    
   
   print(np.mean(calc_softpoints(Y3_train, Y3_pred_train)))
@@ -2058,8 +2068,20 @@ if __name__ == "__main__":
 
 
   def combine_probs(probsarray):    
-      Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train = probsarray 
+      Y_bwin_pred_train, Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train = probsarray 
     
+
+      Y3_bw_pred_train0 = np.stack([np.sum([Y3_pred_train[:, i]  for i in range(49) if i//7<np.mod(i,7)], axis=0),
+                                   np.sum([Y3_pred_train[:, i]  for i in range(49) if i//7==np.mod(i,7)], axis=0),
+                                   np.sum([Y3_pred_train[:, i]  for i in range(49) if i//7>np.mod(i,7)], axis=0)]
+        , axis=1)
+      Y3_bw_pred_train = np.stack([Y_bwin_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] * Y3_pred_train[:,i] / Y3_bw_pred_train0[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+
+#      Y3_bw_pred_train = np.stack([Y_bwin_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+#      Y3_bw_pred_train = np.stack([Y3_bw_pred_train[:, i]/7 if i//7==np.mod(i,7) else Y3_bw_pred_train[:, i]/21 for i in range(49)], axis=1)
+
+      Y3_bw_pred_train_pure = np.stack([Y_bwin_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
+      Y3_bw_pred_train_pure = np.stack([Y3_bw_pred_train_pure[:, i] if (i//7==1 or np.mod(i,7)==1) and ((i//7+np.mod(i,7))==3 or (i//7+np.mod(i,7))==2) else Y3_bw_pred_train[:, i]*0 for i in range(49)], axis=1)
         
       Y3_1_pred_train = np.stack([Y1_pred_train[:, np.sign(i//7-np.mod(i,7)).astype(int)+1 ] for i in range(49)], axis=1)
       Y3_1_pred_train = np.stack([Y3_1_pred_train[:, i]/7 if i//7==np.mod(i,7) else Y3_1_pred_train[:, i]/21 for i in range(49)], axis=1)
@@ -2085,21 +2107,29 @@ if __name__ == "__main__":
     
       Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
       
-      Y7_pred_train = (Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5
+      Y7_pred_train = (Y3_bw_pred_train+Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/6
       
-      combined_probs = [Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y7_pred_train]
+      combined_probs = [Y3_bw_pred_train, Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y3_bw_pred_train_pure, Y7_pred_train]
       return combined_probs
   
   #Y3_26_pred_train = np.stack([(Y2_pred_train[:, (i//7-np.mod(i,7)).astype(int)+6 ])*(Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)])  for i in range(49)], axis=1)
   #Y3_26_pred_train = Y3_26_pred_train / np.sum(Y3_26_pred_train, axis=1, keepdims=True)
 
-  Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y7_pred_train = combine_probs([Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train])
-  Y3_1_pred, Y3_8_pred, Y3_26_pred, Y3_45_pred, Y7_pred = combine_probs([Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])
-  Y3_1_pred_new, Y3_8_pred_new, Y3_26_pred_new, Y3_45_pred_new, Y7_pred_new = combine_probs([Y1_pred_new, Y2_pred_new, Y3_pred_new, Y4_pred_new, Y5_pred_new, Y6_pred_new, Y8_pred_new])
+  Y3_bw_pred_train, Y3_1_pred_train, Y3_8_pred_train, Y3_26_pred_train, Y3_45_pred_train, Y3_bw_pred_train_pure, Y7_pred_train = combine_probs([Y_bwin_pred_train, Y1_pred_train, Y2_pred_train, Y3_pred_train, Y4_pred_train, Y5_pred_train, Y6_pred_train, Y8_pred_train])
+  Y3_bw_pred, Y3_1_pred, Y3_8_pred, Y3_26_pred, Y3_45_pred, Y3_bw_pred_pure, Y7_pred = combine_probs([Y_bwin_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])
+  Y3_bw_pred_new, Y3_1_pred_new, Y3_8_pred_new, Y3_26_pred_new, Y3_45_pred_new, Y3_bw_pred_new_pure, Y7_pred_new = combine_probs([Y_bwin_pred_new, Y1_pred_new, Y2_pred_new, Y3_pred_new, Y4_pred_new, Y5_pred_new, Y6_pred_new, Y8_pred_new])
 
   print_evaluation(Y3_train, Y7_pred_train, X_train[:,1])
   print_evaluation(Y3_test, Y7_pred, X_test[:,1])
-
+  print()
+  print_evaluation(Y3_train, Y3_bw_pred_train, X_train[:,1])
+  print_evaluation(Y3_test, Y3_bw_pred, X_test[:,1])
+  print()
+  print_evaluation(Y3_train, (Y3_bw_pred_train+Y3_pred_train)/2, X_train[:,1])
+  print_evaluation(Y3_test, (Y3_bw_pred+Y3_pred)/2, X_test[:,1])
+  print()
+  print_evaluation(Y3_train, Y3_bw_pred_train_pure, X_train[:,1])
+  print_evaluation(Y3_test, Y3_bw_pred_pure, X_test[:,1])
 
   # point estimate ...  
   Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
@@ -2133,51 +2163,65 @@ if __name__ == "__main__":
   plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
   plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs())/1))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/5))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred)/2))) for i in range(len(spd_test))], label="BW")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/6))) for i in range(len(spd_test))], label="all")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((4*spd_test[i].class_probs()+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))])
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((2*spd_test[i].class_probs()+2*Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))], label="xyz")
+  plt.legend()
   plt.show()
   
   plt.figure(figsize=(15,10))        
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, spd_test[i].class_probs(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+                  [Y3_bw_pred, Y1_pred, Y2_pred, spd_test[i].class_probs(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
         for i in range(len(spd_test))], label="Y3")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+                  [Y3_bw_pred, spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
         for i in range(len(spd1_test))], label="Y1")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, spd2_test[i].class_probs(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+                  [Y3_bw_pred, Y1_pred, spd2_test[i].class_probs(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
         for i in range(len(spd2_test))], label="Y2")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].class_probs(), Y8_pred])[-1])))
+                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].class_probs(), Y8_pred])[-1])))
         for i in range(len(spd6_test))], label="Y6")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, spd4_test[i].class_probs(), Y5_pred, Y6_pred, Y8_pred])[-1])))
+                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, spd4_test[i].class_probs(), Y5_pred, Y6_pred, Y8_pred])[-1])))
         for i in range(len(spd4_test))], label="Y4")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].class_probs(), Y6_pred, Y8_pred])[-1])))
+                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].class_probs(), Y6_pred, Y8_pred])[-1])))
         for i in range(len(spd5_test))], label="Y5")
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
+                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
         for i in range(len(spd8_test))], label="Y8")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+          [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
+        for i in range(len(spd8_test))], label="Y8")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+          [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+        for i in range(len(spd_bwin_test))], label="Y_bwin")
   plt.legend()
   plt.show()
 
+  #plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(spd_bwin_test[i].class_probs()))) for i in range(len(spd_bwin_test))], label="Y_bwin")
+  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+          [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[0])))
+        for i in range(len(spd_bwin_test))], label="Y_bwin")
+
   plt.plot([np.mean(calc_softpoints(Y3_test, combine_probs(
-                  [spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1]))
+                  [Y3_bw_pred, spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1]))
         for i in range(len(spd1_test))])
 
   sample_len = 300
-  distribution_array=[spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
+  distribution_array=[spd_bwin_test, spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
   dsi = [np.random.randint(50, len(d), size=sample_len) for d in distribution_array] # 50, len(d)
   points_per_match = [calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [spd1_test[dsi[0][i]].class_probs(), 
-                   spd2_test[dsi[1][i]].class_probs(), 
-                   spd_test[dsi[2][i]].class_probs(), 
-                   spd4_test[dsi[3][i]].class_probs(), 
-                   spd5_test[dsi[4][i]].class_probs(), 
-                   spd6_test[dsi[5][i]].class_probs(), 
-                   spd8_test[dsi[6][i]].class_probs(), 
+                  [spd_bwin_test[dsi[0][i]].class_probs(), 
+                   spd1_test[dsi[1][i]].class_probs(), 
+                   spd2_test[dsi[2][i]].class_probs(), 
+                   spd_test[dsi[3][i]].class_probs(), 
+                   spd4_test[dsi[4][i]].class_probs(), 
+                   spd5_test[dsi[5][i]].class_probs(), 
+                   spd6_test[dsi[6][i]].class_probs(), 
+                   spd8_test[dsi[7][i]].class_probs(), 
                    ])[-1]))
         for i in range(sample_len)]
 
@@ -2242,6 +2286,7 @@ if __name__ == "__main__":
   plt.show()
 
 
+  spd_bw_new = ngb_bwin.staged_pred_dist(X_pred_bwin)
   spd1_new = ngb.staged_pred_dist(X_pred)
   spd2_new = ngb2.staged_pred_dist(X_pred)
   spd3_new = ngb3.staged_pred_dist(X_pred)
@@ -2250,13 +2295,14 @@ if __name__ == "__main__":
   spd6_new = ngb6.staged_pred_dist(X_pred)
   spd8_new = ngb8.staged_pred_dist(X_pred)
   new_preds_per_match = [combine_probs(
-                  [spd1_new[dsi[0][i]].class_probs(), 
-                   spd2_new[dsi[1][i]].class_probs(), 
-                   spd3_new[dsi[2][i]].class_probs(), 
-                   spd4_new[dsi[3][i]].class_probs(), 
-                   spd5_new[dsi[4][i]].class_probs(), 
-                   spd6_new[dsi[5][i]].class_probs(), 
-                   spd8_new[dsi[6][i]].class_probs(), 
+                  [spd_bw_new[dsi[0][i]].class_probs(), 
+                   spd1_new[dsi[1][i]].class_probs(), 
+                   spd2_new[dsi[2][i]].class_probs(), 
+                   spd3_new[dsi[3][i]].class_probs(), 
+                   spd4_new[dsi[4][i]].class_probs(), 
+                   spd5_new[dsi[5][i]].class_probs(), 
+                   spd6_new[dsi[6][i]].class_probs(), 
+                   spd8_new[dsi[7][i]].class_probs(), 
                    ])[-1]
         for i in range(sample_len)]
   len(new_preds_per_match)      

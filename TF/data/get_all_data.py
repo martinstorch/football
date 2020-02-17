@@ -6,6 +6,7 @@ Created on Fri Dec 14 09:05:44 2018
 """
 from bs4 import BeautifulSoup
 import pandas as pd
+import numpy as np
 import re
 import json
 from urllib import request
@@ -16,6 +17,9 @@ from datetime import datetime, date, time
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 print(dir_path)
+
+skip_download = True
+
 
 def load_expected_goals(season):
   season=str(season)
@@ -173,15 +177,18 @@ def download_data(model_dir, season, skip_download):
     data["Season"]= season
     return data
 
-def getFiveThirtyEightData():
+def getFiveThirtyEightData(skip_download):
     url = "https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv"
     file_name = dir_path + "/spi_matches.csv"
     print(file_name)
-    print("Downloading %s" % url)
-    request.urlretrieve(
-          url,
-          file_name)  # pylint: disable=line-too-long
-    print("Data is downloaded to %s" % file_name)
+    if skip_download:
+        print("Skipping %s" % url)
+    else:
+        print("Downloading %s" % url)
+        request.urlretrieve(
+              url,
+              file_name)  # pylint: disable=line-too-long
+        print("Data is downloaded to %s" % file_name)
     data = pd.read_csv(
       file_name,
       skipinitialspace=True,
@@ -191,31 +198,38 @@ def getFiveThirtyEightData():
     return data
     
 
-data538 = getFiveThirtyEightData()
+data538 = getFiveThirtyEightData(skip_download)
 
-xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019]
-xgdf=pd.DataFrame()
-for s in xg_season_list:
-  xg = load_expected_goals(s)
-  print(xg.shape)
-  xgdf = pd.concat([xgdf, xg], ignore_index=True)
-xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
+if skip_download:
+    xgdf = pd.read_csv(dir_path+'/xgoals.csv')  
+else:
+    xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019]
+    xgdf=pd.DataFrame()
+    for s in xg_season_list:
+      xg = load_expected_goals(s, skip_download)
+      print(xg.shape)
+      xgdf = pd.concat([xgdf, xg], ignore_index=True)
+    xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
 print(xgdf)
 
-quotes_bwin = load_bwin_quotes()
-quotes_bwin.to_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8", index=False)
-quotes_bwin.iloc[0:9].to_csv(dir_path+"/quotes_bwin.csv", encoding = "utf-8", index=False)
+if skip_download:
+    quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
+else:
+    quotes_bwin = load_bwin_quotes()
+    quotes_bwin.to_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8", index=False)
+    quotes_bwin.iloc[0:9].to_csv(dir_path+"/quotes_bwin.csv", encoding = "utf-8", index=False)
 print(quotes_bwin)
 
 all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920"]
 all_data = []
 for s in all_seasons:
-  sdata = download_data(dir_path, s, skip_download=False) 
-  print(sdata.columns.values)
+  sdata = download_data(dir_path, s, skip_download=skip_download) 
+  #print(sdata.columns.values)
   sdata["Predict"]=False
   all_data.append(sdata)
 all_data = pd.concat(all_data, sort=False)
 print(all_data.HomeTeam.unique())
+print(all_data.iloc[-9:,list(range(22))+[25, 26, 27]])
 #print(all_data.columns.values)
 #print(set(all_data.columns.values)-set(sdata.columns.values))
 
@@ -231,6 +245,30 @@ xgdf["Time"]=pd.to_datetime(xgdf.Date).apply(lambda x: x.strftime('%H:%M'))
 xgdf["Date"]=pd.to_datetime(xgdf.Date).apply(lambda x: x.strftime('%d.%m.%Y'))
 print(xgdf[-9:])
 
+# standardize team names
+spi_team_mapping= pd.read_csv(dir_path+"/spi_team_mapping.csv").drop(columns="Unnamed: 0")
+spidf= pd.read_csv(dir_path+"/spi_matches.csv")
+spidf= spidf.loc[spidf.league=="German Bundesliga"].drop(columns=["league_id", "league"])
+spidf= spidf.merge(spi_team_mapping, left_on="team1", right_on="spiTeam", how="left")
+spidf = spidf.merge(spi_team_mapping, left_on="team2", right_on="spiTeam", how="left")
+spidf = spidf.drop(columns=["spiTeam_x", "spiTeam_y"]).rename(columns=
+                   {"HomeTeam":"HomeTeam_spi", "AwayTeam":"AwayTeam_spi",
+                    "stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam", 
+                    "score1":"HG", "score2":"AG", 
+                    "adj_score1":"HGFTa", "adj_score2":"AGFTa",
+                    "spi1":"Hspi", "spi2":"Aspi",
+                    "xg1":"Hxsg", "xg2":"Axsg",
+                    "nsxg1":"Hxnsg", "nsxg2":"Axnsg",
+                    "importance1":"Himp", "importance2":"Aimp",
+                    "proj_score1":"HGFTe", "proj_score2":"AGFTe",
+                    "prob1":"ppH", "prob2":"ppA", "probtie":"ppD"})
+spidf["Date"]=pd.to_datetime(spidf.date).apply(lambda x: x.strftime('%d.%m.%Y'))
+first_new_match=min(spidf.loc[pd.isna(spidf.HG)].index)
+#print(spidf[first_new_match-9:first_new_match+9].drop(columns=["date","team1","team2" ]))
+print((spidf.loc[first_new_match-9:first_new_match-1, ["HomeTeam", "AwayTeam", "Date", "HG", "AG", "HGFTa", "AGFTa", "Hxsg", "Axsg","Hxnsg", "Axnsg"]]).astype({"HG":int, "AG":int}))
+print()
+print((spidf.loc[first_new_match:first_new_match+8, ["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]]))
+
 team_mapping_bwin= pd.read_csv(dir_path+"/bwin_team_mapping.csv", sep="\t")
 quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
 quotes_bwin= quotes_bwin.merge(team_mapping_bwin, left_on="HomeTeam", right_on="bwinTeam", how="left").drop(columns="bwinTeam")
@@ -242,7 +280,7 @@ quotes_bwin ["Predict"]=True
 quotes_bwin ["Season"]="1920"
 quotes_bwin ["Dow"]= pd.to_datetime(quotes_bwin.Date, dayfirst=True).apply(lambda x: x.strftime('%A'))
 
-print(quotes_bwin)
+print(quotes_bwin.drop(columns=["HomeTeam", "AwayTeam"]))
 
 full_data = all_data[['Date', 'Season', 'Predict', 'HomeTeam', 'AwayTeam',
                       'FTHG', 'FTAG', 'FTR', 'HTHG', 'HTAG',
@@ -256,7 +294,11 @@ full_data["Date"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x:
 
 full_data = full_data.merge(xgdf[["HomeTeam", "AwayTeam", "Date", "Time", "xHG" , "xAG"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 
-full_data = pd.concat([full_data, quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]], sort=False)
+full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA", "HGFTa", "AGFTa", "Hxsg", "Axsg", "Hxnsg", "Axnsg"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
+
+new_data = quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]
+new_data = new_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
+full_data = pd.concat([full_data, new_data], sort=False)
 
 full_data.to_csv(dir_path+"/full_data.csv", index=False)
 
