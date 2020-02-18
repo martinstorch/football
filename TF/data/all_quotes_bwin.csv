@@ -1,6 +1,6 @@
 Date,Time,HomeTeam,AwayTeam,BWH,BWD,BWA,DOW
 21.02.2020,20:30,FC Bayern München,SC Paderborn 07 ,1.04,13.50,29.00,Freitag
-22.02.2020,15:30,Borussia Mönchengladbach,1899 Hoffenheim,1.70,4.10,4.25,Samstag
+22.02.2020,15:30,Borussia Mönchengladbach,1899 Hoffenheim,1.60,4.00,5.00,Samstag
 22.02.2020,15:30,Werder Bremen,Borussia Dortmund,6.25,5.00,1.40,Samstag
 22.02.2020,15:30,Hertha BSC,1. FC Köln,2.30,3.40,2.90,Samstag
 22.02.2020,15:30,SC Freiburg,Fortuna Düsseldorf,2.00,3.50,3.50,Samstag
@@ -8,12 +8,12 @@ Date,Time,HomeTeam,AwayTeam,BWH,BWD,BWA,DOW
 23.02.2020,15:30,Bayer Leverkusen,FC Augsburg,1.42,4.50,7.00,Sonntag
 23.02.2020,18:00,VfL Wolfsburg,FSV Mainz 05,1.67,4.00,4.50,Sonntag
 24.02.2020,20:30,Eintracht Frankfurt,1. FC Union Berlin,1.91,3.40,4.00,Montag
-28.02.2020,20:30,Fortuna Düsseldorf,Hertha BSC,2.60,3.30,2.60,Freitag
-29.02.2020,15:30,Borussia Dortmund,SC Freiburg,1.22,6.25,11.00,Samstag
-29.02.2020,15:30,FSV Mainz 05,SC Paderborn 07 ,1.80,3.70,4.10,Samstag
-29.02.2020,15:30,FC Augsburg,Borussia Mönchengladbach,3.30,3.60,2.05,Samstag
-29.02.2020,15:30,1899 Hoffenheim,FC Bayern München,8.25,5.35,1.31,Samstag
-29.02.2020,18:30,1. FC Köln,FC Schalke 04,2.55,3.45,2.55,Samstag
-01.03.2020,13:30,1. FC Union Berlin,VfL Wolfsburg,2.65,3.15,2.65,Sonntag
-01.03.2020,15:30,RB Leipzig,Bayer Leverkusen,1.62,4.20,4.65,Sonntag
-01.03.2020,18:00,Werder Bremen,Eintracht Frankfurt,2.50,3.55,2.55,Sonntag
+28.02.2020,20:30,Fortuna Düsseldorf,Hertha BSC,2.70,3.30,2.50,Freitag
+29.02.2020,15:30,Borussia Dortmund,SC Freiburg,1.22,6.25,10.50,Samstag
+29.02.2020,15:30,FSV Mainz 05,SC Paderborn 07 ,1.78,3.80,4.00,Samstag
+29.02.2020,15:30,FC Augsburg,Borussia Mönchengladbach,3.20,3.60,2.10,Samstag
+29.02.2020,15:30,1899 Hoffenheim,FC Bayern München,8.50,6.00,1.28,Samstag
+29.02.2020,18:30,1. FC Köln,FC Schalke 04,2.55,3.40,2.60,Samstag
+01.03.2020,13:30,1. FC Union Berlin,VfL Wolfsburg,2.70,3.20,2.60,Sonntag
+01.03.2020,15:30,RB Leipzig,Bayer Leverkusen,1.62,4.20,4.75,Sonntag
+01.03.2020,18:00,Werder Bremen,Eintracht Frankfurt,2.55,3.50,2.55,Sonntag
