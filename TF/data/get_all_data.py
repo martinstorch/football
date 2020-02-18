@@ -18,7 +18,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 print(dir_path)
 
-skip_download = True
+skip_download = False
 
 
 def load_expected_goals(season):
@@ -206,7 +206,7 @@ else:
     xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019]
     xgdf=pd.DataFrame()
     for s in xg_season_list:
-      xg = load_expected_goals(s, skip_download)
+      xg = load_expected_goals(s)
       print(xg.shape)
       xgdf = pd.concat([xgdf, xg], ignore_index=True)
     xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  

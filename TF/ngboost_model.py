@@ -1291,21 +1291,23 @@ if __name__ == "__main__":
       #default="0910,1112,1314,1516,1718,1920", #
       #default="1314,1415,1516,1617,1718,1819,1920", #
       #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
-      default="1617,1718", #
+      #default="1617,1718", #
+      default="1819,1920",
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
       #default="1011,1213,1415,1617,1819", #
       #default="0910,1011,1112,1213", #
-      default="1819,1920",
+      default="1617,1718", #
+      #default="1819,1920",
       help="Path to the test data."
   )
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -2119,15 +2121,16 @@ if __name__ == "__main__":
   Y3_bw_pred, Y3_1_pred, Y3_8_pred, Y3_26_pred, Y3_45_pred, Y3_bw_pred_pure, Y7_pred = combine_probs([Y_bwin_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])
   Y3_bw_pred_new, Y3_1_pred_new, Y3_8_pred_new, Y3_26_pred_new, Y3_45_pred_new, Y3_bw_pred_new_pure, Y7_pred_new = combine_probs([Y_bwin_pred_new, Y1_pred_new, Y2_pred_new, Y3_pred_new, Y4_pred_new, Y5_pred_new, Y6_pred_new, Y8_pred_new])
 
+  print("Y7_pred")
   print_evaluation(Y3_train, Y7_pred_train, X_train[:,1])
   print_evaluation(Y3_test, Y7_pred, X_test[:,1])
-  print()
+  print("Y3_bw_pred")
   print_evaluation(Y3_train, Y3_bw_pred_train, X_train[:,1])
   print_evaluation(Y3_test, Y3_bw_pred, X_test[:,1])
-  print()
+  print("(Y3_bw_pred+Y3_pred)/2")
   print_evaluation(Y3_train, (Y3_bw_pred_train+Y3_pred_train)/2, X_train[:,1])
   print_evaluation(Y3_test, (Y3_bw_pred+Y3_pred)/2, X_test[:,1])
-  print()
+  print("Y3_bw_pred_pure")
   print_evaluation(Y3_train, Y3_bw_pred_train_pure, X_train[:,1])
   print_evaluation(Y3_test, Y3_bw_pred_pure, X_test[:,1])
 
@@ -2251,13 +2254,14 @@ if __name__ == "__main__":
   plt.show()
 
   softpoints_per_match = [calc_softpoints(Y3_test, combine_probs(
-                  [spd1_test[dsi[0][i]].class_probs(), 
-                   spd2_test[dsi[1][i]].class_probs(), 
-                   spd_test[dsi[2][i]].class_probs(), 
-                   spd4_test[dsi[3][i]].class_probs(), 
-                   spd5_test[dsi[4][i]].class_probs(), 
-                   spd6_test[dsi[5][i]].class_probs(), 
-                   spd8_test[dsi[6][i]].class_probs(), 
+                  [spd_bwin_test[dsi[0][i]].class_probs(), 
+                   spd1_test[dsi[1][i]].class_probs(), 
+                   spd2_test[dsi[2][i]].class_probs(), 
+                   spd_test[dsi[3][i]].class_probs(), 
+                   spd4_test[dsi[4][i]].class_probs(), 
+                   spd5_test[dsi[5][i]].class_probs(), 
+                   spd6_test[dsi[6][i]].class_probs(), 
+                   spd8_test[dsi[7][i]].class_probs(), 
                    ])[-1])
         for i in range(sample_len)]
   points = np.array(softpoints_per_match)
