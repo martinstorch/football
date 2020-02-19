@@ -12,6 +12,7 @@ from ngboost.scores import CRPS, MLE
 from ngboost import NGBClassifier, NGBRegressor
 from ngboost.distns import k_categorical
 from ngboost.learners import default_tree_learner
+from scipy.stats import poisson
 
 import seaborn as sns
 
@@ -1131,6 +1132,90 @@ def enrich_predictions(predictions, features, labels, team1, team2, datetimes, p
   return df
 
   
+def plot_probs(probs, softpoints, gs, gc, title=""):
+  
+  print("-----------------------------------------------------")
+  print("{} / {}:{}".format(title, gs, gc))
+  default_color = np.array([[ 0.12,  0.47,  0.71,  0.5  ]])
+
+  sp = probs
+  #print(sp)
+  spt = softpoints
+  gs = min(gs,6)
+  gc = min(gc,6)
+  # margin_pred_prob1 = pred[prefix+"p_marg_1"]
+  # margin_poisson_prob1 = pred[prefix+"p_poisson_1"]
+  # margin_pred_prob2 = pred[prefix+"p_marg_2"]
+  # margin_poisson_prob2 = pred[prefix+"p_poisson_2"]
+  # margin_pred_expected1 = pred[prefix+"ev_goals_1"] 
+  # margin_pred_expected2 = pred[prefix+"ev_goals_2"] 
+  g=[0.0,1.0,2.0,3.0,4.0,5.0,6.0]
+  g1=[0.0]*7+[1.0]*7+[2.0]*7+[3.0]*7+[4.0]*7+[5.0]*7+[6.0]*7
+  g2=g*7
+  fig, ax = plt.subplots(1,3,figsize=(15,5))
+  ax[0].scatter(g1, g2, s=sp*10000, alpha=0.4, color=default_color)
+  ax[0].scatter(gs, gc, s=sp[gs*7+gc]*10000, alpha=0.7, color=default_color)
+  for i, txt in enumerate(sp):
+    ax[0].annotate("{:4.2f}".format(txt*100), (g1[i]-0.3,g2[i]-0.1))
+  ax[1].scatter(g1, g2, s=spt*500, alpha=0.4,color='red')
+  ax[1].scatter(gs, gc, s=spt[gs*7+gc]*500, alpha=0.7,color='red')
+  for i, txt in enumerate(spt):
+    ax[1].annotate("{:4.2f}".format(txt), (g1[i]-0.3,g2[i]-0.1))
+  ax[0].set_title("p")
+  ax[1].set_title("ev")
+  ax[2].set_title(title)
+  max_sp = max(sp)
+  max_sp_index = np.argmax(sp) 
+  ax[0].scatter((max_sp_index//7).astype(float), np.mod(max_sp_index, 7).astype(float), s=max_sp*10000.0, facecolors='none', edgecolors='black', linewidth=2)
+  max_spt = max(spt)
+  max_spt_index = np.argmax(spt) 
+  ax[1].scatter((max_spt_index//7).astype(float), np.mod(max_spt_index, 7).astype(float), s=max_spt*500.0, facecolors='none', edgecolors='black', linewidth=2)
+  
+  p_loss=0.0
+  p_win=0.0
+  p_draw=0.0
+  for i in range(7):
+    for j in range(7):
+      if i>j:
+        p_win += sp[i*7+j]
+      if i<j:
+        p_loss += sp[i*7+j]
+      if i==j:
+        p_draw += sp[i*7+j]
+  ax[2].axis('equal')
+  explode = [0, 0, 0]
+  explode[1-np.sign(gs-gc)] = 0.1
+  wedges, _, _ = ax[2].pie([p_win, p_draw, p_loss], labels=["Win", "Draw", "Loss"], colors=["blue", "green", "red"], startangle=90, autopct='%1.1f%%', 
+                   radius=1.0, explode=explode, wedgeprops = {"alpha":0.5})
+  wedges[1-np.sign(gs-gc)].set_alpha(0.8)
+  plt.show()
+
+  # w=0.35
+  # fig, ax = plt.subplots(1,3,figsize=(15,1))
+  # ax[0].bar(g, margin_pred_prob1,alpha=0.6, width=w, color=default_color)
+  # ax[0].bar([x+w for x in g], margin_poisson_prob1,alpha=0.3,color="red",width=0.35)
+  # ax[0].bar(gs, margin_pred_prob1[gs],alpha=0.5, width=w, color=default_color)
+  # ax[0].bar(gs+w, margin_poisson_prob1[gs],alpha=0.7,color="red",width=0.35)
+  # ax[0].axvline(x=margin_pred_expected1, color='red')
+  # ax[1].bar(g, margin_pred_prob2,alpha=0.6, width=w, color=default_color)
+  # ax[1].bar([x+w for x in g], margin_poisson_prob2,alpha=0.3,color="red",width=0.35)
+  # ax[1].bar(gc, margin_pred_prob2[gc],alpha=0.5, width=w, color=default_color)
+  # ax[1].bar(gc+w, margin_poisson_prob2[gc],alpha=0.7,color="red",width=0.35)
+  # ax[1].axvline(x=margin_pred_expected2, color='red')
+  # ax[0].set_title(margin_pred_expected1) 
+  # ax[1].set_title(margin_pred_expected2) 
+  # bars = ax[2].bar([0,1,2], height=[p_win, p_draw, p_loss], tick_label=["Win", "Draw", "Loss"], color=["blue", "green", "red"], alpha=0.5)
+  # bars[1-np.sign(gs-gc)].set_alpha(0.8)
+  # bars[1-np.sign(gs-gc)].set_linewidth(2)
+  # bars[1-np.sign(gs-gc)].set_edgecolor("black")
+  # for i in [-1,0,1]:
+  #   if i != np.sign(gs-gc):
+  #     bars[1-i].set_hatch("x")
+  # plt.show()
+
+
+
+
 def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data, 
                    checkpoints, save_steps, data_dir, max_to_keep, 
                    reset_variables, skip_plotting, target_system, modes, use_swa, histograms, useBWIN):
@@ -1291,16 +1376,16 @@ if __name__ == "__main__":
       #default="0910,1112,1314,1516,1718,1920", #
       #default="1314,1415,1516,1617,1718,1819,1920", #
       #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
-      #default="1617,1718", #
-      default="1819,1920",
+      default="1617,1718", #
+      #default="1819,1920",
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
       #default="1011,1213,1415,1617,1819", #
       #default="0910,1011,1112,1213", #
-      default="1617,1718", #
-      #default="1819,1920",
+      #default="1617,1718", #
+      default="1819,1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1428,6 +1513,8 @@ if __name__ == "__main__":
   X_test_spi= np.take(X[test_idx], spi_index, axis=1)
   X_pred_spi= np.take(X[pred_idx], spi_index, axis=1)
 
+
+  
   Y1 = np.sign(labels_array[:,0]-labels_array[:,1]).astype(int)+1
   Y1_train = Y1[train_idx]
   Y1_test= Y1[test_idx]
@@ -1464,6 +1551,7 @@ if __name__ == "__main__":
   X_train = np.concatenate((X_train, X0))
   X_train_bwin = np.concatenate((X_train_bwin, np.take(X0, bwin_index, axis=1)))
   X_train_spi = np.concatenate((X_train_spi, np.take(X0, spi_index, axis=1)))
+  #X_train_eg = np.concatenate((X_train_eg, np.take(X0, eg_index, axis=1)))
   Y3_train = np.concatenate((Y3_train, np.array(list(Y0))))
   Y1_train = np.concatenate((Y1_train, np.sign(np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+1))
   Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
@@ -1478,6 +1566,20 @@ if __name__ == "__main__":
   Y_bwin_raw_train = X_train[:, [25, 24, 23]] # BWIN
   Y_bwin_raw_test = X_test[:, [25, 24, 23]] # BWIN
   Y_bwin_raw_new = X_pred[:, [25, 24, 23]] # BWIN
+
+  eg_index = [214, 215]  
+  X_train_eg= np.take(X_train, eg_index, axis=1)
+  X_test_eg= np.take(X_test, eg_index, axis=1)
+  X_pred_eg= np.take(X_pred, eg_index, axis=1)
+
+  def make_poisson(X):
+      m = np.stack([ poisson.pmf(i//7, X[:,0])*poisson.pmf(np.mod(i, 7), X[:,1]) for i in range(49)], axis=1)
+      m = m / np.sum(m, axis=1, keepdims=True)
+      return m
+
+  Y_eg_raw_train = make_poisson(X_train_eg)
+  Y_eg_raw_test = make_poisson(X_test_eg)
+  Y_eg_raw_new = make_poisson(X_pred_eg)
   
   def print_performance(labels, probs, name=""):
       return(pd.DataFrame.from_dict({"name":[name],
@@ -1507,7 +1609,7 @@ if __name__ == "__main__":
       return spd1_train, spd1_test
 
   ngb_spi = NGBClassifier(Dist=k_categorical(3),
-                      n_estimators=750, verbose_eval=10,
+                      n_estimators=550, verbose_eval=10,
                  learning_rate=0.0015,
                  minibatch_frac=0.25)
   
@@ -1532,10 +1634,38 @@ if __name__ == "__main__":
   print(confusion_matrix(Y1_test, np.argmax(Y_spi_pred, axis=1)))
   print(confusion_matrix(Y1_train, np.argmax(Y_spi_pred_train, axis=1)))
 
+  ngb_eg_1= NGBRegressor(n_estimators=550, verbose_eval=10,
+                 learning_rate=0.005,
+                 minibatch_frac=0.25)
+  ngb_eg_1.fit(X_train_eg, Y4_train, X_val = X_test_eg, Y_val = Y4_test,
+                     #early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  ngb_eg_2= NGBRegressor(n_estimators=550, verbose_eval=10,
+                 learning_rate=0.005,
+                 minibatch_frac=0.25)
+  ngb_eg_2.fit(X_train_eg, Y5_train, X_val = X_test_eg, Y_val = Y5_test,
+                     #early_stopping_rounds = 150, 
+#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+                     ) # Y should have only 3 values: {0,1,2}
+
+  
+  Y_eg_train = np.stack([ngb_eg_1.predict(X_train_eg), ngb_eg_2.predict(X_train_eg)], axis=1)
+  Y_eg_test = np.stack([ngb_eg_1.predict(X_test_eg), ngb_eg_2.predict(X_test_eg)], axis=1)
+  Y_eg_new = np.stack([ngb_eg_1.predict(X_pred_eg), ngb_eg_2.predict(X_pred_eg)], axis=1)
+
+  Y3_eg_raw_train = make_poisson(Y_eg_train)
+  Y3_eg_raw_test = make_poisson(Y_eg_test)
+  Y3_eg_raw_new = make_poisson(Y_eg_new)
+
+  
   ngb_bwin = NGBClassifier(Dist=k_categorical(3),
-                      n_estimators=750, verbose_eval=10,
-                 learning_rate=0.0015,
-                 minibatch_frac=0.5)
+                      n_estimators=550, verbose_eval=10,
+                 learning_rate=0.005,
+                 minibatch_frac=0.25)
   
   ngb_bwin.fit(X_train_bwin, Y1_train, X_val = X_test_bwin, Y_val = Y1_test,
                      #early_stopping_rounds = 150, 
@@ -2259,38 +2389,116 @@ if __name__ == "__main__":
   
   print(pd.concat([
           print_performance(Y3_test, combine_probs_3_49(Y1_pred, Y3_pred), name="ngb1+3 test"),
-          print_performance(Y1_train, Y1_pred_train, name="ngb1 train"),
-          print_performance(Y1_test, (Y_bwin_pred+Y_spi_pred+Y1_pred)/3, name="all mixed test"),
-          print_performance(Y1_train, (Y_bwin_pred_train+Y_spi_pred_train+Y1_pred_train)/3, name="all mixed train")]))
+          print_performance(Y3_train, combine_probs_3_49(Y1_pred_train, Y3_pred_train), name="ngb1+3 train"),
+          print_performance(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_pred), name="spi +Y3 test"),
+          print_performance(Y3_train, combine_probs_3_49(Y_spi_pred_train, Y3_pred_train), name="spi+Y3 train"),
+          print_performance(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y3_pred), name="bwin raw +Y3 test"),
+          print_performance(Y3_train, combine_probs_3_49(Y_bwin_raw_train, Y3_pred_train), name="bwin raw +Y3 train"),
+          print_performance(Y3_test, Y3_pred, name="Y3 test"),
+          print_performance(Y3_train, Y3_pred_train, name="Y3 train")]))
 
+  print("Y eg")  
+  print_evaluation(Y3_test, Y_eg_raw_test, X_test[:,1])
+  print_evaluation(Y3_train, Y_eg_raw_train, X_train[:,1])
+
+  print("Y3 eg")  
+  print_evaluation(Y3_test, Y3_eg_raw_test, X_test[:,1])
+  print_evaluation(Y3_train, Y3_eg_raw_train, X_train[:,1])
+
+  print("Y3 test")  
+  print_evaluation(Y3_test, Y3_pred, X_test[:,1])
+  print("Y45 test")  
+  print_evaluation(Y3_test, Y3_45_pred, X_test[:,1])
+  print("Y26 test")  
+  print_evaluation(Y3_test, Y3_26_pred, X_test[:,1])
+  print("Y1+Y3 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y3_pred), X_test[:,1])
+  print("Y1+Y eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y_eg_raw_test), X_test[:,1])
+  print("Y1+Y3 eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y3_eg_raw_test), X_test[:,1])
+  print("Y1+Y45 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y3_45_pred), X_test[:,1])
+  print("Y1+Y26 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y3_26_pred), X_test[:,1])
+  print("SPI+Y3 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_pred), X_test[:,1])
+  print("SPI+Y45 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_45_pred), X_test[:,1])
+  print("SPI+Y26 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_26_pred), X_test[:,1])
-    
-  print_evaluation(Y3_test, combine_probs_3_49(Y3_bw_pred, Y3_45_pred), X_test[:,1])
+  print("BWIN+Y45 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_pred, Y3_45_pred), X_test[:,1])
+  print("BWIN+Y26 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_pred, Y3_26_pred), X_test[:,1])
+  print("BWIN raw +Y26 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y3_26_pred), X_test[:,1])
+  print("BWIN raw +Y eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y_eg_raw_test), X_test[:,1])
+  print("BWIN raw +Y3 eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y3_eg_raw_test), X_test[:,1])
+  print("SPI raw +Y26 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_spi_raw_test, Y3_26_pred), X_test[:,1])
+  print("SPI +Y eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y_eg_raw_test), X_test[:,1])
+  print("SPI +Y3 eg test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_eg_raw_test), X_test[:,1])
+  print("BWIN raw+Y3 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y3_pred), X_test[:,1])
+  print("BWIN raw+Y3+Y8 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, (Y3_pred+Y3_8_pred)/2), X_test[:,1])
+  print("BWIN raw+Y45 test")  
+  print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_raw_test, Y3_45_pred), X_test[:,1])
+  print("Blend 1")  
+  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred)/2), X_test[:,1])
+  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train)/2), X_train[:,1])
+  print("Blend 2")  
+  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred+Y3_8_pred)/3), X_test[:,1])
+  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3), X_train[:,1])
+
+  print("Blend 3")  
+  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred+Y3_45_pred+Y3_8_pred)/4), X_test[:,1])
+  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y3_45_pred_train+Y3_8_pred_train)/4), X_train[:,1])
+
+  print("Blend 4")  
+  print_evaluation(Y3_test, combine_probs_3_49((Y_spi_raw_test+Y_bwin_raw_test+Y_bwin_pred+Y1_pred+Y_spi_pred)/5, 
+                                               (Y3_pred+Y3_26_pred)/2), X_test[:,1])
+  print_evaluation(Y3_train, combine_probs_3_49((Y_spi_raw_train+Y_bwin_raw_train+Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/5, 
+                                               (Y3_pred_train+Y3_26_pred_train)/2), X_train[:,1])
+
+  print("Blend 5")  
+  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred+Y_eg_raw_test+Y3_eg_raw_test)/6), X_test[:,1])
+  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y_eg_raw_train+Y3_eg_raw_train)/6), X_train[:,1])
+
+  Y7_pred = combine_probs_3_49(Y_bwin_raw_test, Y3_26_pred)  
+  Y7_pred_train = combine_probs_3_49(Y_bwin_raw_train, Y3_26_pred_train)  
+  Y7_pred_new = combine_probs_3_49(Y_bwin_raw_new, Y3_26_pred_new)  
+
+  Y7_pred = combine_probs_3_49(Y1_pred, Y3_eg_raw_test)  
+  Y7_pred_train = combine_probs_3_49(Y1_pred_train, Y3_eg_raw_train)  
+  Y7_pred_new = combine_probs_3_49(Y1_pred_new, Y3_eg_raw_new)  
+
+  index=716
+  plot_probs(probs=Y3_pred[index], softpoints=np.matmul(Y3_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_pred")
+  plot_probs(probs=Y7_pred[index], softpoints=np.matmul(Y7_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y7_pred")
+  plot_probs(probs=Y3_45_pred[index], softpoints=np.matmul(Y3_45_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_45_pred")
+  plot_probs(probs=Y3_26_pred[index], softpoints=np.matmul(Y3_26_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_26_pred")
+  print(X_test_eg[index])
+  plot_probs(probs=Y_eg_raw_test[index], softpoints=np.matmul(Y_eg_raw_test, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y_eg_raw_test")
+  plot_probs(probs=Y3_eg_raw_test[index], softpoints=np.matmul(Y3_eg_raw_test, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_eg_raw_test")
+
   
   print_evaluation(Y3_train, Y7_pred_train, X_train[:,1])
   print_evaluation(Y3_test, Y7_pred, X_test[:,1])
-  print("Y3_bw_pred")
-  print_evaluation(Y3_train, Y3_bw_pred_train, X_train[:,1])
-  print_evaluation(Y3_test, Y3_bw_pred, X_test[:,1])
-  print("(Y3_bw_pred+Y3_pred)/2")
-  print_evaluation(Y3_train, (Y3_bw_pred_train+Y3_pred_train)/2, X_train[:,1])
-  print_evaluation(Y3_test, (Y3_bw_pred+Y3_pred)/2, X_test[:,1])
-  print("Y3_bw_pred_pure")
-  print_evaluation(Y3_train, Y3_bw_pred_train_pure, X_train[:,1])
-  print_evaluation(Y3_test, Y3_bw_pred_pure, X_test[:,1])
-  #  inspect
-  m=(Y3_bw_pred+Y3_pred)/2
-  #m=Y3_bw_pred
-  #m=Y7_pred
-  mm=Y_bwin_pred[argmax_softpoint(m)==8]
-  #mm=Y1_pred[argmax_softpoint(m)==8]
-  plt.figure(figsize=(15,10))        
-  plt.scatter(mm[:,0], mm[:,2], alpha=0.1)
-  plt.show()
-  
+
   # point estimate ...  
   Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
   prednew = argmax_softpoint(Y7_pred_new)
@@ -2317,6 +2525,27 @@ if __name__ == "__main__":
 
   Y7_pred[1000].reshape((7,7))*100
   #Y2_pred[0]
+
+  # print("Y3_bw_pred")
+  # print_evaluation(Y3_train, Y3_bw_pred_train, X_train[:,1])
+  # print_evaluation(Y3_test, Y3_bw_pred, X_test[:,1])
+  # print("(Y3_bw_pred+Y3_pred)/2")
+  # print_evaluation(Y3_train, (Y3_bw_pred_train+Y3_pred_train)/2, X_train[:,1])
+  # print_evaluation(Y3_test, (Y3_bw_pred+Y3_pred)/2, X_test[:,1])
+  # print("Y3_bw_pred_pure")
+  # print_evaluation(Y3_train, Y3_bw_pred_train_pure, X_train[:,1])
+  # print_evaluation(Y3_test, Y3_bw_pred_pure, X_test[:,1])
+  # #  inspect
+  # m=(Y3_bw_pred+Y3_pred)/2
+  # #m=Y3_bw_pred
+  # #m=Y7_pred
+  # mm=Y_bwin_pred[argmax_softpoint(m)==8]
+  # #mm=Y1_pred[argmax_softpoint(m)==8]
+  # plt.figure(figsize=(15,10))        
+  # plt.scatter(mm[:,0], mm[:,2], alpha=0.1)
+  # plt.show()
+  
+
 
   plt.figure(figsize=(15,10))        
   plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs())/1))) for i in range(len(spd_train))])
