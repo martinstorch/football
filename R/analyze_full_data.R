@@ -26,6 +26,39 @@ data$BW2<-data$BW2/data$BW102
 data <- data %>% filter(Predict=="False")
 str(data)
 
+table(data$Season)
+data%>%ggplot(aes(x=xHG, y=Hxsg))+geom_point()+geom_abline(aes(slope=1,intercept=0), color="red")
+data%>%ggplot(aes(x=xHG, y=(Hxsg-xHG)))+geom_point()+geom_abline(aes(slope=0, intercept=0), color="red")
+data%>%ggplot(aes(x=xAG, y=Axsg))+geom_point()+geom_abline(aes(slope=1,intercept=0), color="red")
+data%>%ggplot(aes(x=xAG, y=(Axsg-xAG)))+geom_point()+geom_abline(aes(slope=0, intercept=0), color="red")
+summary(data$xHG-data$Hxsg)
+summary(data$xAG-data$Axsg)
+
+data<-data%>%mutate(BWpred=case_when(((BW1>BW2) & (BW1>BW0)) ~ 1, ((BW1<BW2) & (BW2>BW0)) ~ -1, is.na(BW1)~as.numeric(NA), TRUE~0))
+data<-data%>%mutate(SPpred=case_when(((ppH>ppA) & (ppH>ppD)) ~ 1, ((ppH<ppA) & (ppA>ppD)) ~ -1, is.na(ppH)~as.numeric(NA), TRUE~0))
+data<-data%>%mutate(SPIpred=sign(HGFTe-AGFTe))
+data<-data%>%mutate(label=sign(FTHG-FTAG))
+data<-data%>%mutate(Imp=sign(Himp-Aimp))
+table(data$BWpred)
+table(data$SPpred)
+table(data$label)
+
+table(data$label, data$BWpred)
+table(data$label, data$SPpred)
+table(data$label, data$Imp)
+
+data%>%summarise(BWpred = mean(BWpred==label), SPpred = mean(SPpred==label, na.rm=T), SPIpred = mean(SPIpred==label, na.rm=T))
+data%>%group_by(Season)%>%summarise(BWpred = mean(BWpred==label), SPpred = mean(SPpred==label, na.rm=T), SPIpred = mean(SPIpred==label, na.rm=T))
+
+data%>%filter(BWpred!=SPpred)%>%summarise(BWpred = mean(BWpred==label), SPpred = mean(SPpred==label, na.rm=T), SPIpred = mean(SPIpred==label, na.rm=T))
+data%>%group_by(Season)%>%filter(BWpred!=SPIpred)%>%summarise(BWpred = mean(BWpred==label), SPpred = mean(SPpred==label, na.rm=T), SPIpred = mean(SPIpred==label, na.rm=T))
+data%>%group_by(Season)%>%filter(BWpred==SPpred)%>%summarise(BWpred = mean(BWpred==label), SPpred = mean(SPpred==label, na.rm=T), SPIpred = mean(SPIpred==label, na.rm=T))
+
+
+
+
+data$ppA
+
 formula = FTAG~.-FTR-HTHG-HTR-HTAG-FTAG-FTHG-BWH-BWD-BWA-BW102
 
 formula = FTHG~.-FTR-HTHG-HTR-HTAG-FTAG-FTHG-BWH-BWD-BWA-BW102
