@@ -8,6 +8,8 @@ from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, confusion_matrix, accuracy_score, cohen_kappa_score, balanced_accuracy_score, classification_report, log_loss
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import LogisticRegression
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from ngboost.scores import CRPS, MLE
 from ngboost import NGBClassifier, NGBRegressor
 from ngboost.distns import k_categorical
@@ -1143,6 +1145,13 @@ def plot_probs(probs, softpoints, gs, gc, title=""):
   spt = softpoints
   gs = min(gs,6)
   gc = min(gc,6)
+  pp = probs.reshape((7,7))
+  margin_pred_prob1 = np.sum(pp, axis=1)
+  margin_pred_prob2 = np.sum(pp, axis=0)
+  margin_pred_expected1 = np.sum(np.arange(7)*margin_pred_prob1)
+  margin_pred_expected2 = np.sum(np.arange(7)*margin_pred_prob2)
+  margin_poisson_prob1 = [poisson.pmf(i, margin_pred_expected1) for i in range(7)]
+  margin_poisson_prob2 = [poisson.pmf(i, margin_pred_expected2) for i in range(7)]
   # margin_pred_prob1 = pred[prefix+"p_marg_1"]
   # margin_poisson_prob1 = pred[prefix+"p_poisson_1"]
   # margin_pred_prob2 = pred[prefix+"p_marg_2"]
@@ -1190,28 +1199,28 @@ def plot_probs(probs, softpoints, gs, gc, title=""):
   wedges[1-np.sign(gs-gc)].set_alpha(0.8)
   plt.show()
 
-  # w=0.35
-  # fig, ax = plt.subplots(1,3,figsize=(15,1))
-  # ax[0].bar(g, margin_pred_prob1,alpha=0.6, width=w, color=default_color)
-  # ax[0].bar([x+w for x in g], margin_poisson_prob1,alpha=0.3,color="red",width=0.35)
-  # ax[0].bar(gs, margin_pred_prob1[gs],alpha=0.5, width=w, color=default_color)
-  # ax[0].bar(gs+w, margin_poisson_prob1[gs],alpha=0.7,color="red",width=0.35)
-  # ax[0].axvline(x=margin_pred_expected1, color='red')
-  # ax[1].bar(g, margin_pred_prob2,alpha=0.6, width=w, color=default_color)
-  # ax[1].bar([x+w for x in g], margin_poisson_prob2,alpha=0.3,color="red",width=0.35)
-  # ax[1].bar(gc, margin_pred_prob2[gc],alpha=0.5, width=w, color=default_color)
-  # ax[1].bar(gc+w, margin_poisson_prob2[gc],alpha=0.7,color="red",width=0.35)
-  # ax[1].axvline(x=margin_pred_expected2, color='red')
-  # ax[0].set_title(margin_pred_expected1) 
-  # ax[1].set_title(margin_pred_expected2) 
-  # bars = ax[2].bar([0,1,2], height=[p_win, p_draw, p_loss], tick_label=["Win", "Draw", "Loss"], color=["blue", "green", "red"], alpha=0.5)
-  # bars[1-np.sign(gs-gc)].set_alpha(0.8)
-  # bars[1-np.sign(gs-gc)].set_linewidth(2)
-  # bars[1-np.sign(gs-gc)].set_edgecolor("black")
-  # for i in [-1,0,1]:
-  #   if i != np.sign(gs-gc):
-  #     bars[1-i].set_hatch("x")
-  # plt.show()
+  w=0.35
+  fig, ax = plt.subplots(1,3,figsize=(15,1))
+  ax[0].bar(g, margin_pred_prob1,alpha=0.6, width=w, color=default_color)
+  ax[0].bar([x+w for x in g], margin_poisson_prob1,alpha=0.3,color="red",width=0.35)
+  ax[0].bar(gs, margin_pred_prob1[gs],alpha=0.5, width=w, color=default_color)
+  ax[0].bar(gs+w, margin_poisson_prob1[gs],alpha=0.7,color="red",width=0.35)
+  ax[0].axvline(x=margin_pred_expected1, color='red')
+  ax[1].bar(g, margin_pred_prob2,alpha=0.6, width=w, color=default_color)
+  ax[1].bar([x+w for x in g], margin_poisson_prob2,alpha=0.3,color="red",width=0.35)
+  ax[1].bar(gc, margin_pred_prob2[gc],alpha=0.5, width=w, color=default_color)
+  ax[1].bar(gc+w, margin_poisson_prob2[gc],alpha=0.7,color="red",width=0.35)
+  ax[1].axvline(x=margin_pred_expected2, color='red')
+  ax[0].set_title(margin_pred_expected1) 
+  ax[1].set_title(margin_pred_expected2) 
+  bars = ax[2].bar([0,1,2], height=[p_win, p_draw, p_loss], tick_label=["Win", "Draw", "Loss"], color=["blue", "green", "red"], alpha=0.5)
+  bars[1-np.sign(gs-gc)].set_alpha(0.8)
+  bars[1-np.sign(gs-gc)].set_linewidth(2)
+  bars[1-np.sign(gs-gc)].set_edgecolor("black")
+  for i in [-1,0,1]:
+     if i != np.sign(gs-gc):
+       bars[1-i].set_hatch("x")
+  plt.show()
 
 
 
@@ -1391,8 +1400,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      default="c:/git/football/TF/data",
-      #default="d:/gitrepository/Football/football/TF/data",
+      #default="c:/git/football/TF/data",
+      default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -1499,6 +1508,13 @@ if __name__ == "__main__":
   feature_names += label_column_names_extended 
 
   print(X.shape)          
+
+
+  train_idx = train_idx[::2]
+  test_idx = test_idx[::2]
+  pred_idx = pred_idx[::2]
+
+
   X_train = X[train_idx]
   X_test= X[test_idx]
   X_pred= X[pred_idx]
@@ -1535,7 +1551,8 @@ if __name__ == "__main__":
   Y5_train = Y5[train_idx]
   Y5_test= Y5[test_idx]
 
-  Y6 = (np.minimum(labels_array[:,0], 6)+np.minimum(labels_array[:,1], 6)).astype(int)
+  #Y6 = (np.minimum(labels_array[:,0], 6)+np.minimum(labels_array[:,1], 6)).astype(int)
+  Y6 = np.minimum(np.sum(labels_array[:, 0:2], axis=1), 12).astype(int)
   Y6_train = Y6[train_idx]
   Y6_test= Y6[test_idx]
 
@@ -1557,7 +1574,8 @@ if __name__ == "__main__":
   Y2_train = np.concatenate((Y2_train, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)+6))
   Y4_train = np.concatenate((Y4_train, (np.array(list(Y0))//7).astype(int)))
   Y5_train = np.concatenate((Y5_train, (np.mod(np.array(list(Y0)),7)).astype(int)))
-  Y6_train = np.concatenate((Y6_train, (np.array(list(Y0))//7+np.mod(np.array(list(Y0)),7)).astype(int)))
+  #Y6_train = np.concatenate((Y6_train, (np.array(list(Y0))//7+np.mod(np.array(list(Y0)),7)).astype(int)))
+  Y6_train = np.concatenate((Y6_train, (np.array(list(Y0))//7 + np.mod(np.array(list(Y0)),7)).astype(int)))
   Y8_train = np.concatenate((Y8_train, np.maximum(-2, np.minimum(2, (np.array(list(Y0))//7-np.mod(np.array(list(Y0)),7)).astype(int)))+2))
 
   Y_spi_raw_train = X_train[:, [218, 217, 216]] # SPI
@@ -1607,23 +1625,34 @@ if __name__ == "__main__":
       axs[1][1].plot([cohen_kappa_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
       plt.show()
       return spd1_train, spd1_test
-
-  ngb_spi = NGBClassifier(Dist=k_categorical(3),
-                      n_estimators=550, verbose_eval=10,
-                 learning_rate=0.0015,
-                 minibatch_frac=0.25)
+  lm_spi = LogisticRegression()
+  lm_spi = LinearDiscriminantAnalysis()
+  lm_spi.fit(X_train_spi, Y1_train)
+  lm_spi.classes_
+  #lm_spi.n_iter_
+  lm_spi.coef_
   
-  ngb_spi.fit(X_train_spi, Y1_train, X_val = X_test_spi, Y_val = Y1_test,
-                     #early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
-                     ) # Y should have only 3 values: {0,1,2}
+  Y_spi_pred = lm_spi.predict_proba(X_test_spi)
+  Y_spi_pred_train = lm_spi.predict_proba(X_train_spi)
+  Y_spi_pred_new = lm_spi.predict_proba(X_pred_spi)
 
-  spd_spi_train, spd_spi_test = model_progress(ngb_spi, X_train_spi, X_test_spi, Y1_train, Y1_test)  
-
-  Y_spi_pred = np.mean([x.class_probs() for x in spd_spi_test[50:500]], axis=0)
-  Y_spi_pred_train = np.mean([x.class_probs() for x in spd_spi_train[50:500]], axis=0)
-  Y_spi_pred_new = np.mean([x.class_probs() for x in ngb_spi.staged_pred_dist(X_pred_spi)[50:500]], axis=0)
+      
+#  ngb_spi = NGBClassifier(Dist=k_categorical(3),
+#                      n_estimators=550, verbose_eval=10,
+#                 learning_rate=0.0015,
+#                 minibatch_frac=0.25)
+#  
+#  ngb_spi.fit(X_train_spi, Y1_train, X_val = X_test_spi, Y_val = Y1_test,
+#                     #early_stopping_rounds = 150, 
+##                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+##                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+#                     ) # Y should have only 3 values: {0,1,2}
+#
+#  spd_spi_train, spd_spi_test = model_progress(ngb_spi, X_train_spi, X_test_spi, Y1_train, Y1_test)  
+#
+#  Y_spi_pred = np.mean([x.class_probs() for x in spd_spi_test[50:500]], axis=0)
+#  Y_spi_pred_train = np.mean([x.class_probs() for x in spd_spi_train[50:500]], axis=0)
+#  Y_spi_pred_new = np.mean([x.class_probs() for x in ngb_spi.staged_pred_dist(X_pred_spi)[50:500]], axis=0)
 
   print(pd.concat([
           print_performance(Y1_test, Y_spi_pred, name="ngb_spi test"),
@@ -1633,24 +1662,30 @@ if __name__ == "__main__":
 
   print(confusion_matrix(Y1_test, np.argmax(Y_spi_pred, axis=1)))
   print(confusion_matrix(Y1_train, np.argmax(Y_spi_pred_train, axis=1)))
-
-  ngb_eg_1= NGBRegressor(n_estimators=550, verbose_eval=10,
-                 learning_rate=0.005,
-                 minibatch_frac=0.25)
-  ngb_eg_1.fit(X_train_eg, Y4_train, X_val = X_test_eg, Y_val = Y4_test,
-                     #early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
-                     ) # Y should have only 3 values: {0,1,2}
-
-  ngb_eg_2= NGBRegressor(n_estimators=550, verbose_eval=10,
-                 learning_rate=0.005,
-                 minibatch_frac=0.25)
-  ngb_eg_2.fit(X_train_eg, Y5_train, X_val = X_test_eg, Y_val = Y5_test,
-                     #early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
-                     ) # Y should have only 3 values: {0,1,2}
+  
+  import statsmodels.api as sm
+  ngb_eg_1 = sm.GLM(Y4_train, X_train_eg, family=sm.families.Poisson()).fit()
+  ngb_eg_1.summary()
+  ngb_eg_2 = sm.GLM(Y5_train, X_train_eg, family=sm.families.Poisson()).fit()
+  ngb_eg_2.summary()
+  
+#  ngb_eg_1= NGBRegressor(n_estimators=550, verbose_eval=10,
+#                 learning_rate=0.005,
+#                 minibatch_frac=0.25)
+#  ngb_eg_1.fit(X_train_eg, Y4_train, X_val = X_test_eg, Y_val = Y4_test,
+#                     #early_stopping_rounds = 150, 
+##                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+##                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+#                     ) # Y should have only 3 values: {0,1,2}
+#
+#  ngb_eg_2= NGBRegressor(n_estimators=550, verbose_eval=10,
+#                 learning_rate=0.005,
+#                 minibatch_frac=0.25)
+#  ngb_eg_2.fit(X_train_eg, Y5_train, X_val = X_test_eg, Y_val = Y5_test,
+#                     #early_stopping_rounds = 150, 
+##                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+##                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+#                     ) # Y should have only 3 values: {0,1,2}
 
   
   Y_eg_train = np.stack([ngb_eg_1.predict(X_train_eg), ngb_eg_2.predict(X_train_eg)], axis=1)
@@ -1661,23 +1696,35 @@ if __name__ == "__main__":
   Y3_eg_raw_test = make_poisson(Y_eg_test)
   Y3_eg_raw_new = make_poisson(Y_eg_new)
 
-  
-  ngb_bwin = NGBClassifier(Dist=k_categorical(3),
-                      n_estimators=550, verbose_eval=10,
-                 learning_rate=0.005,
-                 minibatch_frac=0.25)
-  
-  ngb_bwin.fit(X_train_bwin, Y1_train, X_val = X_test_bwin, Y_val = Y1_test,
-                     #early_stopping_rounds = 150, 
-#                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
-#                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
-                     ) # Y should have only 3 values: {0,1,2}
 
-  spd_bwin_train, spd_bwin_test = model_progress(ngb_bwin, X_train_bwin, X_test_bwin, Y1_train, Y1_test)  
 
-  Y_bwin_pred = np.mean([x.class_probs() for x in spd_bwin_test[100:400]], axis=0)
-  Y_bwin_pred_train = np.mean([x.class_probs() for x in spd_bwin_train[100:400]], axis=0)
-  Y_bwin_pred_new = np.mean([x.class_probs() for x in ngb_bwin.staged_pred_dist(X_pred_bwin)[100:400]], axis=0)
+  lm_bwin = LogisticRegression()
+  lm_bwin = LinearDiscriminantAnalysis()
+  lm_bwin.fit(X_train_bwin, Y1_train)
+  lm_bwin.classes_
+  #lm_bwin.n_iter_
+  lm_bwin.coef_
+  
+  Y_bwin_pred = lm_bwin.predict_proba(X_test_bwin)
+  Y_bwin_pred_train = lm_bwin.predict_proba(X_train_bwin)
+  Y_bwin_pred_new = lm_bwin.predict_proba(X_pred_bwin)
+  
+#  ngb_bwin = NGBClassifier(Dist=k_categorical(3),
+#                      n_estimators=550, verbose_eval=10,
+#                 learning_rate=0.005,
+#                 minibatch_frac=0.25)
+#  
+#  ngb_bwin.fit(X_train_bwin, Y1_train, X_val = X_test_bwin, Y_val = Y1_test,
+#                     #early_stopping_rounds = 150, 
+##                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
+##                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
+#                     ) # Y should have only 3 values: {0,1,2}
+#
+#  spd_bwin_train, spd_bwin_test = model_progress(ngb_bwin, X_train_bwin, X_test_bwin, Y1_train, Y1_test)  
+#
+#  Y_bwin_pred = np.mean([x.class_probs() for x in spd_bwin_test[100:400]], axis=0)
+#  Y_bwin_pred_train = np.mean([x.class_probs() for x in spd_bwin_train[100:400]], axis=0)
+#  Y_bwin_pred_new = np.mean([x.class_probs() for x in ngb_bwin.staged_pred_dist(X_pred_bwin)[100:400]], axis=0)
 
   print(pd.concat([
           print_performance(Y1_test, Y_bwin_pred, name="ngb_bwin test"),
@@ -1696,13 +1743,13 @@ if __name__ == "__main__":
           print_performance(Y1_train, (Y_bwin_raw_train+Y_spi_raw_train)/2, name="raw mixed train")]))
 
 
-  print(pd.DataFrame({'feature':[feature_names[i] for i in bwin_index], 
-                              'draw':ngb_bwin.feature_importances_[0],
-                               'win':ngb_bwin.feature_importances_[1]}))
-
-  print(pd.DataFrame({'feature':[feature_names[i] for i in spi_index], 
-                              'draw':ngb_spi.feature_importances_[0],
-                               'win':ngb_spi.feature_importances_[1]}))
+#  print(pd.DataFrame({'feature':[feature_names[i] for i in bwin_index], 
+#                              'draw':ngb_bwin.feature_importances_[0],
+#                               'win':ngb_bwin.feature_importances_[1]}))
+#
+#  print(pd.DataFrame({'feature':[feature_names[i] for i in spi_index], 
+#                              'draw':ngb_spi.feature_importances_[0],
+#                               'win':ngb_spi.feature_importances_[1]}))
 
 #  print(confusion_matrix(Y1_test, np.argmax(Y_bwin_pred, axis=1), normalize='all'))
 #  print(classification_report(Y1_test, np.argmax(Y_bwin_pred, axis=1)))
@@ -1945,14 +1992,14 @@ if __name__ == "__main__":
                       n_estimators=300, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  X6_train = X_train
-  X6_train[:,4]=0 
-  ngbmodel6 = ngb6.fit(X6_train, Y6_train, X_val = X_test, Y_val = Y6_test,
+#  X6_train = X_train
+#  X6_train[:,4]=0 
+  ngbmodel6 = ngb6.fit(X_train, Y6_train, X_val = X_test, Y_val = Y6_test,
                        early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,6}
-  spd6_train, spd6_test = model_progress(ngb6, X6_train, X_test, Y6_train, Y6_test)  
+  spd6_train, spd6_test = model_progress(ngb6, X_train, X_test, Y6_train, Y6_test)  
   max_iter=ngb6.best_val_loss_itr
   # predicted probabilities of class 0, 1, and 6 (columns) for each observation (row)
   Y6_pred_new = np.mean([x.class_probs() for x in ngb6.staged_pred_dist(X_pred)[100:]], axis=0)
@@ -2365,12 +2412,31 @@ if __name__ == "__main__":
 #      Y3_5_pred_train = np.stack([Y5_pred_train[:, np.mod(i,7)]/7 for i in range(49)], axis=1)
       Y3_45_pred_train = np.stack([Y4_pred_train[:, (i//7)]*Y5_pred_train[:, np.mod(i,7)] for i in range(49)], axis=1)
       Y3_45_pred_train = Y3_45_pred_train / np.sum(Y3_45_pred_train, axis=1, keepdims=True)
+      #Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
+      
       Y3_6_pred_train = np.stack([Y6_pred_train[:, (i//7+np.mod(i,7)).astype(int)] for i in range(49)], axis=1)
     
       Y3_2b_pred_train = np.stack([Y3_2_pred_train[:, i]/np.sum([Y3_2_pred_train[:, j] for j in range(49) if (i//7+np.mod(i,7))==(j//7+np.mod(j,7))], axis=0)  for i in range(49)], axis=1)
       Y3_26_pred_train = Y3_2b_pred_train * Y3_6_pred_train
-    
-      Y3_6_pred_train = np.stack([Y3_6_pred_train[:, i]/(7-np.abs(6 - i//7 - np.mod(i,7)))  for i in range(49)], axis=1)
+
+      
+#      Y3_26_pred_train = np.stack([Y2_pred_train[:, (i//7-np.mod(i,7)+6).astype(int)] * 
+#                                                 Y6_pred_train[:, max(i//7, np.mod(i,7))] / 
+#                                                 np.sum(Y6_pred_train[:, (abs(i//7-np.mod(i,7)).astype(int)) : 7], axis=1) for i in range(49)], axis=1)
+#      for k in range(10):
+#          Y3_26b_pred_train = np.stack([np.sum(np.stack([Y3_26_pred_train[:,j] for j in range(49) if max(j//7, np.mod(j,7))==i]).T, axis=1) for i in range(7)], axis=1)
+#    
+#          Y3_26_pred_train = np.stack([Y3_26_pred_train[:,i] * Y6_pred_train[:, max(i//7, np.mod(i,7))] / Y3_26b_pred_train[:, max(i//7, np.mod(i,7))] for i in range(49)], axis=1)
+#          
+#          Y3_26a_pred_train = np.stack([np.sum(np.stack([Y3_26_pred_train[:,j] for j in range(49) if j//7-np.mod(j,7)+6==i]).T, axis=1) for i in range(13)], axis=1)
+#    
+#          Y3_26_pred_train = np.stack([Y3_26_pred_train[:,i] * Y2_pred_train[:, (i//7)-np.mod(i,7)+6] / Y3_26a_pred_train[:, (i//7)-np.mod(i,7)+6] for i in range(49)], axis=1)
+#
+##      Y3_26_pred_train = np.stack([Y2_pred_train[:, (i//7-np.mod(i,7)+6).astype(int)] * 
+##                                                 Y6_pred_train[:, max(i//7, np.mod(i,7))] / 
+##                                                 np.sum(Y2_pred_train[:, 6-max(i//7, np.mod(i,7)) : 7+max(i//7, np.mod(i,7))], axis=1) for i in range(49)], axis=1)
+
+      
       
       Y7_pred_train = (Y3_bw_pred_train+Y3_pred_train+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/6
       
@@ -2384,8 +2450,8 @@ if __name__ == "__main__":
   Y3_bw_pred, Y3_1_pred, Y3_8_pred, Y3_26_pred, Y3_45_pred, Y3_bw_pred_pure, Y7_pred = combine_probs([Y_bwin_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])
   Y3_bw_pred_new, Y3_1_pred_new, Y3_8_pred_new, Y3_26_pred_new, Y3_45_pred_new, Y3_bw_pred_new_pure, Y7_pred_new = combine_probs([Y_bwin_pred_new, Y1_pred_new, Y2_pred_new, Y3_pred_new, Y4_pred_new, Y5_pred_new, Y6_pred_new, Y8_pred_new])
   
-  combine_probs_3_49(Y1_pred, Y3_pred)
-  combine_probs_3_49(Y_spi_pred, Y3_pred)
+  #combine_probs_3_49(Y1_pred, Y3_pred)
+  #combine_probs_3_49(Y_spi_pred, Y3_pred)
   
   print(pd.concat([
           print_performance(Y3_test, combine_probs_3_49(Y1_pred, Y3_pred), name="ngb1+3 test"),
@@ -2411,6 +2477,8 @@ if __name__ == "__main__":
   print_evaluation(Y3_test, Y3_45_pred, X_test[:,1])
   print("Y26 test")  
   print_evaluation(Y3_test, Y3_26_pred, X_test[:,1])
+  print("Y26 +Y3 test")  
+  print_evaluation(Y3_test, (Y3_26_pred+9*Y3_pred)/10, X_test[:,1])
   print("Y1+Y3 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y1_pred, Y3_pred), X_test[:,1])
   print("Y1+Y eg test")  
@@ -2455,9 +2523,9 @@ if __name__ == "__main__":
   print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
                                                (Y3_pred_train+Y3_26_pred_train)/2), X_train[:,1])
   print("Blend 2")  
-  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
+  print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_pred+Y1_pred+Y_spi_pred)/3, 
                                                (Y3_pred+Y3_26_pred+Y3_8_pred)/3), X_test[:,1])
-  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
+  print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/3, 
                                                (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3), X_train[:,1])
 
   print("Blend 3")  
@@ -2478,18 +2546,27 @@ if __name__ == "__main__":
   print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_raw_train+Y1_pred_train+Y_spi_pred_train)/3, 
                                                (Y3_pred_train+Y3_26_pred_train+Y_eg_raw_train+Y3_eg_raw_train)/6), X_train[:,1])
 
-  Y7_pred = combine_probs_3_49(Y_bwin_raw_test, Y3_26_pred)  
-  Y7_pred_train = combine_probs_3_49(Y_bwin_raw_train, Y3_26_pred_train)  
-  Y7_pred_new = combine_probs_3_49(Y_bwin_raw_new, Y3_26_pred_new)  
+  Y7_pred = combine_probs_3_49(Y_spi_pred, Y3_26_pred)  
+  Y7_pred_train = combine_probs_3_49(Y_spi_pred_train, Y3_26_pred_train)  
+  Y7_pred_new = combine_probs_3_49(Y_spi_pred_new, Y3_26_pred_new)  
 
   Y7_pred = combine_probs_3_49(Y1_pred, Y3_eg_raw_test)  
   Y7_pred_train = combine_probs_3_49(Y1_pred_train, Y3_eg_raw_train)  
   Y7_pred_new = combine_probs_3_49(Y1_pred_new, Y3_eg_raw_new)  
 
-  index=716
+  Y7_pred = combine_probs_3_49((Y_bwin_pred+Y1_pred+Y_spi_pred)/3, (Y3_pred+Y3_26_pred+Y3_8_pred)/3)
+  Y7_pred_train = combine_probs_3_49((Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3)
+  Y7_pred_new = combine_probs_3_49((Y_bwin_pred_new+Y1_pred_new+Y_spi_pred_new)/3, 
+                                               (Y3_pred_new+Y3_26_pred_new+Y3_8_pred_new)/3)
+  index=108
   plot_probs(probs=Y3_pred[index], softpoints=np.matmul(Y3_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_pred")
   plot_probs(probs=Y7_pred[index], softpoints=np.matmul(Y7_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y7_pred")
+  print(Y4_pred[index])
+  print(Y5_pred[index])
   plot_probs(probs=Y3_45_pred[index], softpoints=np.matmul(Y3_45_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_45_pred")
+  print(Y2_pred[index])
+  print(Y6_pred[index])
   plot_probs(probs=Y3_26_pred[index], softpoints=np.matmul(Y3_26_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_26_pred")
   print(X_test_eg[index])
   plot_probs(probs=Y_eg_raw_test[index], softpoints=np.matmul(Y_eg_raw_test, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y_eg_raw_test")
@@ -2499,29 +2576,46 @@ if __name__ == "__main__":
   print_evaluation(Y3_train, Y7_pred_train, X_train[:,1])
   print_evaluation(Y3_test, Y7_pred, X_test[:,1])
 
-  # point estimate ...  
-  Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
-  prednew = argmax_softpoint(Y7_pred_new)
-  prednew2 = argmax_softpoint(Y7_pred_new2)
-  sp_prednew = calc_softpoints(prednew, Y7_pred_new)
-  sp_prednew2 = calc_softpoints(prednew2, Y7_pred_new2)
-  #Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49))
-  
-  all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
+  if True:  
+      # point estimate ...  
+      prednew = argmax_softpoint(Y7_pred_new)
+      sp_prednew = calc_softpoints(prednew, Y7_pred_new)
+      
+      all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
+    
+      prednewdf = pd.DataFrame({
+              "GS":prednew//7, "GC":np.mod(prednew, 7), 
+              "SP":sp_prednew
+              })
+      prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
+      prednewdf.drop(["GC"], axis=1, inplace=True)
+      print(pd.concat([prednewdf, all_quotes], axis=1))
 
-  prednewdf = pd.DataFrame({
-          "GS":prednew[::2]//7, "GC":np.mod(prednew[::2], 7), 
-          "GSA":np.mod(prednew[1::2], 7), "GCA":prednew[1::2]//7,
-          "GS2":prednew2//7, "GC2":np.mod(prednew2, 7),
-          "SP":sp_prednew[::2],
-          "SPA":sp_prednew[1::2],
-          "SP2":sp_prednew2
-          })
-  prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
-  prednewdf.GSA = prednewdf.GSA.astype(str).str.cat(prednewdf.GCA.astype(str), sep=":")
-  prednewdf.GS2 = prednewdf.GS2.astype(str).str.cat(prednewdf.GC2.astype(str), sep=":")
-  prednewdf.drop(["GC", "GCA", "GC2"], axis=1, inplace=True)
-  print(pd.concat([prednewdf, all_quotes], axis=1))
+
+  if False:  
+      # point estimate ...  
+      Y7_pred_new2 =   (Y7_pred_new[::2] +   Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49)))/2
+      prednew = argmax_softpoint(Y7_pred_new)
+      prednew2 = argmax_softpoint(Y7_pred_new2)
+      sp_prednew = calc_softpoints(prednew, Y7_pred_new)
+      sp_prednew2 = calc_softpoints(prednew2, Y7_pred_new2)
+      #Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49))
+      
+      all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
+    
+      prednewdf = pd.DataFrame({
+              "GS":prednew[::2]//7, "GC":np.mod(prednew[::2], 7), 
+              "GSA":np.mod(prednew[1::2], 7), "GCA":prednew[1::2]//7,
+              "GS2":prednew2//7, "GC2":np.mod(prednew2, 7),
+              "SP":sp_prednew[::2],
+              "SPA":sp_prednew[1::2],
+              "SP2":sp_prednew2
+              })
+      prednewdf.GS = prednewdf.GS.astype(str).str.cat(prednewdf.GC.astype(str), sep=":")
+      prednewdf.GSA = prednewdf.GSA.astype(str).str.cat(prednewdf.GCA.astype(str), sep=":")
+      prednewdf.GS2 = prednewdf.GS2.astype(str).str.cat(prednewdf.GC2.astype(str), sep=":")
+      prednewdf.drop(["GC", "GCA", "GC2"], axis=1, inplace=True)
+      print(pd.concat([prednewdf, all_quotes], axis=1))
 
   Y7_pred[1000].reshape((7,7))*100
   #Y2_pred[0]
