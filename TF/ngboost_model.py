@@ -1607,8 +1607,8 @@ if __name__ == "__main__":
               "cohen_kappa_score":[cohen_kappa_score(labels, np.argmax(probs, axis=1))]}))
 
   def model_progress(model, X_train, X_test, Y1_train, Y1_test):
-      spd1_train = model.staged_pred_dist(X_train)
-      spd1_test = model.staged_pred_dist(X_test)
+      spd1_train = model.staged_pred_dist(X_train)[2:]
+      spd1_test = model.staged_pred_dist(X_test)[2:]
       spd1_train
       fig, axs = plt.subplots(2, 2, constrained_layout=True, figsize=(16,10))
       axs[0][0].set_title('Accuracy')
@@ -1816,10 +1816,23 @@ if __name__ == "__main__":
   Y1_lin_pred_train = lin1.predict_proba(X_train)
   
   lin1.max_iter
+
+  X1_train = X_train.copy()
+  for i in range(4, X1_train.shape[1]):
+      np.random.shuffle(X1_train[0::2,i])
+      np.random.shuffle(X1_train[1::2,i])
   
-  ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.01,
+  X11_train = np.concatenate([X_train, X1_train], axis=0)
+  Y11_train = np.concatenate([Y1_train, Y1_train], axis=0)
+        
+  X1_train[:,391]
+  X_train[:,391]
+  X1_train[:,1]
+  X_train[:,1]
+  
+  ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=50,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -1829,15 +1842,19 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=550, verbose_eval=10,
-                 learning_rate=0.005,
+                      n_estimators=1000, verbose_eval=10,
+                 learning_rate=0.01,
                  minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
-  ngbmodel = ngb.fit(X_train, Y1_train, X_val = X_test, Y_val = Y1_test,
+  ngbmodel = ngb.fit(X11_train, Y11_train, X_val = X_test, Y_val = Y1_test,
                      #early_stopping_rounds = 150, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
-
+#  x0 = len(X_train)//2
+#  ngbmodel = ngb.fit(X_train[2*np.concatenate([np.arange(x0)]*3).astype(int)], 
+#                     Y1_train[2*np.concatenate([np.arange(x0)]+[np.random.randint(x0, size=x0)]+[np.random.randint(x0, size=x0)]).astype(int)], 
+#                     X_val = X_test[::2], Y_val = Y1_test[::2])
+  
   spd1_train, spd1_test = model_progress(ngb, X_train, X_test, Y1_train, Y1_test)  
 
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
@@ -1953,9 +1970,10 @@ if __name__ == "__main__":
   
   X2_train = X_train
   X2_train[:,4]=0 
-  ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.2,
+
+  ngb2 = NGBClassifier(Base=DecisionTreeRegressor(max_features=30,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -1965,11 +1983,12 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=300, verbose_eval=10,
-                 learning_rate=0.01,
-                 minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  ngbmodel2 = ngb2.fit(X2_train, Y2_train, X_val = X_test, Y_val = Y2_test,
-                       early_stopping_rounds = 150, 
+                      n_estimators=1000, verbose_eval=10,
+                 learning_rate=0.005,
+                 minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
+  ngbmodel2 = ngb2.fit(X11_train, np.concatenate([Y2_train, Y2_train], axis=0), 
+                       X_val = X_test, Y_val = Y2_test,
+                       early_stopping_rounds = 950, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
@@ -1985,6 +2004,12 @@ if __name__ == "__main__":
   print(pd.concat([
           print_performance(Y2_test, Y2_pred, name="ngb2 test"),
           print_performance(Y2_train, Y2_pred_train, name="ngb2 train")]))
+  print(accuracy_score(Y1_test-1, np.sign(np.argmax(Y2_pred, axis=1)-6)))
+  print(confusion_matrix(Y1_test-1, np.sign(np.argmax(Y2_pred, axis=1)-6)))
+
+  print(accuracy_score(Y1_train-1, np.sign(np.argmax(Y2_pred_train, axis=1)-6)))
+  print(confusion_matrix(Y1_train-1, np.sign(np.argmax(Y2_pred_train, axis=1)-6)))
+
         
   lb = None #["Loss", "Draw", "Win"]
   print(np.argmax(Y2_pred, axis=1))
@@ -2010,9 +2035,9 @@ if __name__ == "__main__":
   plt.title('Feature Importance Plot')
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
-  ngb6 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.2,
+  ngb6 = NGBClassifier(Base=DecisionTreeRegressor(max_features=30,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -2022,13 +2047,14 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=300, verbose_eval=10,
+                      n_estimators=1000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
 #  X6_train = X_train
 #  X6_train[:,4]=0 
-  ngbmodel6 = ngb6.fit(X_train, Y6_train, X_val = X_test, Y_val = Y6_test,
-                       early_stopping_rounds = 150, 
+  ngbmodel6 = ngb6.fit(X11_train, np.concatenate([Y6_train, Y6_train], axis=0), 
+                       X_val = X_test, Y_val = Y6_test,
+                       early_stopping_rounds = 950, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,6}
@@ -2070,9 +2096,9 @@ if __name__ == "__main__":
   sns.barplot(x='importance',y='feature',ax=ax,data=feature_importance.iloc[0:100])
 
 
-  ngb8 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.3,
+  ngb8 = NGBClassifier(Base=DecisionTreeRegressor(max_features=30,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=3,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -2082,11 +2108,12 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(5),
-                      n_estimators=400, verbose_eval=10,
+                      n_estimators=1000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  ngbmodel8 = ngb8.fit(X_train, Y8_train, X_val = X_test, Y_val = Y8_test,
-                       early_stopping_rounds = 150, 
+  ngbmodel8 = ngb8.fit(X11_train, np.concatenate([Y8_train]*2, axis=0),
+                       X_val = X_test, Y_val = Y8_test,
+                       early_stopping_rounds = 950, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
@@ -2119,9 +2146,9 @@ if __name__ == "__main__":
   print(np.mean(Y8_pred_train, axis=0))    
   print(Counter(np.argmax(Y8_pred_train, axis=1)))
 
-  ngb4 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.03,
+  ngb4 = NGBClassifier(Base=DecisionTreeRegressor(max_features=30,# 0.03,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -2134,8 +2161,8 @@ if __name__ == "__main__":
                       n_estimators=400, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  ngbmodel = ngb4.fit(X_train, Y4_train, X_val = X_test, Y_val = Y4_test,
-                     early_stopping_rounds = 150, 
+  ngbmodel = ngb4.fit(X11_train, np.concatenate([Y4_train, Y4_train], axis=0), X_val = X_test, Y_val = Y4_test,
+                     early_stopping_rounds = 350, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
@@ -2178,7 +2205,7 @@ if __name__ == "__main__":
 
   ngb5 = NGBClassifier(Base=DecisionTreeRegressor(max_features=0.1,
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -2188,16 +2215,17 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=400, verbose_eval=10,
+                      n_estimators=1000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
-  ngbmodel = ngb5.fit(X_train, Y5_train, X_val = X_test, Y_val = Y5_test,
-                     early_stopping_rounds = 150, 
+  ngbmodel = ngb5.fit(X11_train, np.concatenate( [Y5_train]*2, axis=0), 
+                      X_val = X_test, Y_val = Y5_test,
+                     early_stopping_rounds = 500, 
 #                     train_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1))),
 #                     val_loss_monitor=lambda D,Y: -(np.mean(Y==np.argmax(D.class_probs(), axis=1)))
                      ) # Y should have only 3 values: {0,1,2}
   spd5_train, spd5_test = model_progress(ngb5, X_train, X_test, Y5_train, Y5_test)  
-  max_iter = 400
+  max_iter = 1000
 
   # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
   #Y5_pred = ngb5.predict_proba(X_test)
@@ -2262,9 +2290,9 @@ if __name__ == "__main__":
 
   
   ngb3 = NGBClassifier(
-          Base=DecisionTreeRegressor(max_features=0.2, #"auto",
+          Base=DecisionTreeRegressor(max_features=0.1, #"auto",
                                                  ccp_alpha=0.0,
-                                         criterion='friedman_mse', max_depth=2,
+                                         criterion='friedman_mse', max_depth=1,
                                          max_leaf_nodes=None,
                                          min_impurity_decrease=0.0,
                                          min_impurity_split=None,
@@ -2275,12 +2303,13 @@ if __name__ == "__main__":
                                          random_state=None, splitter='best'),
           Dist=k_categorical(49), 
                        Score=MLE, 
-                      n_estimators=400, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.002,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
 
-  ngbmodel3 = ngb3.fit(X_train, Y3_train, X_val = X_test, Y_val = Y3_test,
-                       early_stopping_rounds = 150, 
+  ngbmodel3 = ngb3.fit(X11_train, np.concatenate([Y3_train]*2, axis=0), 
+                       X_val = X_test, Y_val = Y3_test,
+                       early_stopping_rounds = 1000, 
 #                     train_loss_monitor=lambda D,Y: 
 #                         -np.mean(calc_points(Y, argmax_softpoint(D.class_probs()))),
 #                     val_loss_monitor=lambda D,Y: 
@@ -2403,6 +2432,33 @@ if __name__ == "__main__":
     #  print(point_dist(calc_points(Y3_test, argmax_softpoint(Y7_pred))))
       print(point_summary(calc_points(labels, argmax_softpoint(probs)), invert(where, argmax_softpoint(probs))))
 
+  def print_evaluation_2max(labels, probs, where):  
+      print(np.mean(calc_softpoints(labels, probs)))
+      # descending order indexes
+      probs_ind = np.argsort( probs, axis=1 )[:, ::-1]
+      c1=probs_ind[:,0]
+      c2=probs_ind[:,1]
+      sp1=calc_softpoints(c1, probs)
+      sp2=calc_softpoints(c2, probs)
+      pred = np.where(sp1>sp2, c1, c2)
+      print(np.mean(calc_points(labels, pred)))
+      print(point_summary(calc_points(labels, pred), invert(where, pred)))
+
+  def print_evaluation_3max(labels, probs, where):  
+      print(np.mean(calc_softpoints(labels, probs)))
+      # descending order indexes
+      probs_ind = np.argsort( probs, axis=1 )[:, ::-1]
+      c1=probs_ind[:,0]
+      c2=probs_ind[:,1]
+      c3=probs_ind[:,2]
+      sp1=calc_softpoints(c1, probs)
+      sp2=calc_softpoints(c2, probs)
+      sp3=calc_softpoints(c3, probs)
+      pred_idx = np.argmax([sp1, sp2, sp3], axis=0)
+      pred = probs_ind[range(len(pred_idx)),pred_idx]
+      print(np.mean(calc_points(labels, pred)))
+      print(point_summary(calc_points(labels, pred), invert(where, pred)))
+
   def combine_probs_3_49(probs3, probs49):
       Y3_bw_pred_train0 = np.stack([np.sum([probs49[:, i]  for i in range(49) if i//7<np.mod(i,7)], axis=0),
                                    np.sum([probs49[:, i]  for i in range(49) if i//7==np.mod(i,7)], axis=0),
@@ -2512,10 +2568,18 @@ if __name__ == "__main__":
 
   print("Y3 test")  
   print_evaluation(Y3_test, Y3_pred, X_test[:,1])
+  print("Y3 test 2max")  
+  print_evaluation_2max(Y3_test, Y3_pred, X_test[:,1])
+  print("Y3 test 3max")  
+  print_evaluation_3max(Y3_test, Y3_pred, X_test[:,1])
   print("Y45 test")  
   print_evaluation(Y3_test, Y3_45_pred, X_test[:,1])
+  print("Y45 test_2max")  
+  print_evaluation_2max(Y3_test, Y3_45_pred, X_test[:,1])
   print("Y26 test")  
   print_evaluation(Y3_test, Y3_26_pred, X_test[:,1])
+  print("Y26 test_2max")  
+  print_evaluation_2max(Y3_test, Y3_26_pred, X_test[:,1])
   print("Y26 +Y3 test")  
   print_evaluation(Y3_test, (Y3_26_pred+9*Y3_pred)/10, X_test[:,1])
   print("Y1+Y3 test")  
@@ -2534,6 +2598,10 @@ if __name__ == "__main__":
   print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_45_pred), X_test[:,1])
   print("SPI+Y26 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_26_pred), X_test[:,1])
+  print("SPI+Y26 test 2max")  
+  print_evaluation_2max(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_26_pred), X_test[:,1])
+  print("SPI+Y26 test 3max")  
+  print_evaluation_3max(Y3_test, combine_probs_3_49(Y_spi_pred, Y3_26_pred), X_test[:,1])
   print("BWIN+Y45 test")  
   print_evaluation(Y3_test, combine_probs_3_49(Y_bwin_pred, Y3_45_pred), X_test[:,1])
   print("BWIN+Y26 test")  
@@ -2566,7 +2634,17 @@ if __name__ == "__main__":
                                                (Y3_pred+Y3_26_pred+Y3_8_pred)/3), X_test[:,1])
   print_evaluation(Y3_train, combine_probs_3_49((Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/3, 
                                                (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3), X_train[:,1])
+  print("Blend 2 2max")  
+  print_evaluation_2max(Y3_test, combine_probs_3_49((Y_bwin_pred+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred+Y3_8_pred)/3), X_test[:,1])
+  print_evaluation_2max(Y3_train, combine_probs_3_49((Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3), X_train[:,1])
 
+  print("Blend 2 3max")  
+  print_evaluation_3max(Y3_test, combine_probs_3_49((Y_bwin_pred+Y1_pred+Y_spi_pred)/3, 
+                                               (Y3_pred+Y3_26_pred+Y3_8_pred)/3), X_test[:,1])
+  print_evaluation_3max(Y3_train, combine_probs_3_49((Y_bwin_pred_train+Y1_pred_train+Y_spi_pred_train)/3, 
+                                               (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3), X_train[:,1])
   print("Blend 3")  
   print_evaluation(Y3_test, combine_probs_3_49((Y_bwin_raw_test+Y1_pred+Y_spi_pred)/3, 
                                                (Y3_pred+Y3_26_pred+Y3_45_pred+Y3_8_pred)/4), X_test[:,1])
@@ -2604,7 +2682,7 @@ if __name__ == "__main__":
                                                (Y3_pred_train+Y3_26_pred_train+Y3_8_pred_train)/3)
   Y7_pred_new = combine_probs_3_49((Y_bwin_pred_new+Y1_pred_new+Y_spi_pred_new)/3, 
                                                (Y3_pred_new+Y3_26_pred_new+Y3_8_pred_new)/3)
-  index=-2
+  index=-4
   print(pd.DataFrame({"Y_bwin_raw_test":Y_bwin_raw_test[index], "Y_bwin_pred":Y_bwin_pred[index], "Y1_pred":Y1_pred[index], "Y_spi_pred":Y_spi_pred[index], "Y_spi_raw_test":Y_spi_raw_test[index]}))
   plot_probs(probs=Y3_pred[index], softpoints=np.matmul(Y3_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y3_pred")
   plot_probs(probs=Y7_pred[index], softpoints=np.matmul(Y7_pred, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="Y7_pred")
