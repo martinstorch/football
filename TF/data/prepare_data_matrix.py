@@ -59,8 +59,8 @@ def build_features(df_data):
   # use FTHG / FTAG as xHG/xAG where expected goals are not available
   df_data.loc[pd.isna(df_data.xHG), "xHG"]=df_data.loc[pd.isna(df_data.xHG), "FTHG"]
   df_data.loc[pd.isna(df_data.xAG), "xAG"]=df_data.loc[pd.isna(df_data.xAG), "FTAG"]
-  df_data.loc[pd.isna(df_data.HGFTa), "HGFTa"]=df_data.loc[pd.isna(df_data.HGFTa), "FTHG"]
-  df_data.loc[pd.isna(df_data.AGFTa), "AGFTa"]=df_data.loc[pd.isna(df_data.AGFTa), "FTAG"]
+  df_data.loc[pd.isna(df_data.HGFTa), "HGFTa"]=df_data.loc[pd.isna(df_data.HGFTa), "FTHG"]*1.05
+  df_data.loc[pd.isna(df_data.AGFTa), "AGFTa"]=df_data.loc[pd.isna(df_data.AGFTa), "FTAG"]*1.05
   df_data.loc[pd.isna(df_data.Hxsg), "Hxsg"]=df_data.loc[pd.isna(df_data.Hxsg), "FTHG"]/2
   df_data.loc[pd.isna(df_data.Axsg), "Axsg"]=df_data.loc[pd.isna(df_data.Axsg), "FTAG"]/2
   df_data.loc[pd.isna(df_data.Hxnsg), "Hxnsg"]=df_data.loc[pd.isna(df_data.Hxnsg), "FTHG"]/2

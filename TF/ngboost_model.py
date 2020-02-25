@@ -1400,8 +1400,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--data_dir",
       type=str,
-      #default="c:/git/football/TF/data",
-      default="d:/gitrepository/Football/football/TF/data",
+      default="c:/git/football/TF/data",
+      #default="d:/gitrepository/Football/football/TF/data",
       help="input data"
   )
   parser.add_argument(
@@ -1842,7 +1842,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=1000, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.01,
                  minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X11_train, Y11_train, X_val = X_test, Y_val = Y1_test,
@@ -1983,7 +1983,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=1000, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
   ngbmodel2 = ngb2.fit(X11_train, np.concatenate([Y2_train, Y2_train], axis=0), 
@@ -2047,7 +2047,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(13),
-                      n_estimators=1000, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
 #  X6_train = X_train
@@ -2108,7 +2108,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
         Dist=k_categorical(5),
-                      n_estimators=1000, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel8 = ngb8.fit(X11_train, np.concatenate([Y8_train]*2, axis=0),
@@ -2158,7 +2158,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=400, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb4.fit(X11_train, np.concatenate([Y4_train, Y4_train], axis=0), X_val = X_test, Y_val = Y4_test,
@@ -2215,7 +2215,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(7),
-                      n_estimators=1000, verbose_eval=10,
+                      n_estimators=2000, verbose_eval=10,
                  learning_rate=0.005,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb5.fit(X11_train, np.concatenate( [Y5_train]*2, axis=0), 
@@ -2303,7 +2303,7 @@ if __name__ == "__main__":
                                          random_state=None, splitter='best'),
           Dist=k_categorical(49), 
                        Score=MLE, 
-                      n_estimators=2000, verbose_eval=10,
+                      n_estimators=4000, verbose_eval=10,
                  learning_rate=0.002,
                  minibatch_frac=0.5) # tell ngboost that there are 3 possible outcomes
 
