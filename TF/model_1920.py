@@ -91,6 +91,7 @@ def get_train_test_data(model_dir, train_seasons, test_seasons, data_dir, useBWI
   
   all_data =  pd.read_csv(data_dir+"/all_features.csv")
   all_labels =  pd.read_csv(data_dir+"/all_labels.csv") 
+  all_labels.drop(columns=["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg"], inplace=True)
   team_mapping = pd.read_csv(data_dir+"/team_mapping.csv") 
   #all_features = pd.read_csv(data_dir+"/lfda_data.csv") 
   feature_names = pd.read_csv(data_dir+"/feature_candidates_long.csv")

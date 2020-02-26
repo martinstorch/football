@@ -2742,7 +2742,7 @@ if __name__ == "__main__":
       prednewdf.drop(["GC", "GCA", "GC2"], axis=1, inplace=True)
       print(pd.concat([prednewdf, all_quotes], axis=1))
 
-  Y7_pred[1000].reshape((7,7))*100
+  #Y7_pred[1000].reshape((7,7))*100
   #Y2_pred[0]
 
   # print("Y3_bw_pred")
@@ -2766,17 +2766,17 @@ if __name__ == "__main__":
   
 
 
-  plt.figure(figsize=(15,10))        
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs())/1))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs())/1))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred)/2))) for i in range(len(spd_test))], label="BW")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/6))) for i in range(len(spd_test))], label="all")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((2*spd_test[i].class_probs()+2*Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))], label="xyz")
-  plt.legend()
-  plt.show()
+  # plt.figure(figsize=(15,10))        
+  # plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs())/1))) for i in range(len(spd_train))])
+  # plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_1_pred_train+Y3_8_pred_train+Y3_45_pred_train+Y3_26_pred_train)/5))) for i in range(len(spd_train))])
+  # plt.plot([np.mean(calc_points(Y3_train, argmax_softpoint((spd_train[i].class_probs()+Y3_45_pred_train+Y3_26_pred_train)/3))) for i in range(len(spd_train))])
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs())/1))) for i in range(len(spd_test))])
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred)/2))) for i in range(len(spd_test))], label="BW")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/6))) for i in range(len(spd_test))], label="all")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((spd_test[i].class_probs()+Y3_26_pred+Y3_45_pred)/3))) for i in range(len(spd_test))])
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint((2*spd_test[i].class_probs()+2*Y3_bw_pred+Y3_1_pred+Y3_8_pred+Y3_45_pred+Y3_26_pred)/8))) for i in range(len(spd_test))], label="xyz")
+  # plt.legend()
+  # plt.show()
   
   plt.figure(figsize=(15,10))        
   plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
