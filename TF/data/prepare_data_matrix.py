@@ -147,12 +147,12 @@ def build_features(df_data):
   lb2['Goals'] = df_data["AGFT"]
   lb1.index=lb1.index*2
   lb2.index=lb1.index+1
-  labels = pd.concat([lb1,lb2], ignore_index=False, sort=True)
+  labels = pd.concat([lb1,lb2], ignore_index=False)
   labels = labels.sort_index()
 
   df1.index=df1.index*2
   df2.index=df1.index+1
-  features = pd.concat([df1,df2], ignore_index=False, sort=True )
+  features = pd.concat([df1,df2], ignore_index=False)
   features = features.sort_index()
   
   print(features[["BW1", "BW0", "BW2"]])

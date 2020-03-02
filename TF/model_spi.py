@@ -1143,7 +1143,7 @@ def predict_checkpoints(model_data, cps, all_data, skip_plotting):
       #pd.DataFrame(predictions["outputs_poisson"]).to_csv(model_dir+'/poisson_data_pred.csv')
       #pd.DataFrame(labels_batch).to_csv(model_dir+'/poisson_data_gt.csv')
       results = [enrich_predictions(predictions, features_batch, labels_batch, team1, team2, datetimes, prefix, data_set, global_step, sess, calc_points_eval) for prefix in themodel.prefix_list ]
-      results = pd.concat(results, sort=False)
+      results = pd.concat(results)
       if not skip_plotting:
         plot_checkpoints(results, predictions)
       results["Date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
