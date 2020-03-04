@@ -1,10 +1,10 @@
-AwayTeam,BWA,BWD,BWH,DOW,Date,HomeTeam,Time
-1. FC Köln,2.10,3.80,3.00,Freitag,06.03.2020,SC Paderborn 07 ,20:00
-1899 Hoffenheim,3.10,3.70,2.10,Samstag,07.03.2020,FC Schalke 04,15:30
-RB Leipzig,1.80,3.80,4.00,Samstag,07.03.2020,VfL Wolfsburg,15:30
-Werder Bremen,3.20,3.40,2.15,Samstag,07.03.2020,Hertha BSC,15:30
-Eintracht Frankfurt,4.25,3.90,1.72,Samstag,07.03.2020,Bayer Leverkusen,15:30
-1. FC Union Berlin,2.90,3.40,2.30,Samstag,07.03.2020,SC Freiburg,15:30
-Borussia Dortmund,2.05,3.80,3.10,Samstag,07.03.2020,Borussia Mönchengladbach,18:30
-FC Augsburg,19.00,9.25,1.10,Sonntag,08.03.2020,FC Bayern München,15:30
-Fortuna Düsseldorf,3.50,3.70,1.95,Sonntag,08.03.2020,FSV Mainz 05,18:00
+Date,Time,HomeTeam,AwayTeam,BWH,BWD,BWA,DOW
+06.03.2020,20:00,SC Paderborn 07 ,1. FC Köln,3.00,3.80,2.10,Freitag
+07.03.2020,15:30,FC Schalke 04,1899 Hoffenheim,2.10,3.70,3.10,Samstag
+07.03.2020,15:30,VfL Wolfsburg,RB Leipzig,4.00,3.80,1.80,Samstag
+07.03.2020,15:30,Hertha BSC,Werder Bremen,2.15,3.40,3.20,Samstag
+07.03.2020,15:30,Bayer Leverkusen,Eintracht Frankfurt,1.72,3.90,4.25,Samstag
+07.03.2020,15:30,SC Freiburg,1. FC Union Berlin,2.30,3.40,2.90,Samstag
+07.03.2020,18:30,Borussia Mönchengladbach,Borussia Dortmund,3.10,3.80,2.05,Samstag
+08.03.2020,15:30,FC Bayern München,FC Augsburg,1.10,9.25,19.50,Sonntag
+08.03.2020,18:00,FSV Mainz 05,Fortuna Düsseldorf,1.95,3.70,3.50,Sonntag

@@ -13,6 +13,7 @@ model_list<-c(
   "d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv",
   "D:\\Models\\model_1920_gd_verify///new_predictions_df.csv",
   "d:\\Models\\model_1920_sky_verify//new_predictions_df.csv",
+  
   "d:\\Models\\model_spi_pistor_verify2/new_predictions_df.csv",
   "D:\\Models\\model_spi_gd_verify///new_predictions_df.csv",
   "d:\\Models\\model_spi_sky_verify//new_predictions_df.csv"
@@ -24,7 +25,7 @@ model_list<-c(
 # predictions_file<-"d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv"
 # predictions_file<-"D:\\Models\\model_1920_gd_verify///new_predictions_df.csv"
 # predictions_file<-"d:\\Models\\model_1920_sky_verify//new_predictions_df.csv"
-for (m in model_list)
+for (m in model_list[7:9])
   create_outputs(m)
 
 create_outputs<-function(predictions_file){

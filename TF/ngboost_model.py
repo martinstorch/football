@@ -1616,7 +1616,10 @@ if __name__ == "__main__":
       axs[0][0].plot([accuracy_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1)) for i in range(len(spd1_test))])
       axs[0][1].set_title('Balanced Accuracy Max. Prob')
       axs[0][1].plot([balanced_accuracy_score(Y1_train, np.argmax(spd1_train[i].class_probs(), axis=1))for i in range(len(spd1_train))])
-      axs[0][1].plot([balanced_accuracy_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1))for i in range(len(spd1_test))])
+      try:
+          axs[0][1].plot([balanced_accuracy_score(Y1_test, np.argmax(spd1_test[i].class_probs(), axis=1))for i in range(len(spd1_test))])
+      except:
+          pass
       axs[1][0].set_title('Log Loss')
       axs[1][0].plot([log_loss(Y1_train, spd1_train[i].class_probs())for i in range(len(spd1_train))])
       axs[1][0].plot([log_loss(Y1_test, spd1_test[i].class_probs(), labels = range(len(set(Y1_train))))for i in range(len(spd1_test))])
@@ -1933,6 +1936,63 @@ if __name__ == "__main__":
       
   plot_feature_importances(ngb, "Model1")    
 
+  
+#######################################################################
+
+  ngb1d = NGBClassifier(Base=DecisionTreeRegressor(max_features=50,
+                                                 ccp_alpha=0.0,
+                                         criterion='friedman_mse', max_depth=1,
+                                         max_leaf_nodes=None,
+                                         min_impurity_decrease=0.0,
+                                         min_impurity_split=None,
+                                         min_samples_leaf=1,
+                                         min_samples_split=2,
+                                         min_weight_fraction_leaf=0.0,
+                                         presort='deprecated',
+                                         random_state=None, splitter='best'),
+          Dist=k_categorical(7),
+                      n_estimators=1000, verbose_eval=10,
+                 learning_rate=0.001,
+                 minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
+  Y1d_train = np.concatenate([Y4_train, Y4_train], axis=0)[Y11_train==1]
+  
+  ngb1d.fit(X11_train[Y11_train==1], Y1d_train, X_val = X_test[Y1_test==1], Y_val = Y4_test[Y1_test==1])
+  
+  spd1d_train, spd1d_test = model_progress(ngb1d, X11_train[Y11_train==1], X_test[Y1_test==1], Y1d_train, Y4_test[Y1_test==1])  
+
+  # predicted probabilities of class 0, 1, and 2 (columns) for each observation (row)
+  Y1d_pred = ngb1d.predict_proba(X_test)
+  Y1d_pred = np.mean([x.class_probs() for x in spd1d_test[50:]], axis=0)
+  Y1d_pred_train = np.mean([x.class_probs() for x in spd1d_train[50:]], axis=0)
+  Y1d_pred_new = np.mean([x.class_probs() for x in ngb1d.staged_pred_dist(X_pred)[50:]], axis=0)
+
+  print(pd.concat([
+          print_performance(Y4_test[Y1_test==1], Y1d_pred, name="ngb1d test"),
+          print_performance(Y1d_train, Y1d_pred_train, name="ngb1d train")
+          ]))
+
+  print(np.argmax(Y1d_pred, axis=1))
+  print(accuracy_score(Y4_test[Y1_test==1], np.argmax(Y1d_pred, axis=1)))
+  print(confusion_matrix(Y4_test[Y1_test==1], np.argmax(Y1d_pred, axis=1)))
+  print(confusion_matrix(Y4_test[Y1_test==1], np.argmax(Y1d_pred, axis=1), normalize='all'))
+  print(classification_report(Y4_test[Y1_test==1], np.argmax(Y1d_pred, axis=1)))
+  print(np.mean(Y1d_pred, axis=0))    
+  print(Counter(np.argmax(Y1d_pred, axis=1)))
+  
+  print(accuracy_score(Y1d_train, np.argmax(Y1d_pred_train, axis=1)))
+  print(confusion_matrix(Y1d_train, np.argmax(Y1d_pred_train, axis=1)))
+  print(confusion_matrix(Y1d_train, np.argmax(Y1d_pred_train, axis=1), normalize='all'))
+  print(classification_report(Y1d_train, np.argmax(Y1d_pred_train, axis=1)))
+  print(np.mean(Y1d_pred_train, axis=0))    
+  print(Counter(np.argmax(Y1d_pred_train, axis=1)))
+  
+  print(np.mean(Y1d_pred_train, axis=0))    
+  print(np.sqrt(np.var(Y1d_pred_train, axis=0)))
+  print(np.min(Y1d_pred_train, axis=0))    
+  print(np.max(Y1d_pred_train, axis=0))    
+  
+  
+  
   #explainer = ngb.get_shap_tree_explainer(param_idx=0)
   
 #  output=0
@@ -2727,7 +2787,7 @@ if __name__ == "__main__":
       #Y7_pred_new[1::2].reshape((-1,7,7)).transpose((0,2,1)).reshape((-1,49))
       
       all_quotes =  pd.read_csv(FLAGS.data_dir+"/all_quotes_bwin.csv")
-    
+      all_quotes =  all_quotes[["HomeTeam", "AwayTeam"  ,   "BWH", "BWD", "BWA", "DOW", "Date", "Time"]]
       prednewdf = pd.DataFrame({
               "GS":prednew[::2]//7, "GC":np.mod(prednew[::2], 7), 
               "GSA":np.mod(prednew[1::2], 7), "GCA":prednew[1::2]//7,
@@ -2778,51 +2838,51 @@ if __name__ == "__main__":
   # plt.legend()
   # plt.show()
   
-  plt.figure(figsize=(15,10))        
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, Y2_pred, spd_test[i].class_probs(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd_test))], label="Y3")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd1_test))], label="Y1")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, spd2_test[i].class_probs(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd2_test))], label="Y2")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].class_probs(), Y8_pred])[-1])))
-        for i in range(len(spd6_test))], label="Y6")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, spd4_test[i].class_probs(), Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd4_test))], label="Y4")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].class_probs(), Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd5_test))], label="Y5")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
-        for i in range(len(spd8_test))], label="Y8")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-          [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
-        for i in range(len(spd8_test))], label="Y8")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-          [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
-        for i in range(len(spd_bwin_test))], label="Y_bwin")
-  plt.legend()
-  plt.show()
+  # plt.figure(figsize=(15,10))        
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, Y2_pred, spd_test[i].class_probs(), Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+  #       for i in range(len(spd_test))], label="Y3")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+  #       for i in range(len(spd1_test))], label="Y1")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, spd2_test[i].class_probs(), Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+  #       for i in range(len(spd2_test))], label="Y2")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, spd6_test[i].class_probs(), Y8_pred])[-1])))
+  #       for i in range(len(spd6_test))], label="Y6")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, spd4_test[i].class_probs(), Y5_pred, Y6_pred, Y8_pred])[-1])))
+  #       for i in range(len(spd4_test))], label="Y4")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, spd5_test[i].class_probs(), Y6_pred, Y8_pred])[-1])))
+  #       for i in range(len(spd5_test))], label="Y5")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #                 [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
+  #       for i in range(len(spd8_test))], label="Y8")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #         [Y3_bw_pred, Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, spd8_test[i].class_probs()])[-1])))
+  #       for i in range(len(spd8_test))], label="Y8")
+  # # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  # #         [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1])))
+  # #       for i in range(len(spd_bwin_test))], label="Y_bwin")
+  # plt.legend()
+  # plt.show()
 
   #plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(spd_bwin_test[i].class_probs()))) for i in range(len(spd_bwin_test))], label="Y_bwin")
-  plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
-          [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[0])))
-        for i in range(len(spd_bwin_test))], label="Y_bwin")
+  # plt.plot([np.mean(calc_points(Y3_test, argmax_softpoint(combine_probs(
+  #         [spd_bwin_test[i].class_probs(), Y1_pred, Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[0])))
+  #       for i in range(len(spd_bwin_test))], label="Y_bwin")
 
   plt.plot([np.mean(calc_softpoints(Y3_test, combine_probs(
                   [Y3_bw_pred, spd1_test[i].class_probs(), Y2_pred, Y3_pred, Y4_pred, Y5_pred, Y6_pred, Y8_pred])[-1]))
         for i in range(len(spd1_test))])
 
   sample_len = 300
-  distribution_array=[spd_bwin_test, spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
+  distribution_array=[spd1_test, spd1_test, spd2_test, spd_test, spd4_test, spd5_test, spd6_test, spd8_test]
   dsi = [np.random.randint(50, len(d), size=sample_len) for d in distribution_array] # 50, len(d)
   points_per_match = [calc_points(Y3_test, argmax_softpoint(combine_probs(
-                  [spd_bwin_test[dsi[0][i]].class_probs(), 
+                  [Y3_bw_pred, 
                    spd1_test[dsi[1][i]].class_probs(), 
                    spd2_test[dsi[2][i]].class_probs(), 
                    spd_test[dsi[3][i]].class_probs(), 
@@ -2859,7 +2919,7 @@ if __name__ == "__main__":
   plt.show()
 
   softpoints_per_match = [calc_softpoints(Y3_test, combine_probs(
-                  [spd_bwin_test[dsi[0][i]].class_probs(), 
+                  [Y3_bw_pred, 
                    spd1_test[dsi[1][i]].class_probs(), 
                    spd2_test[dsi[2][i]].class_probs(), 
                    spd_test[dsi[3][i]].class_probs(), 
@@ -2895,7 +2955,7 @@ if __name__ == "__main__":
   plt.show()
 
 
-  spd_bw_new = ngb_bwin.staged_pred_dist(X_pred_bwin)
+  #spd_bw_new = ngb_bwin.staged_pred_dist(X_pred_bwin)
   spd1_new = ngb.staged_pred_dist(X_pred)
   spd2_new = ngb2.staged_pred_dist(X_pred)
   spd3_new = ngb3.staged_pred_dist(X_pred)
@@ -2904,7 +2964,7 @@ if __name__ == "__main__":
   spd6_new = ngb6.staged_pred_dist(X_pred)
   spd8_new = ngb8.staged_pred_dist(X_pred)
   new_preds_per_match = [combine_probs(
-                  [spd_bw_new[dsi[0][i]].class_probs(), 
+                  [Y3_bw_pred_new, 
                    spd1_new[dsi[1][i]].class_probs(), 
                    spd2_new[dsi[2][i]].class_probs(), 
                    spd3_new[dsi[3][i]].class_probs(), 
