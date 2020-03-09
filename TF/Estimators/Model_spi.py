@@ -777,7 +777,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
 
       with tf.variable_scope("Layer0H"):
           X0H,Z0H = build_dense_layer(X, 16, mode, # 32
-                                    regularizer = l1_regularizer(scale=0.9), # 0.9 0.7 -> 0.4 
+                                    regularizer = l1_regularizer(scale=0.7), # 0.9 0.7 -> 0.4 
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -785,7 +785,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
       with tf.variable_scope("Layer0A"):
           X0A,Z0A = build_dense_layer(X, 16, mode, 
-                                    regularizer = l1_regularizer(scale=0.9), # 0.9 100.0
+                                    regularizer = l1_regularizer(scale=0.7), # 0.9 100.0
                                     keep_prob=1.0, 
                                     batch_norm=True, # True
                                     activation=None, 
@@ -836,7 +836,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         W = tf.get_variable(name="W", regularizer = l2_regularizer(scale=0.00001), 
                             shape=[int(X.shape[1]), output_size],
                             initializer=tf.contrib.layers.xavier_initializer(uniform=False), dtype=X.dtype)
-        create_block_sparse_loss(W, alpha=5.0)
+        create_block_sparse_loss(W, alpha=3.0)
         
         #outputs, index = harmonize_outputs(outputs, label_column_names)
         #eval_metric_ops.update(variable_summaries(outputs, "Outputs_harmonized", mode))

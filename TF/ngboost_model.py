@@ -45,6 +45,7 @@ from collections import Counter
 from sklearn.metrics import confusion_matrix
 import random
 import itertools
+import copy
 
 import shap
 shap.initjs()  
@@ -1833,6 +1834,201 @@ if __name__ == "__main__":
   X1_train[:,1]
   X_train[:,1]
   
+  def spd_to_p(data, slc):
+      data["p"]=np.mean([x.class_probs() for x in data["spd"][slc]], axis=0)
+      return data
+
+  def build_model(k, data, model = None, mf=50, n=1000, lr=0.01, mb=0.75, maxdepth=1):  
+      if not model:
+          
+          model = NGBClassifier(Base=DecisionTreeRegressor(
+              max_features=mf,max_depth=maxdepth,
+              ccp_alpha=0.0,
+              criterion='friedman_mse', 
+              max_leaf_nodes=None,
+              min_impurity_decrease=0.0,                                         
+              min_impurity_split=None,                                         
+              min_samples_leaf=1,                                         
+              min_samples_split=2,                                         
+              min_weight_fraction_leaf=0.0,                                         
+              presort='deprecated',                                         
+              random_state=None, 
+              splitter='best'),
+              Dist=k_categorical(k), n_estimators=n, verbose_eval=10,
+              learning_rate=lr, minibatch_frac=mb) 
+      X_train = data["train"]["X"]
+      Y_train = data["train"]["Y"]
+      XX_train = data["ttrain"]["X"]
+      YY_train = data["ttrain"]["Y"]
+      X_test = data["test"]["X"]
+      Y_test = data["test"]["Y"]
+      X_new = data["new"]["X"]
+      model.fit(XX_train, YY_train, X_val = X_test, Y_val = Y_test)
+  
+      spd_train, spd_test = model_progress(model, X_train, X_test, Y_train, Y_test)  
+      data["train"]["spd"]=spd_train
+      data["test"]["spd"]=spd_test
+      data["new"]["spd"]=model.staged_pred_dist(X_new)
+      spd_to_p(data["train"], slice(50))
+      spd_to_p(data["test"], slice(50))
+      spd_to_p(data["new"], slice(50))
+      return model, data
+ 
+  data = {"train":{}, "test":{}, "ttrain":{}, "new":{}}
+  data["train"]["X"]=X_train
+  data["train"]["Y"]=Y1_train
+  data["ttrain"]["X"]=X11_train
+  data["ttrain"]["Y"]=Y11_train
+  data["test"]["X"]=X_test
+  data["test"]["Y"]=Y1_test
+  data["new"]["X"]=X_pred
+
+  def copydata(data):
+      return {key: {key2: value2 for key2, value2 in value.items()} for key, value in data.items()}
+
+  data1 = copydata(data)
+  data1["name"]="data1"
+  ngb1, _ = build_model(3, data1, n=2000)
+  
+  def compare_performance(data):
+      return pd.concat([
+          print_performance(data["test"]["Y"], data["test"]["p"], name=data["name"]+" test"),
+          print_performance(data["train"]["Y"], data["train"]["p"], name=data["name"]+" train")
+          ], axis=0)
+  
+  def compare_confusion_matrices(data):
+      t0 = confusion_matrix(data["test"]["Y"],  np.argmax(data["test"]["p"], axis=1))
+      t1 = confusion_matrix(data["train"]["Y"], np.argmax(data["train"]["p"], axis=1))
+      return pd.concat([
+          pd.DataFrame(t0),
+          pd.DataFrame(data=[t1[0,:]*0]),
+          pd.DataFrame(t1)])
+
+
+  print(compare_performance(data1))  
+  print(compare_confusion_matrices(data1))  
+
+  data1d = copydata(data)
+  data1d["name"]="data1d"
+  data1d["train"]["X"]=X_train[Y1_train==1]
+  data1d["train"]["Y"]=Y4_train[Y1_train==1]
+  data1d["ttrain"]["X"]=X11_train[Y11_train==1]
+  data1d["ttrain"]["Y"]=np.concatenate([Y4_train, Y4_train], axis=0)[Y11_train==1]
+  data1d["test"]["X"]=X_test[Y1_test==1]
+  data1d["test"]["Y"]=Y4_test[Y1_test==1]
+  ngb1d, _ = build_model(7, data1d, n=1000, mf=50, lr=0.01)
+
+  print(compare_performance(data1d))  
+  print(compare_confusion_matrices(data1d))  
+
+
+
+  decodewin = {k:v for k,v in enumerate([i for i in range(49) if i//7>np.mod(i,7)])}
+  encodewin = {v:k for k,v in enumerate([i for i in range(49) if i//7>np.mod(i,7)])}
+  
+  data1w = copydata(data)
+  data1w["name"]="data1w"
+  data1w["train"]["X"] = X_train[Y1_train==2]
+  data1w["train"]["Y"] = Y3_train[Y1_train==2]
+  data1w["ttrain"]["X"]= X11_train[Y11_train==2]
+  data1w["ttrain"]["Y"]= np.concatenate([Y3_train, Y3_train], axis=0)[Y11_train==2]
+  data1w["test"]["X"]  = X_test[Y1_test==2]
+  data1w["test"]["Y"]  = Y3_test[Y1_test==2]
+
+  data1w["ttrain"]["Y"] = np.array([encodewin[x] for x in data1w["ttrain"]["Y"]])
+  data1w["train"]["Y"]  = np.array([encodewin[x] for x in data1w["train"]["Y"]])
+  data1w["test"]["Y"]   = np.array([encodewin[x] for x in data1w["test"]["Y"]])
+  ngb1w, _ = build_model(21, data1w, n=1000, mf=50, lr=0.01)
+
+  print(compare_performance(data1w))  
+  print(compare_confusion_matrices(data1w))  
+
+
+  decodeloss = {k:v for k,v in enumerate([i for i in range(49) if i//7<np.mod(i,7)])}
+  encodeloss = {v:k for k,v in enumerate([i for i in range(49) if i//7<np.mod(i,7)])}
+  
+  data1l = copydata(data)
+  data1l["name"]="data1l"
+  data1l["train"]["X"] = X_train[Y1_train==0]
+  data1l["train"]["Y"] = Y3_train[Y1_train==0]
+  data1l["ttrain"]["X"]= X11_train[Y11_train==0]
+  data1l["ttrain"]["Y"]= np.concatenate([Y3_train, Y3_train], axis=0)[Y11_train==0]
+  data1l["test"]["X"]  = X_test[Y1_test==0]
+  data1l["test"]["Y"]  = Y3_test[Y1_test==0]
+
+  data1l["ttrain"]["Y"] = np.array([encodeloss[x] for x in data1l["ttrain"]["Y"]])
+  data1l["train"]["Y"]  = np.array([encodeloss[x] for x in data1l["train"]["Y"]])
+  data1l["test"]["Y"]   = np.array([encodeloss[x] for x in data1l["test"]["Y"]])
+  ngb1l, _ = build_model(21, data1l, n=1000, mf=50, lr=0.01)
+
+  print(compare_performance(data1l))  
+  print(compare_confusion_matrices(data1l))  
+
+  data3s = copydata(data)
+  data3s["name"]="data3s" # synthetic probabilities - constructed from a combination of others
+  data3s["train"]["Y"] = Y3_train
+  data3s["test"]["Y"]  = Y3_test
+  
+  def construct_preds(s, r=None):    
+      d = data3s[s]
+      if r is None:
+          spd_d = np.mean([x.class_probs() for x in ngb1d.staged_pred_dist(d["X"])[50:]], axis=0)
+          spd_w = np.mean([x.class_probs() for x in ngb1w.staged_pred_dist(d["X"])[50:]], axis=0)
+          spd_l = np.mean([x.class_probs() for x in ngb1l.staged_pred_dist(d["X"])[50:]], axis=0)
+      else:
+          spd_d = ngb1d.predict_proba(d["X"], max_iter=r)
+          spd_w = ngb1w.predict_proba(d["X"], max_iter=r)
+          spd_l = ngb1l.predict_proba(d["X"], max_iter=r)
+          
+      p = [ data1[s]["p"][:,1] * spd_d[:,i//7] if i//7==np.mod(i,7) else 
+            data1[s]["p"][:,2] * spd_w[:,encodewin[i]] if i//7>np.mod(i,7) else 
+            data1[s]["p"][:,0] * spd_l[:,encodeloss[i]] if i//7<np.mod(i,7) else 
+           spd_l[:,0] # dummy
+           for i in range(49)]
+      # p = [ (np.argmax(data1[s]["p"]*np.array([[1.73, 2.46, 1.65]]), axis=1)==1)* data1[s]["p"][:,1] * spd_d[:,i//7] if i//7==np.mod(i,7) else 
+      #        (np.argmax(data1[s]["p"]*np.array([[1.73, 2.46, 1.65]]), axis=1)==2)* data1[s]["p"][:,2] * spd_w[:,encodewin[i]] if i//7>np.mod(i,7) else 
+      #        (np.argmax(data1[s]["p"]*np.array([[1.73, 2.46, 1.65]]), axis=1)==0)* data1[s]["p"][:,0] * spd_l[:,encodeloss[i]] if i//7<np.mod(i,7) else 
+      #       spd_l[:,0] # dummy
+      #       for i in range(49)]
+      # p = [ (np.argmax(data1[s]["p"], axis=1)==1)* data1[s]["p"][:,1] * spd_d[:,i//7] if i//7==np.mod(i,7) else 
+      #       (np.argmax(data1[s]["p"], axis=1)==2)* data1[s]["p"][:,2] * spd_w[:,encodewin[i]] if i//7>np.mod(i,7) else 
+      #       (np.argmax(data1[s]["p"], axis=1)==0)* data1[s]["p"][:,0] * spd_l[:,encodeloss[i]] if i//7<np.mod(i,7) else 
+      #       spd_l[:,0] # dummy
+      #       for i in range(49)]
+      pp = np.stack(p, axis=1)
+      # print(np.stack([
+      #     np.mean(pp, axis=0),
+      #     np.min(pp, axis=0),
+      #     np.max(pp, axis=0),
+    
+      #     ], axis=0))
+      return pp
+
+  pptrain =   construct_preds("train", 300)
+  pptest  =   construct_preds("test", 300)
+
+  print_performance(data3s["train"]["Y"], pptrain, name="syn train")
+  print_performance(data3s["test"]["Y"], pptest, name="syn test")
+    
+  print_evaluation(Y3_test, pptest, X_test[:,1])
+  print_evaluation(Y3_train, pptrain, X_train[:,1])
+
+  index=-24
+  print(pd.DataFrame({"Y_bwin_raw_test":Y_bwin_raw_test[index], "Y_bwin_pred":Y_bwin_pred[index], "Y1_pred":Y1_pred[index], "Y_spi_pred":Y_spi_pred[index], "Y_spi_raw_test":Y_spi_raw_test[index]}))
+  plot_probs(probs=pptest[index], softpoints=np.matmul(pptest, point_matrix)[index], gs=Y3_test[index]//7, gc=np.mod(Y3_test[index], 7), title="pptest")
+  print(data1["test"]["p"][index])
+
+  print(pptest[index])
+
+
+  Y1d_train = np.concatenate([Y4_train, Y4_train], axis=0)[Y11_train==1]
+  
+  ngb1d.fit(X11_train[Y11_train==1], Y1d_train, X_val = X_test[Y1_test==1], Y_val = Y4_test[Y1_test==1])
+  
+  spd1d_train, spd1d_test = model_progress(ngb1d, X11_train[Y11_train==1], X_test[Y1_test==1], Y1d_train, Y4_test[Y1_test==1])  
+
+  data1["train"].keys()
+  
   ngb = NGBClassifier(Base=DecisionTreeRegressor(max_features=50,
                                                  ccp_alpha=0.0,
                                          criterion='friedman_mse', max_depth=1,
@@ -1845,7 +2041,7 @@ if __name__ == "__main__":
                                          presort='deprecated',
                                          random_state=None, splitter='best'),
           Dist=k_categorical(3),
-                      n_estimators=2000, verbose_eval=10,
+                      n_estimators=1000, verbose_eval=10,
                  learning_rate=0.01,
                  minibatch_frac=0.75) # tell ngboost that there are 3 possible outcomes
   ngbmodel = ngb.fit(X11_train, Y11_train, X_val = X_test, Y_val = Y1_test,

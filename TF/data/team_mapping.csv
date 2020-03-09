@@ -1,30 +1,30 @@
-Teamname,TeamID
-Augsburg,0
-Bayern Munich,1
-Bochum,2
-Braunschweig,3
-Darmstadt,4
-Dortmund,5
-Ein Frankfurt,6
-FC Koln,7
-Fortuna Dusseldorf,8
-Freiburg,9
-Greuther Furth,10
-Hamburg,11
-Hannover,12
-Hertha,13
-Hoffenheim,14
-Ingolstadt,15
-Kaiserslautern,16
-Leverkusen,17
-M'gladbach,18
-Mainz,19
-Nurnberg,20
-Paderborn,21
-RB Leipzig,22
-Schalke 04,23
-St Pauli,24
-Stuttgart,25
-Union Berlin,26
-Werder Bremen,27
-Wolfsburg,28
+TeamID,Teamname
+0,Augsburg
+1,Bayern Munich
+2,Bochum
+3,Braunschweig
+4,Darmstadt
+5,Dortmund
+6,Ein Frankfurt
+7,FC Koln
+8,Fortuna Dusseldorf
+9,Freiburg
+10,Greuther Furth
+11,Hamburg
+12,Hannover
+13,Hertha
+14,Hoffenheim
+15,Ingolstadt
+16,Kaiserslautern
+17,Leverkusen
+18,M'gladbach
+19,Mainz
+20,Nurnberg
+21,Paderborn
+22,RB Leipzig
+23,Schalke 04
+24,St Pauli
+25,Stuttgart
+26,Union Berlin
+27,Werder Bremen
+28,Wolfsburg
