@@ -103,7 +103,7 @@ def load_bwin_quotes():
   r = session.get(url)
   r.html.render()
   #print(r.html.html)
-  print(re.search("gladbach", r.html.html))
+  #print(re.search("gladbach", r.html.html))
   
   with open("bwin.html", "w+", encoding="utf-8") as f:
     f.write(r.html.html)
@@ -129,6 +129,7 @@ def load_bwin_quotes():
     span = pdiv.find('div')
     matchdate = span.get_text().strip()
     dow, mdate = matchdate.split(' - ')
+    mdate = datetime.strptime(mdate, '%d.%m.%y').strftime('%d.%m.%Y') # convert two-digit year to four-digit
     tr = q.find('ms-option-group')
     pa = q.find_all('div', attrs={'class':'participant'})
     hteam = pa[0].get_text().strip()    
