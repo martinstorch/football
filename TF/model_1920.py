@@ -1066,7 +1066,7 @@ def evaluate_checkpoints(model_data, checkpoints, use_swa, eval_stop=False):
   saver = tf.train.Saver()
   cps_done = []
   for sig in ('TERM', 'INT'):
-      signal.signal(getattr(signal, 'SIG'+sig), quit);
+      signal.signal(getattr(signal, 'SIG'+sig), sys.exit);
   exit_ = Event()
   with tf.Session() as sess:
     while not exit_.is_set():
@@ -1422,7 +1422,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_steps", type=int,
-      default=200000,
+      default=30000,
       help="Number of training steps."
   )
   parser.add_argument(
@@ -1444,14 +1444,14 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
-      #default="1314,1415,1516,1617,1718,1819,1920", #
-      default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
+      default="1314,1415,1516,1617,1718,1819,1920", #
+      #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
       help="Path to the training data."
   )
   parser.add_argument(
       "--test_data", type=str,
-      #default="0910,1011,1112,1213", #
-      default="1920",
+      default="0910,1011,1112,1213", #
+      #default="1920",
       help="Path to the test data."
   )
   parser.add_argument(
@@ -1464,16 +1464,16 @@ if __name__ == "__main__":
   parser.add_argument(
       "--model_dir",
       type=str,
-      default="d:/Models/model_1920_pistor_16",
+      default="d:/Models/model_1920_gd",
       help="Base directory for output models."
   )
   parser.add_argument(
       "--target_system",
       type=str,
-      default="Pistor",
+      #default="Pistor",
       #default="Sky",
       #default="TCS",
-      #default="GoalDiff",
+      default="GoalDiff",
       help="Point system to optimize for"
   )
   parser.add_argument(
@@ -1491,8 +1491,8 @@ if __name__ == "__main__":
   parser.add_argument(
       "--modes",
       type=str,
-      default="static",
-      #default="train",
+      # default="static",
+      default="train",
       #default="eval_stop",
       #default="eval",
       #default="predict",

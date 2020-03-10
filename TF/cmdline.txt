@@ -102,35 +102,35 @@ del d:\Models\model_1920_sky\new_predictions_df.csv
 del d:\Models\model_1920_pistor_verify\new_predictions_df.csv
 del d:\Models\model_1920_gd_verify\new_predictions_df.csv
 del d:\Models\model_1920_sky_verify\new_predictions_df.csv
-activate tfgpu
+activate tfgpu1
 c:
 cd c:\git\football\TF\data
 python get_all_data.py
 python prepare_data_matrix.py
-
+ 
 	cd c:\git\football\TF\	
 	python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 	python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 	python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 
-	activate tfgpu
+	activate tfgpu1
 	cd c:\git\football\TF\	 
 	python model_1920.py --modes=train --train_steps=30000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
-	python model_1920.py --modes=eval_stop --checkpoints=90000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
-	python model_1920.py --modes=predict --checkpoints=90000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+	python model_1920.py --modes=eval_stop --checkpoints=150000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
+	python model_1920.py --modes=predict --checkpoints=150000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd
 	python model_1920.py --modes=train --train_steps=30000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
-	python model_1920.py --modes=eval_stop --checkpoints=90000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
-	python model_1920.py --modes=predict --checkpoints=90000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+	python model_1920.py --modes=eval_stop --checkpoints=150000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
+	python model_1920.py --modes=predict --checkpoints=150000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor
 	python model_1920.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=d:/Models/model_1920_sky --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
-	python model_1920.py --modes=predict --checkpoints=90000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
-	python model_1920.py --modes=eval_stop --checkpoints=90000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+	python model_1920.py --modes=predict --checkpoints=150000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
+	python model_1920.py --modes=eval_stop --checkpoints=150000: --target_system=Sky --model_dir=d:/Models/model_1920_sky
 
 
 
 del d:\Models\model_spi_pistor_verify2\new_predictions_df.csv
 del d:\Models\model_spi_gd_verify\new_predictions_df.csv
 del d:\Models\model_spi_sky_verify\new_predictions_df.csv
-activate tfgpu
+activate tfgpu1
 cd c:\git\football\TF\	 
 rmdir /S /Q d:\Models\model_spi_pistor_verify
 rmdir /S /Q d:\Models\model_spi_gd_verify
@@ -142,9 +142,9 @@ python model_spi.py --modes=eval_stop --checkpoints=100: --target_system=GoalDif
 python model_spi.py --modes=train --train_steps=60000 --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_spi.py --modes=eval_stop --checkpoints=100: --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 
-python model_spi.py --modes=predict --checkpoints=80000: --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_spi.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_spi.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=predict --checkpoints=80000:120000 --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=predict --checkpoints=30000:60000 --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=predict --checkpoints=30000:60000 --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 
 
 python model_spi.py --modes=train --train_steps=30000 --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 

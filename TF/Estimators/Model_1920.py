@@ -481,8 +481,10 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         T2_GHT = labels[:,3]
         #T1_GH2 = labels[:,16]
         #T2_GH2 = labels[:,17]
-        label_oh_h1 = tf.one_hot(tf.cast(T1_GHT*7+T2_GHT, tf.int32), 49, dtype=X.dtype)
+        indices = tf.cast(T1_GHT*7+T2_GHT, tf.int32)
+        label_oh_h1 = tf.one_hot(indices, 49, dtype=X.dtype, axis=1)
         label_features_h1 = tf.matmul(label_oh_h1, t_map)
+
       else:
         label_features_h1 = None
         
@@ -521,10 +523,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       #test_p_pred_12_h2 = tf.print(test_p_pred_12_h2, data=[test_p_pred_12_h2[:,0,:]], message="Individual probabilities")
       mask = tf.reshape(tf.tile(test_label_h1_mask, [1,tf.shape(X)[0]]), (49, tf.shape(X)[0], 49)),
 
-      print(test_p_pred_12_h2 )
-      print(mask)
       test_p_pred_12_h2 = tf.reshape(tf.minimum(test_p_pred_12_h2 , mask), (49, tf.shape(X)[0], 49))
-      print(test_p_pred_12_h2 )
       p_pred_12_h2 = tf.expand_dims(tf.transpose(p_pred_12_h1, (1,0)), axis=2) * test_p_pred_12_h2  # prior * likelyhood
       p_pred_12_h2 = tf.reduce_sum(p_pred_12_h2 , axis=0) # posterior # axis 0: batch, 1: H2 scores
         
@@ -543,6 +542,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
       
   def buildGraph(features, labels, mode, params, t_is_home_bool): 
       print(mode)
+      print(labels)
       eval_metric_ops = {}
       with tf.variable_scope("Input_Layer"):
         features_newgame = features['newgame']
@@ -1930,6 +1930,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         hist_idx = tf.squeeze(hist_idx)
         hist_idx = tf.cast(hist_idx, tf.int32)
         selected_batch_shuffled = tf.where(mhseqlen<=2, tf.squeeze(selected_batch), hist_idx)
+        selected_batch_shuffled = tf.reshape(selected_batch_shuffled, shape=tf.shape(mhseqlen)) # apply shape again, so that downstream tensors get a proper shape
         labels_shuffled = tf.gather(alllabels_placeholder, selected_batch_shuffled)
         labels_shuffled = tf.cast(labels_shuffled, tf.float32)
         return labels_shuffled 

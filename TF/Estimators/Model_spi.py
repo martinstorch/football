@@ -1998,6 +1998,7 @@ def create_estimator(model_dir, label_column_names, my_feature_columns, thedata,
         hist_idx = tf.squeeze(hist_idx)
         hist_idx = tf.cast(hist_idx, tf.int32)
         selected_batch_shuffled = tf.where(mhseqlen<=2, tf.squeeze(selected_batch), hist_idx)
+        selected_batch_shuffled = tf.reshape(selected_batch_shuffled, shape=tf.shape(mhseqlen)) # apply shape again, so that downstream tensors get a proper shape
         labels_shuffled = tf.gather(alllabels_placeholder, selected_batch_shuffled)
         labels_shuffled = tf.cast(labels_shuffled, tf.float32)
         return labels_shuffled 

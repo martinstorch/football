@@ -8,8 +8,8 @@ library(ggplot2)
 
 model_list<-c(
   "d:\\Models\\model_1920_pistor/new_predictions_df.csv",
-  "D:\\Models\\model_1920_gd///new_predictions_df.csv",
   "d:\\Models\\model_1920_sky//new_predictions_df.csv",
+  "D:\\Models\\model_1920_gd///new_predictions_df.csv",
   "d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv",
   "D:\\Models\\model_1920_gd_verify///new_predictions_df.csv",
   "d:\\Models\\model_1920_sky_verify//new_predictions_df.csv",
@@ -25,7 +25,7 @@ model_list<-c(
 # predictions_file<-"d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv"
 # predictions_file<-"D:\\Models\\model_1920_gd_verify///new_predictions_df.csv"
 # predictions_file<-"d:\\Models\\model_1920_sky_verify//new_predictions_df.csv"
-for (m in model_list[7:9])
+for (m in model_list[1:3])
   create_outputs(m)
 
 create_outputs<-function(predictions_file){
@@ -123,7 +123,7 @@ evaluate2<-function(t){
     
 }
 
-for (i in 1:9)
+for (i in 1:10)
   print(evaluate2(i))
 dev.off()
 

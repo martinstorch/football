@@ -12,9 +12,10 @@ import json
 from urllib import request
 import os 
 import ssl
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from requests_html import HTMLSession
 import re
+import sys
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -103,7 +104,9 @@ def load_bwin_quotes():
   r = session.get(url)
   r.html.render()
   #print(r.html.html)
-  #print(re.search("gladbach", r.html.html))
+  if re.search("gladbach", r.html.html) is None:
+    print("Rendering not successful")
+    sys.exit()
   
   with open("bwin.html", "w+", encoding="utf-8") as f:
     f.write(r.html.html)
@@ -123,13 +126,30 @@ def load_bwin_quotes():
   
   for q in quotes:
     matchtimer = q.find("ms-prematch-timer") #, attr={"class":"timer-badge"})
-    mdate, timestr = matchtimer.get_text().strip().split()
+    datetm = matchtimer.get_text().strip().split()
+    if len(datetm)>2:
+      datetm = matchtimer.get_text().strip().split(" / ")
+      print(datetm)
+    mdate, timestr = datetm
 
     pdiv = q.find_previous('ms-date-header', attrs={'class':'date-group'})
     span = pdiv.find('div')
     matchdate = span.get_text().strip()
-    dow, mdate = matchdate.split(' - ')
-    mdate = datetime.strptime(mdate, '%d.%m.%y').strftime('%d.%m.%Y') # convert two-digit year to four-digit
+    dowdate = matchdate.split(' - ')
+    if len(dowdate)<2:
+      dowdate = matchdate.split(' / ')
+      print(dowdate)
+    if matchdate=="Morgen":
+      mdate = datetime.now() + timedelta(days=1)
+      print(mdate)
+      dow = mdate.strftime('%A')
+      print(dow)
+      mdate = mdate.strftime('%d.%m.%Y')
+    else:
+      dow, mdate = dowdate
+      mdate = datetime.strptime(mdate, '%d.%m.%y').strftime('%d.%m.%Y') # convert two-digit year to four-digit
+      
+    print(mdate)
     tr = q.find('ms-option-group')
     pa = q.find_all('div', attrs={'class':'participant'})
     hteam = pa[0].get_text().strip()    
