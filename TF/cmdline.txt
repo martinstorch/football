@@ -135,11 +135,11 @@ cd c:\git\football\TF\
 rmdir /S /Q d:\Models\model_spi_pistor_verify
 rmdir /S /Q d:\Models\model_spi_gd_verify
 rmdir /S /Q d:\Models\model_spi_sky_verify
-python model_spi.py --modes=train --train_steps=60000 --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=train --train_steps=10000 --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_spi.py --modes=eval_stop --checkpoints=100: --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_spi.py --modes=train --train_steps=60000 --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=train --train_steps=10000 --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_spi.py --modes=eval_stop --checkpoints=100: --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_spi.py --modes=train --train_steps=60000 --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_spi.py --modes=train --train_steps=10000 --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_spi.py --modes=eval_stop --checkpoints=100: --target_system=Sky --model_dir=d:/Models/model_spi_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 
 python model_spi.py --modes=predict --checkpoints=80000:120000 --target_system=Pistor --model_dir=d:/Models/model_spi_pistor_verify2 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
@@ -152,12 +152,15 @@ python model_spi.py --modes=eval_stop --checkpoints=60000: --target_system=GoalD
 python model_spi.py --modes=predict --checkpoints=60000: --target_system=GoalDiff --model_dir=d:/Models/model_spi_gd
 
 
-python model_1920.py --modes=train --train_steps=30000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_1920.py --modes=eval_stop --checkpoints=120000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_1920.py --modes=train --train_steps=30000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_1920.py --modes=eval_stop --checkpoints=120000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_1920.py --modes=train --train_steps=30000 --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
-python model_1920.py --modes=eval_stop --checkpoints=120000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=train --train_steps=60000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=train --train_steps=60000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=train --train_steps=60000 --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 
 ###################################################################################################################
 
