@@ -1,3 +1,20 @@
+activate tfgpu1
+c:
+cd c:\git\football\TF\data
+python get_all_data.py
+python prepare_data_matrix.py
+del d:\Models\model_1920_pistor_verify3\new_predictions_df.csv
+del d:\Models\model_1920_gd_verify3\new_predictions_df.csv
+del d:\Models\model_1920_sky_verify3\new_predictions_df.csv
+cd c:\git\football\TF
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
+
+
+
+
+
 python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=train --train_steps=20000 --save_steps=500
 python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=eval --checkpoint=41000:
 python rnn_model36.py --model_dir c:\models\rnn_pistor --target_system=Pistor --modes=predict --checkpoint=41000: --skip_plotting=True
@@ -158,12 +175,28 @@ python model_1920.py --modes=train --train_steps=60000 --target_system=GoalDiff 
 python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_1920.py --modes=train --train_steps=60000 --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
 python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" --useBWIN=True
+del d:\Models\model_1920_pistor_verify3\new_predictions_df.csv
+del d:\Models\model_1920_gd_verify3\new_predictions_df.csv
+del d:\Models\model_1920_sky_verify3\new_predictions_df.csv
 python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky_verify3 --useBWIN=True --train_data="0910, 1011, 1112, 1213,1314,1415, 1516, 1617, 1718, 1819" --test_data="1920" 
 
+python model_1920.py --modes=train --train_steps=60000 --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd2 --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd2
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=GoalDiff --model_dir=d:/Models/model_1920_gd2
+python model_1920.py --modes=train --train_steps=60000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2 --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2
+python model_1920.py --modes=train --train_steps=60000 --target_system=Sky --model_dir=d:/Models/model_1920_sky2 --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
+python model_1920.py --modes=eval_stop --checkpoints=1000: --target_system=Sky --model_dir=d:/Models/model_1920_sky2
+python model_1920.py --modes=predict --checkpoints=30000: --target_system=Sky --model_dir=d:/Models/model_1920_sky2
+
 ###################################################################################################################
 
+python model_1920.py --modes=train --train_steps=10000 --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2 --train_data="1314,1415, 1516, 1617, 1718, 1819, 1920" --test_data="0910, 1011, 1112, 1213" 
+python model_1920.py --modes=eval_stop --checkpoints=65000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2
+python model_1920.py --modes=predict --checkpoints=65000: --target_system=Pistor --model_dir=d:/Models/model_1920_pistor2
 
 
 	

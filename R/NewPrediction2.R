@@ -6,27 +6,6 @@ library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 
-model_list<-c(
-  "d:\\Models\\model_1920_pistor2/new_predictions_df.csv",
-  "d:\\Models\\model_1920_sky2/new_predictions_df.csv",
-  "D:\\Models\\model_1920_gd2/new_predictions_df.csv",
-  "d:\\Models\\model_1920_pistor_verify3/new_predictions_df.csv",
-  "D:\\Models\\model_1920_gd_verify3/new_predictions_df.csv",
-  "d:\\Models\\model_1920_sky_verify3/new_predictions_df.csv",
-  
-  "d:\\Models\\model_spi_pistor_verify2/new_predictions_df.csv",
-  "D:\\Models\\model_spi_gd_verify///new_predictions_df.csv",
-  "d:\\Models\\model_spi_sky_verify//new_predictions_df.csv"
-)
-
-# predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
-# predictions_file<-"D:\\Models\\model_1920_gd///new_predictions_df.csv"
-# predictions_file<-"d:\\Models\\model_1920_sky//new_predictions_df.csv"
-# predictions_file<-"d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv"
-# predictions_file<-"D:\\Models\\model_1920_gd_verify///new_predictions_df.csv"
-# predictions_file<-"d:\\Models\\model_1920_sky_verify//new_predictions_df.csv"
-for (m in model_list[1])
-  create_outputs(m)
 
 create_outputs<-function(predictions_file){
 
@@ -123,7 +102,7 @@ evaluate2<-function(t){
     
 }
 
-for (i in 1:10)
+for (i in 1:9)
   print(evaluate2(i))
 dev.off()
 
@@ -149,3 +128,26 @@ dev.off()
 # evaluate2(17)
 # evaluate2(18)
 # 
+
+model_list<-c(
+  #  "d:\\Models\\model_1920_pistor2/new_predictions_df.csv",
+  #  "d:\\Models\\model_1920_sky2/new_predictions_df.csv",
+  #  "D:\\Models\\model_1920_gd2/new_predictions_df.csv",
+  "d:\\Models\\model_1920_pistor_verify3/new_predictions_df.csv",
+  "D:\\Models\\model_1920_gd_verify3/new_predictions_df.csv",
+  "d:\\Models\\model_1920_sky_verify3/new_predictions_df.csv"
+  
+  #  "d:\\Models\\model_spi_pistor_verify2/new_predictions_df.csv",
+  #  "D:\\Models\\model_spi_gd_verify///new_predictions_df.csv",
+  #  "d:\\Models\\model_spi_sky_verify//new_predictions_df.csv"
+)
+
+# predictions_file<-"d:\\Models\\model_1920_pistor/new_predictions_df.csv"
+# predictions_file<-"D:\\Models\\model_1920_gd///new_predictions_df.csv"
+# predictions_file<-"d:\\Models\\model_1920_sky//new_predictions_df.csv"
+# predictions_file<-"d:\\Models\\model_1920_pistor_verify/new_predictions_df.csv"
+# predictions_file<-"D:\\Models\\model_1920_gd_verify///new_predictions_df.csv"
+# predictions_file<-"d:\\Models\\model_1920_sky_verify//new_predictions_df.csv"
+for (m in model_list[1:3])
+  create_outputs(m)
+
