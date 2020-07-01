@@ -38,6 +38,8 @@ from threading import Event
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.lines as lines
+from matplotlib import collections  as mc
 
 # from tensorflow.python.training.session_run_hook import SessionRunHook
 # from tensorflow.contrib.layers import l2_regularizer
@@ -1525,23 +1527,25 @@ if __name__ == "__main__":
     #     # print([l.output for l in  m.layers])
     #     newmodel = tf.keras.Model(inputs=m.inputs, outputs=[m.outputs[0], m.layers[1]], name="exp_model")
     #     return newmodel
-    latent_dim = 3
+    latent_dim = 4
     def build_model(x, y):
         # Build model.
-        num_inducing_points = 40
+        num_inducing_points = 30
         x_range = [-10, 10]
         print(x.shape[1])
         # with tf.device("/cpu:0"):
         inputLayer = tf.keras.layers.Input(shape=(x.shape[1],), dtype=tf.float64)
         print(inputLayer.shape)
-        dense = tf.keras.layers.Dense(latent_dim, kernel_initializer='normal', use_bias=True)(inputLayer)
+        dense = tf.keras.layers.Dense(latent_dim, kernel_initializer='normal', use_bias=True,
+                                      kernel_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                                      activity_regularizer=tf.keras.regularizers.l1_l2(l1=1e-5, l2=1e-4))(inputLayer)
         vgp = tfp.layers.VariationalGaussianProcess(
                 jitter = 1e-6,
                 num_inducing_points=num_inducing_points,
                 kernel_provider=RBFKernelFn(),
                 event_shape=[y.shape[1]],
                 inducing_index_points_initializer=tf.constant_initializer(
-                    np.random.rand(y.shape[1], num_inducing_points, latent_dim) * 2 - 1
+                    np.random.rand(y.shape[1], num_inducing_points, latent_dim) * 40 - 20
                     # np.stack([
                     #     np.stack(
                     #         [np.linspace(start=-10,  # +i*0.5-j*0.333,
@@ -1568,14 +1572,14 @@ if __name__ == "__main__":
         batch_size = 64
         # with tf.device("/cpu:0"):
         #loss = lambda y, rv_y: rv_y.variational_loss(y, kl_weight=np.array(batch_size, x.dtype) / x.shape[0])
-        vgp = model.layers[2]#.output[0]
+        #vgp = model.layers[2]#.output[0]
         n_train_samples = x.shape[0]
 
         def var_loss(y, m):
             return m.variational_loss(tf.math.log(0.1+y), kl_weight=np.array(batch_size, x.dtype) / n_train_samples)
 
         loss = lambda y, m: -m.log_prob(y)
-        model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss=[var_loss, loss], metrics=['accuracy'])
+        model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.003), loss=[var_loss, loss], metrics=['accuracy'])
         model.fit(x, y, batch_size=batch_size, epochs=200, verbose=True)
 
 
@@ -1610,10 +1614,10 @@ if __name__ == "__main__":
     #         if i % (num_iters / num_logs) == 0 or i + 1 == num_iters:
     #             print(i, loss.numpy())
     #
-
+    feature_idx = list(range(0,100))
     Y_train = labels_array[train_idx, 0:16]
     Y_test = labels_array[test_idx, 0:16]
-    model = build_model(X_train[:, 0:36], Y_train)  # [:, 0:36]
+    model = build_model(X_train[:, feature_idx], Y_train)  # [:, 0:36]
     vgp = model.layers[1]
     print(model.summary())
     print("outputs")
@@ -1623,35 +1627,53 @@ if __name__ == "__main__":
     print("")
     w0 = {w.name: w.numpy() for w in model.weights}
     #print([v for v in model.layers[1].variables if re.match(".*inducing_index_points:0$", v.name)])
-    train_model(model, X_train[:, 0:36], Y_train)
+    train_model(model, X_train[:, feature_idx], Y_train)
     w1 = {w.name: w.numpy() for w in model.weights}
 
-    print({n: w1[n] - w0[n] for n in w0.keys()})
+    #print({n: w1[n] - w0[n] for n in w0.keys()})
 
     inducing_index_points = model.layers[2].weights[2]
     inducing_index_points_start = w0[[v for v in w0.keys() if bool(re.match(".*inducing_index_points:0$", v))][0]]
+    obs_loc_start = w0[[v for v in w0.keys() if bool(re.match(".*variational_inducing_observations_loc:0$", v))][0]]
+    obs_loc_end = w1[[v for v in w1.keys() if bool(re.match(".*variational_inducing_observations_loc:0$", v))][0]]
+    obs_scale_start = w0[[v for v in w0.keys() if bool(re.match(".*variational_inducing_observations_scale:0$", v))][0]]
+    obs_scale_end = w1[[v for v in w1.keys() if bool(re.match(".*variational_inducing_observations_scale:0$", v))][0]]
+    #obs_scale_end.shape
 
-    import matplotlib.lines as lines
-    from matplotlib import collections  as mc
+    fig, ax = plt.subplots(4, 4, figsize=(8, 8), sharex="all", sharey="all")
+    for i in range(4):
+        for j in range(4):
+            sns.heatmap(obs_scale_end[i+4*j], ax=ax[i][j])
+    plt.show()
 
-    test_range = range(500)
-    dense_activations = model(X_test[test_range, 0:36])[2]
+    test_range = slice(0,500)
+    dense_activations = model(X_test[test_range, feature_idx])[2]
     fig, ax = plt.subplots(latent_dim, latent_dim, figsize=(8, 8))
     for i in range(latent_dim):
         for j in range(latent_dim):
-            ax[i][j].scatter(dense_activations[:,i], dense_activations[:,j], c=np.sign(Y_test[test_range, 0] - Y_test[test_range, 1]), alpha=0.2)
-            for z in range(2): # inducing_index_points.shape[0]
-                ax[i][j].scatter(inducing_index_points[z, :, i], inducing_index_points[z, :, j], c="r", s=2, marker="o")
-                ax[i][j].scatter(inducing_index_points_start[z, :, i], inducing_index_points_start[z, :, j], c="b", s=1, marker=".")
+            ax[i][j].scatter(dense_activations[:,i], dense_activations[:,j], alpha=0.2,
+                             #c= np.log(1+Y_test[test_range, 0])) #,
+                c=np.sign(Y_test[test_range, 0] - Y_test[test_range, 1]))
+            for z in range(0,1): # inducing_index_points.shape[0]
+                ax[i][j].scatter(inducing_index_points[z, :, i], inducing_index_points[z, :, j], c=obs_loc_end[z], s=5, marker="o")
+                #ax[i][j].scatter(inducing_index_points_start[z, :, i], inducing_index_points_start[z, :, j], c="b", s=1, marker=".")
                 lines = list(zip(zip(inducing_index_points_start[z, :, i], inducing_index_points_start[z, :, j]),
                                         zip(inducing_index_points[z, :, i].numpy(), inducing_index_points[z, :, j].numpy())))
                 line = mc.LineCollection(lines, linewidths=1)
                 ax[i][j].add_collection(line)
+                for i2 in range(obs_scale_end.shape[1]):
+                    for j2 in range(obs_scale_end.shape[1]):
+                        if obs_scale_end[0,i2,j2]>0.5:
+                            ax[i][j].plot((inducing_index_points[z, i2, i].numpy(), inducing_index_points[z, j2, i].numpy()),
+                                          (inducing_index_points[z, i2, j].numpy(), inducing_index_points[z, j2, j].numpy()), ':', c="r")
+                        if obs_scale_end[0,i2,j2]<-0.3:
+                            ax[i][j].plot((inducing_index_points[z, i2, i].numpy(), inducing_index_points[z, j2, i].numpy()),
+                                          (inducing_index_points[z, i2, j].numpy(), inducing_index_points[z, j2, j].numpy()), ':', c="black")
+
     plt.show()
 
 
-    test_range = range(500)
-    yhat = model(X_test[test_range, 0:36])
+    yhat = model(X_test[test_range, feature_idx])
     yhat = yhat[1]
     # yhat.sample()
     #yhat.variational_loss(Y_test[test_range, 0:36])
@@ -1669,10 +1691,10 @@ if __name__ == "__main__":
     # plt.close()
 
     fig, ax = plt.subplots(2,2,figsize=(8, 8))
-    sns.boxplot(y=model(X_train[500:800, 0:36])[1].mean().numpy()[..., 1], x=Y_train[500:800, 1], ax=ax[0,0])
-    sns.boxplot(y=model(X_train[500:800, 0:36])[0].mean().numpy()[..., 1], x=Y_train[500:800, 1], ax=ax[1,0])
-    sns.boxplot(y=model(X_test[test_range, 0:36])[1].mean().numpy()[..., 1], x=Y_test[test_range, 1], ax=ax[0,1])
-    sns.boxplot(y=model(X_test[test_range, 0:36])[0].mean().numpy()[..., 1], x=Y_test[test_range, 1], ax=ax[1,1])
+    sns.boxplot(y=model(X_train[500:800, feature_idx])[1].mean().numpy()[..., 1], x=Y_train[500:800, 1], ax=ax[0,0])
+    sns.boxplot(y=model(X_train[500:800, feature_idx])[0].mean().numpy()[..., 1], x=Y_train[500:800, 1], ax=ax[1,0])
+    sns.boxplot(y=model(X_test[test_range, feature_idx])[1].mean().numpy()[..., 1], x=Y_test[test_range, 1], ax=ax[0,1])
+    sns.boxplot(y=model(X_test[test_range, feature_idx])[0].mean().numpy()[..., 1], x=Y_test[test_range, 1], ax=ax[1,1])
     plt.show()
 
     num_samples = 7
@@ -1689,14 +1711,14 @@ if __name__ == "__main__":
                    )
     plt.show()
 
-    vgp_means = model(X_test[test_range, 0:36])[0].mean().numpy()
+    vgp_means = model(X_test[test_range, feature_idx])[0].mean().numpy()
     fig, axis = plt.subplots(3, 3, figsize=(8, 8))
     for i in range(8):
         ax = axis[i // 3][np.mod(i, 3)]
         ax.scatter(vgp_means[:, 2 * i],
                    vgp_means[..., 2 * i + 1],
                    #c=Y_test[test_range, 2 * i],  # -Y_test[test_range, 2*i+1],
-                   c=np.sign(Y_test[test_range, 0]-Y_test[test_range, 1]).astype(int),
+                   c=np.sign(Y_test[test_range, 2 * i]-Y_test[test_range, 2 * i+1]).astype(int),
                    alpha=0.2,
                    #cmap='RdYlGn',
                    #cmap=["r", "g", "b"],
