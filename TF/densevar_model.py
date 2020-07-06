@@ -1227,7 +1227,7 @@ if __name__ == "__main__":
         # default="0910,1112,1314,1516,1718,1920", #
         # default="1314,1415,1516,1617,1718,1819,1920", #
         #default="0910,1011,1112,1213,1314",
-        default="1415,1516,1617,1718", #
+        default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
         #default="1617,1718",  #
         # default="1819,1920",
         help="Path to the training data."
@@ -1489,13 +1489,13 @@ if __name__ == "__main__":
         ])
 
     model = tf.keras.Sequential([ #tfd.JointDistributionSequential([ #
-        tfp.layers.DenseVariational(Y_train.shape[1]*2, posterior_mean_field, prior_trainable, kl_weight=0.001 / x_train.shape[0]*x_train.shape[1], input_dim=x_train.shape[1]),
-        tfp.layers.DistributionLambda(
-        #     lambda t: tfd.Poisson(log_rate=t)
-        # )
-            lambda t: tfd.Normal(loc=t[..., :Y_train.shape[1]],
-                             scale=1e-3 + tf.math.softplus(0.01 * t[..., Y_train.shape[1]:]))),
-
+        tfp.layers.DenseVariational(Y_train.shape[1], posterior_mean_field, prior_trainable, kl_weight=0.01 / x_train.shape[0]*x_train.shape[1], input_dim=x_train.shape[1]),
+        # tfp.layers.DistributionLambda(
+        # #     lambda t: tfd.Poisson(log_rate=t)
+        # # )
+        #     lambda t: tfd.Normal(loc=t[..., :Y_train.shape[1]],
+        #                      scale=1e-3 + tf.math.softplus(0.01 * t[..., Y_train.shape[1]:]))),
+        #
         tfp.layers.DistributionLambda(lambda t: tfd.Poisson(rate=tf.math.softplus(0.01 * t)))
     ])
 
@@ -1504,7 +1504,7 @@ if __name__ == "__main__":
     model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss=negloglik, metrics=['mse', "mae"])
     model.summary()
     #model.fit(x=x_train_scaled, y=np.log(0.1+Y_train), epochs=300, verbose=True, batch_size=256);
-    model.fit(x=x_train_scaled, y=Y_train, epochs=300, verbose=True, batch_size=256);
+    model.fit(x=x_train_scaled, y=Y_train, epochs=300, verbose=True, batch_size=256, validation_data=(x_test_scaled, Y_test));
     ks = model.weights[0].shape[0]//2
     plt.figure()
     plt.xlim(-5, 5)
@@ -1587,15 +1587,31 @@ if __name__ == "__main__":
                            })
         return df
 
-    df = pd.concat([make_test_sample() for _ in range(100)], axis=0)
-    df2 = df.groupby(["match", "pGS", "pGC"]).size().reset_index().sort_values(["match", 0, "pGS", "pGC"], ascending=[True,False,False,True])
-    df3 = df2.groupby(["match"]).first()
-    df4 = pd.merge(df, df3, on=["match", "pGS", "pGC"], how="inner").groupby(["match"]).first()
-    plot_predictions_3( df4, "poisson", "Test")
+    df = pd.concat([make_test_sample() for _ in range(200)], axis=0)
+    dfpoints = np.stack([point_matrix[np.minimum(df.pGS, 6)*7 + np.minimum(df.pGC, 6), i] for i in range(49)], axis=1)
+    dfpoints = pd.DataFrame(dfpoints, index=df.index)
+    dfpoints = dfpoints.groupby(dfpoints.index).mean()
+    np.argmax(dfpoints.to_numpy(), axis=1)
+    maxpoints = pd.DataFrame({"pGS": np.argmax(dfpoints.to_numpy(), axis=1)//7, "pGC": np.mod(np.argmax(dfpoints.to_numpy(), axis=1), 7), "points":np.amax(dfpoints.to_numpy(), axis=1)})
+    df2 = df.\
+        groupby(['match','Where', 'GS', 'GC', 'Prefix', 'dataset', 'act', 'Team1', 'Team2']).mean().\
+        rename(columns = {"pGS":"pGS2", "pGC":"pGC2"}).\
+        reset_index().set_index("match")
+    df3 = pd.concat([df2, maxpoints], axis=1)
+    plot_predictions_3( df3, "poisson", "Test")
 
-    df = pd.concat([make_train_sample() for _ in range(100)], axis=0)
-    df2 = df.groupby(["match", "pGS", "pGC"]).size().reset_index().sort_values(["match", 0, "pGS", "pGC"], ascending=[True,False,False,True])
-    df3 = df2.groupby(["match"]).first()
-    df4 = pd.merge(df, df3, on=["match", "pGS", "pGC"], how="inner").groupby(["match"]).first()
-    plot_predictions_3( df4, "poisson", "Train")
+    df = pd.concat([make_train_sample() for _ in range(200)], axis=0)
+    dfpoints = np.stack([point_matrix[np.minimum(df.pGS, 6) * 7 + np.minimum(df.pGC, 6), i] for i in range(49)], axis=1)
+    dfpoints = pd.DataFrame(dfpoints, index=df.index)
+    dfpoints = dfpoints.groupby(dfpoints.index).mean()
+    np.argmax(dfpoints.to_numpy(), axis=1)
+    maxpoints = pd.DataFrame(
+        {"pGS": np.argmax(dfpoints.to_numpy(), axis=1) // 7, "pGC": np.mod(np.argmax(dfpoints.to_numpy(), axis=1), 7),
+         "points": np.amax(dfpoints.to_numpy(), axis=1)})
+    df2 = df. \
+        groupby(['match', 'Where', 'GS', 'GC', 'Prefix', 'dataset', 'act', 'Team1', 'Team2']).mean(). \
+        rename(columns={"pGS": "pGS2", "pGC": "pGC2"}). \
+        reset_index().set_index("match")
+    df3 = pd.concat([df2, maxpoints], axis=1)
+    plot_predictions_3( df3, "poisson", "Train")
 
