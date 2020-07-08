@@ -390,15 +390,15 @@ def print_match_dates(X, team_onehot_encoder):
     return match_dates
 
 
-def plot_predictions_3(df, prefix, dataset):
+def plot_predictions_3(df, prefix, dataset, silent=False):
     df = df.loc[(df.Prefix == prefix) & (df.dataset == dataset)].copy()
-
-    fig = plt.figure(figsize=(18, 4))
-    ax1 = plt.subplot2grid((1, 4), (0, 0), colspan=2, rowspan=1)
-    ax2 = plt.subplot2grid((1, 4), (0, 2), colspan=1, rowspan=1)
-    ax2.axis('off')
-    ax3 = plt.subplot2grid((1, 4), (0, 3), colspan=1, rowspan=1)
-    ax3.axis('off')
+    if not silent:
+        fig = plt.figure(figsize=(18, 4))
+        ax1 = plt.subplot2grid((1, 4), (0, 0), colspan=2, rowspan=1)
+        ax2 = plt.subplot2grid((1, 4), (0, 2), colspan=1, rowspan=1)
+        ax2.axis('off')
+        ax3 = plt.subplot2grid((1, 4), (0, 3), colspan=1, rowspan=1)
+        ax3.axis('off')
 
     goal_cnt = Counter([str(gs) + ":" + str(gc) if w == "Home" else str(gc) + ":" + str(gs) for gs, gc, w in
                         zip(df["GS"], df["GC"], df["Where"])])
@@ -450,6 +450,8 @@ def plot_predictions_3(df, prefix, dataset):
         df["2_diff"] = 0
     if "1_tendency" not in df:
         df["1_tendency"] = 0
+    if "0_none" not in df:
+        df["0_none"] = 0
 
     df["hit_goal"] = 100 * df["3_full"]
     df["hit_diff"] = 100 * (df["3_full"] + df["2_diff"])
@@ -559,9 +561,9 @@ def plot_predictions_3(df, prefix, dataset):
     t3 = t3[['GDiff', 'None', 'Tendency', 'Diff', 'Full', 'Total',
              'ActualRate', 'TargetRate', 'EffRate',
              'AvgPoints', 'TotalPoints', 'Contribution']]
-
-    print()
-    print(t3)
+    if not silent:
+        print()
+        print(t3)
 
     for r in t3.reset_index().GDiff:
         pred = df["pGDiff"] == r
@@ -601,7 +603,8 @@ def plot_predictions_3(df, prefix, dataset):
              'ActualRate', 'TargetRate', 'EffRate',
              'AvgPoints', 'TotalPoints', 'Contribution']]
     t4["Prediction"] = ["Draw" if p == 0 else "Homewin" if p == 1 else "Awaywin" for p in t4["Prediction"]]
-    print(t4)
+    if not silent:
+        print(t4)
 
     for r in t4.reset_index().Prediction:
         pred = ["Draw" if p == 0 else "Homewin" if p > 0 else "Awaywin" for p in df["pGDiff"]]
@@ -614,29 +617,31 @@ def plot_predictions_3(df, prefix, dataset):
     scores = pd.concat([scores.name,
                         scores[['act', 'pred', 'TN', 'FN', 'FP', 'TP']].astype(int),
                         scores[['Precision', 'Recall', 'F1', 'ACC', 'MCC']]], axis=1)
-    print()
-    print(scores)
+    if not silent:
+        print()
+        print(scores)
 
     t1 = df.pivot_table(index=[df["sort_idx"], 'pGoals'], columns=['gof'], values=["Team1"], aggfunc=len, margins=False,
                         fill_value=0)
     t1.columns = ["None", "Tendency", "Diff", "Full"][:len(t1.columns)]
     t1.index = t1.index.droplevel(level=0)
-    t1.plot(kind='bar', stacked=True, ax=ax1)
-    ax1.set_title("{}".format(prefix)).set_size(15)
+    if not silent:
+        t1.plot(kind='bar', stacked=True, ax=ax1)
+        ax1.set_title("{}".format(prefix)).set_size(15)
 
-    _, _, autotexts = ax2.pie(pie_chart_values,
-                              labels=["None", "Tendency", "Diff", "Full"], autopct='%1.1f%%', startangle=90)
-    for t in autotexts:
-        t.set_color("white")
-    ax2.set_title("{}: {:.04f} ({})".format(prefix, avg_points, dataset)).set_size(20)
+        _, _, autotexts = ax2.pie(pie_chart_values,
+                                  labels=["None", "Tendency", "Diff", "Full"], autopct='%1.1f%%', startangle=90)
+        for t in autotexts:
+            t.set_color("white")
+        ax2.set_title("{}: {:.04f} ({})".format(prefix, avg_points, dataset)).set_size(20)
 
-    percentages = [pie_chart_values[0],  # None
-                   pie_chart_values[1] + pie_chart_values[2] + pie_chart_values[3],  # Tendency
-                   pie_chart_values[2] + pie_chart_values[3],  # GDiff
-                   pie_chart_values[3],  # Full
-                   ]
-    for t, p in zip(autotexts, percentages):
-        t.set_text("{:.01f}%".format(100.0 * p / len(df)))
+        percentages = [pie_chart_values[0],  # None
+                       pie_chart_values[1] + pie_chart_values[2] + pie_chart_values[3],  # Tendency
+                       pie_chart_values[2] + pie_chart_values[3],  # GDiff
+                       pie_chart_values[3],  # Full
+                       ]
+        for t, p in zip(autotexts, percentages):
+            t.set_text("{:.01f}%".format(100.0 * p / len(df)))
 
     y_pred = [np.sign(p1 - p2) if w == "Home" else np.sign(p2 - p1) for p1, p2, w in
               zip(df["pGS"], df["pGC"], df["Where"])]
@@ -647,58 +652,59 @@ def plot_predictions_3(df, prefix, dataset):
 
     cnf_matrix = confusion_matrix(y_test, y_pred)
 
-    pAtA, pDtA, pHtA, pAtD, pDtD, pHtD, pAtH, pDtH, pHtH = cnf_matrix.reshape([9])
-    ax3.axis('equal')
-    wedges, _, autotexts = ax3.pie([pHtA, pHtH, pHtD, pDtH, pDtD, pDtA, pAtD, pAtA, pAtH],
-                                   labels=["", "Home", "", "", "Draw", "", "", "Away", ""],
-                                   # colors=["blue", "blue", "blue", "green", "green", "green", "red", "red", "red"],
-                                   colors=["white"] * 9,
-                                   startangle=90, autopct='%1.1f%%',
-                                   radius=1.0, pctdistance=0.75,
-                                   wedgeprops={"alpha": 1.0, "linewidth": 3})
+    if not silent:
+        pAtA, pDtA, pHtA, pAtD, pDtD, pHtD, pAtH, pDtH, pHtH = cnf_matrix.reshape([9])
+        ax3.axis('equal')
+        wedges, _, autotexts = ax3.pie([pHtA, pHtH, pHtD, pDtH, pDtD, pDtA, pAtD, pAtA, pAtH],
+                                       labels=["", "Home", "", "", "Draw", "", "", "Away", ""],
+                                       # colors=["blue", "blue", "blue", "green", "green", "green", "red", "red", "red"],
+                                       colors=["white"] * 9,
+                                       startangle=90, autopct='%1.1f%%',
+                                       radius=1.0, pctdistance=0.75,
+                                       wedgeprops={"alpha": 1.0, "linewidth": 3})
 
-    true_colors = ["red", "blue", "green", "blue", "green", "red", "green", "red", "blue"]
-    pred_colors = ["blue", "blue", "blue", "green", "green", "green", "red", "red", "red"]
+        true_colors = ["red", "blue", "green", "blue", "green", "red", "green", "red", "blue"]
+        pred_colors = ["blue", "blue", "blue", "green", "green", "green", "red", "red", "red"]
 
-    for t, c in zip(autotexts, true_colors):
-        t.set_color(c)
+        for t, c in zip(autotexts, true_colors):
+            t.set_color(c)
 
-    for w, c in zip(wedges, pred_colors):
-        w.set_edgecolor(c)
+        for w, c in zip(wedges, pred_colors):
+            w.set_edgecolor(c)
 
-    #  wedges[0].set_edgecolor("red")
-    #  wedges[1].set_edgecolor("blue")
-    #  wedges[2].set_edgecolor("green")
-    #  wedges[3].set_edgecolor("blue")
-    #  wedges[4].set_edgecolor("green")
-    #  wedges[5].set_edgecolor("red")
-    #  wedges[6].set_edgecolor("green")
-    #  wedges[7].set_edgecolor("red")
-    #  wedges[8].set_edgecolor("blue")
+        #  wedges[0].set_edgecolor("red")
+        #  wedges[1].set_edgecolor("blue")
+        #  wedges[2].set_edgecolor("green")
+        #  wedges[3].set_edgecolor("blue")
+        #  wedges[4].set_edgecolor("green")
+        #  wedges[5].set_edgecolor("red")
+        #  wedges[6].set_edgecolor("green")
+        #  wedges[7].set_edgecolor("red")
+        #  wedges[8].set_edgecolor("blue")
 
-    # wedges[1].set_alpha(0.6)
-    # wedges[4].set_alpha(0.6)
-    # wedges[7].set_alpha(0.6)
+        # wedges[1].set_alpha(0.6)
+        # wedges[4].set_alpha(0.6)
+        # wedges[7].set_alpha(0.6)
 
-    #  for w in [0,2,3,5,6,8]:
-    #    wedges[w].set_hatch('/')
-    #    wedges[w].set_alpha(0.6)
+        #  for w in [0,2,3,5,6,8]:
+        #    wedges[w].set_hatch('/')
+        #    wedges[w].set_alpha(0.6)
 
-    wedges[1].set_color(colors.to_rgba("blue", 0.1))
-    wedges[4].set_color(colors.to_rgba("green", 0.1))
-    wedges[7].set_color(colors.to_rgba("red", 0.1))
-    autotexts[1].set_color("white")
-    autotexts[4].set_color("white")
-    autotexts[7].set_color("white")
+        wedges[1].set_color(colors.to_rgba("blue", 0.1))
+        wedges[4].set_color(colors.to_rgba("green", 0.1))
+        wedges[7].set_color(colors.to_rgba("red", 0.1))
+        autotexts[1].set_color("white")
+        autotexts[4].set_color("white")
+        autotexts[7].set_color("white")
 
-    ax3.set_title("Home: {:.1f}, Draw: {:.1f}, Away: {:.1f}".format(
-        100.0 * tendency_values[2] / len(df),
-        100.0 * tendency_values[1] / len(df),
-        100.0 * tendency_values[0] / len(df)
-    ))
+        ax3.set_title("Home: {:.1f}, Draw: {:.1f}, Away: {:.1f}".format(
+            100.0 * tendency_values[2] / len(df),
+            100.0 * tendency_values[1] / len(df),
+            100.0 * tendency_values[0] / len(df)
+        ))
 
-    plt.show()
-    #plt.close()
+        plt.show()
+        #plt.close()
 
     print()
     print(
@@ -711,111 +717,109 @@ def plot_predictions_3(df, prefix, dataset):
             100.0 * tendency_values[1] / len(df),
             100.0 * tendency_values[0] / len(df)
         ))
-
     c_home = df["Where"] == "Home"
     c_win = df['pGS'] > df['pGC']
     c_loss = df['pGS'] < df['pGC']
     c_draw = df['pGS'] == df['pGC']
     c_tendency = np.sign(df['pGS'] - df['pGC']) == np.sign(df["GS"] - df["GC"])
 
-    default_color = "blue"
-    default_cmap = plt.cm.Blues
-    if prefix == "cp" or prefix == "cp2":
-        default_color = "darkolivegreen"
-        default_cmap = plt.cm.Greens
-    if prefix == "pg2" or prefix == "pgpt":
-        default_color = "darkmagenta"
-        default_cmap = plt.cm.Purples  # RdPu # PuRd
+    if not silent:
+        default_color = "blue"
+        default_cmap = plt.cm.Blues
+        if prefix == "cp" or prefix == "cp2":
+            default_color = "darkolivegreen"
+            default_cmap = plt.cm.Greens
+        if prefix == "pg2" or prefix == "pgpt":
+            default_color = "darkmagenta"
+            default_cmap = plt.cm.Purples  # RdPu # PuRd
 
-    def createTitle(series1, series2):
-        return "pearson: {:.4f}, spearman: {:.4f}".format(
-            series1.corr(series2, method="pearson"),
-            series1.corr(series2, method="spearman")
-        )
+        def createTitle(series1, series2):
+            return "pearson: {:.4f}, spearman: {:.4f}".format(
+                series1.corr(series2, method="pearson"),
+                series1.corr(series2, method="spearman")
+            )
 
-    if prefix != "ens":
-        df["offset"] = np.random.rand(len(df))
-        df["offset"] = df["offset"] * 0.8 - 0.4
-        fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-        ax[0].set_title(createTitle(df["est1"], df["GS"]))
-        ax[0].scatter(df[~c_home]["est1"], df[~c_home]["GS"] + df[~c_home]["offset"], alpha=0.1, color="red")
-        ax[0].scatter(df[c_home]["est1"], df[c_home]["GS"] + df[c_home]["offset"], alpha=0.1, color=default_color)
-        ax[1].set_title(createTitle(df["est2"], df["GC"]))
-        ax[1].scatter(df[~c_home]["est2"], df[~c_home]["GC"] + df[~c_home]["offset"], alpha=0.1, color="red")
-        ax[1].scatter(df[c_home]["est2"], df[c_home]["GC"] + df[c_home]["offset"], alpha=0.1, color=default_color)
-        plt.show()
-        fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-        ax[0].set_title(createTitle(df["est1"] - df["est2"], df["GS"] - df["GC"]))
-        ax[0].scatter(df[~c_home]["est1"] - df[~c_home]["est2"],
-                      df[~c_home]["GS"] - df[~c_home]["GC"] + df[~c_home]["offset"], alpha=0.1, color="red")
-        ax[0].scatter(df[c_home]["est1"] - df[c_home]["est2"],
-                      df[c_home]["GS"] - df[c_home]["GC"] + df[c_home]["offset"], alpha=0.1, color=default_color)
+        if prefix != "ens":
+            df["offset"] = np.random.rand(len(df))
+            df["offset"] = df["offset"] * 0.8 - 0.4
+            fig, ax = plt.subplots(2, 2, figsize=(12, 9))
+            ax[0][0].set_title(createTitle(df["est1"], df["GS"]))
+            ax[0][0].scatter(df[~c_home]["est1"], df[~c_home]["GS"] + df[~c_home]["offset"], alpha=0.1, color="red")
+            ax[0][0].scatter(df[c_home]["est1"], df[c_home]["GS"] + df[c_home]["offset"], alpha=0.1, color=default_color)
+            ax[0][1].set_title(createTitle(df["est2"], df["GC"]))
+            ax[0][1].scatter(df[~c_home]["est2"], df[~c_home]["GC"] + df[~c_home]["offset"], alpha=0.1, color="red")
+            ax[0][1].scatter(df[c_home]["est2"], df[c_home]["GC"] + df[c_home]["offset"], alpha=0.1, color=default_color)
+            ax[1][0].set_title(createTitle(df["est1"] - df["est2"], df["GS"] - df["GC"]))
+            ax[1][0].scatter(df[~c_home]["est1"] - df[~c_home]["est2"],
+                          df[~c_home]["GS"] - df[~c_home]["GC"] + df[~c_home]["offset"], alpha=0.1, color="red")
+            ax[1][0].scatter(df[c_home]["est1"] - df[c_home]["est2"],
+                          df[c_home]["GS"] - df[c_home]["GC"] + df[c_home]["offset"], alpha=0.1, color=default_color)
 
-        #  fig, ax = plt.subplots(1,2,figsize=(12,4))
-        #  ax[0].scatter(est1.loc[c_home], df[c_home]["GS"], alpha=0.1, color="blue")
-        #  ax[0].scatter(est1.loc[~c_home], df[~c_home]["GS"], alpha=0.1, color="red")
-        #  ax[1].scatter(est2.loc[c_home], df[c_home]["GC"], alpha=0.1, color="blue")
-        #  ax[1].scatter(est2.loc[~c_home], df[~c_home]["GC"], alpha=0.1, color="red")
-        #  plt.show()
-        #  fig, ax = plt.subplots(1,2,figsize=(12,4))
-        #  ax[0].scatter(est_diff.loc[c_home], df[c_home]["GS"]-df[c_home]["GC"],alpha=0.1, color="blue")
-        #  ax[0].scatter(est_diff.loc[~c_home], df[~c_home]["GS"]-df[~c_home]["GC"],alpha=0.1, color="red")
-        est1 = df.est1
-        est2 = df.est2
+            #  fig, ax = plt.subplots(1,2,figsize=(12,4))
+            #  ax[0].scatter(est1.loc[c_home], df[c_home]["GS"], alpha=0.1, color="blue")
+            #  ax[0].scatter(est1.loc[~c_home], df[~c_home]["GS"], alpha=0.1, color="red")
+            #  ax[1].scatter(est2.loc[c_home], df[c_home]["GC"], alpha=0.1, color="blue")
+            #  ax[1].scatter(est2.loc[~c_home], df[~c_home]["GC"], alpha=0.1, color="red")
+            #  plt.show()
+            #  fig, ax = plt.subplots(1,2,figsize=(12,4))
+            #  ax[0].scatter(est_diff.loc[c_home], df[c_home]["GS"]-df[c_home]["GC"],alpha=0.1, color="blue")
+            #  ax[0].scatter(est_diff.loc[~c_home], df[~c_home]["GS"]-df[~c_home]["GC"],alpha=0.1, color="red")
+            est1 = df.est1
+            est2 = df.est2
 
-        def plotEstimates(cond1, cond2, color, alpha=0.1):
-            ax[1].scatter(est1[cond1 & c_tendency], est2[cond1 & c_tendency], alpha=alpha, color=color, marker='o')
-            ax[1].scatter(est1[cond1 & ~c_tendency], est2[cond1 & ~c_tendency], alpha=alpha, color=color, marker='x')
-            ax[1].scatter(est2[cond2 & c_tendency], est1[cond2 & c_tendency], alpha=alpha, color=color, marker='o')
-            ax[1].scatter(est2[cond2 & ~c_tendency], est1[cond2 & ~c_tendency], alpha=alpha, color=color, marker='x')
+            def plotEstimates(cond1, cond2, color, alpha=0.1):
+                ax[1][1].scatter(est1[cond1 & c_tendency], est2[cond1 & c_tendency], alpha=alpha, color=color, marker='o')
+                ax[1][1].scatter(est1[cond1 & ~c_tendency], est2[cond1 & ~c_tendency], alpha=alpha, color=color, marker='x')
+                ax[1][1].scatter(est2[cond2 & c_tendency], est1[cond2 & c_tendency], alpha=alpha, color=color, marker='o')
+                ax[1][1].scatter(est2[cond2 & ~c_tendency], est1[cond2 & ~c_tendency], alpha=alpha, color=color, marker='x')
 
-        plotEstimates(c_win & c_home, c_loss & ~c_home, "blue")
-        plotEstimates(c_loss & c_home, c_win & ~c_home, "red")
-        plotEstimates(c_draw & c_home, c_draw & ~c_home, "green", 0.3)
-        ax[1].set_title("Points: {:.4f} ({:.2f}%), H: {:.1f}, D: {:.1f}, A: {:.1f}".format(
-            np.sum(t2["Contribution"]),
-            100.0 * (1 - pie_chart_values[0] / len(df)),
-            100.0 * tendency_values[2] / len(df),
-            100.0 * tendency_values[1] / len(df),
-            100.0 * tendency_values[0] / len(df)
-        ))
-        plt.show()
+            plotEstimates(c_win & c_home, c_loss & ~c_home, "blue")
+            plotEstimates(c_loss & c_home, c_win & ~c_home, "red")
+            plotEstimates(c_draw & c_home, c_draw & ~c_home, "green", 0.3)
+            ax[1][1].set_title("Points: {:.4f} ({:.2f}%), H: {:.1f}, D: {:.1f}, A: {:.1f}".format(
+                np.sum(t2["Contribution"]),
+                100.0 * (1 - pie_chart_values[0] / len(df)),
+                100.0 * tendency_values[2] / len(df),
+                100.0 * tendency_values[1] / len(df),
+                100.0 * tendency_values[0] / len(df)
+            ))
+            plt.show()
+            #plt.close()
+
+        np.set_printoptions(precision=2)
+
+        # Plot non-normalized confusion matrix
+        fig, ax = plt.subplots(2, 2, figsize=(10, 9))
+        plot_confusion_matrix(ax[0][0], cnf_matrix, classes=["AwayWin", "Draw", "HomeWin"],
+                              title='Tendency', cmap=default_cmap)
+
+        # Plot normalized confusion matrix
+        plot_confusion_matrix(ax[1][0], cnf_matrix, classes=["AwayWin", "Draw", "HomeWin"],
+                              normalize=True,
+                              title='Tendency', cmap=default_cmap)
+        #plt.show()
         #plt.close()
 
-    np.set_printoptions(precision=2)
+        y_pred = [(p1 - p2) if w == "Home" else (p2 - p1) for p1, p2, w in zip(df["pGS"], df["pGC"], df["Where"])]
+        y_test = [(p1 - p2) if w == "Home" else (p2 - p1) for p1, p2, w in zip(df["GS"], df["GC"], df["Where"])]
+        y_test = [min(3, y) for y in y_test]
+        y_test = [max(-3, y) for y in y_test]
+        y_pred = [min(3, y) for y in y_pred]
+        y_pred = [max(-3, y) for y in y_pred]
+        cnf_matrix = confusion_matrix(y_test, y_pred)
+        np.set_printoptions(precision=2)
 
-    # Plot non-normalized confusion matrix
-    fig, ax = plt.subplots(2, 2, figsize=(10, 9))
-    plot_confusion_matrix(ax[0][0], cnf_matrix, classes=["AwayWin", "Draw", "HomeWin"],
-                          title='Tendency', cmap=default_cmap)
+        # Plot non-normalized confusion matrix
+        #fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+        plot_confusion_matrix(ax[0][1], cnf_matrix, classes=np.unique(y_test).tolist(),
+                              title='GoalDiff', cmap=default_cmap)
 
-    # Plot normalized confusion matrix
-    plot_confusion_matrix(ax[1][0], cnf_matrix, classes=["AwayWin", "Draw", "HomeWin"],
-                          normalize=True,
-                          title='Tendency', cmap=default_cmap)
-    #plt.show()
-    #plt.close()
-
-    y_pred = [(p1 - p2) if w == "Home" else (p2 - p1) for p1, p2, w in zip(df["pGS"], df["pGC"], df["Where"])]
-    y_test = [(p1 - p2) if w == "Home" else (p2 - p1) for p1, p2, w in zip(df["GS"], df["GC"], df["Where"])]
-    y_test = [min(3, y) for y in y_test]
-    y_test = [max(-3, y) for y in y_test]
-    y_pred = [min(3, y) for y in y_pred]
-    y_pred = [max(-3, y) for y in y_pred]
-    cnf_matrix = confusion_matrix(y_test, y_pred)
-    np.set_printoptions(precision=2)
-
-    # Plot non-normalized confusion matrix
-    #fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    plot_confusion_matrix(ax[0][1], cnf_matrix, classes=np.unique(y_test).tolist(),
-                          title='GoalDiff', cmap=default_cmap)
-
-    # Plot normalized confusion matrix
-    plot_confusion_matrix(ax[1][1], cnf_matrix, classes=np.unique(y_test).tolist(),
-                          normalize=True,
-                          title='GoalDiff', cmap=default_cmap)
-    plt.show()
-    #plt.close()
+        # Plot normalized confusion matrix
+        plot_confusion_matrix(ax[1][1], cnf_matrix, classes=np.unique(y_test).tolist(),
+                              normalize=True,
+                              title='GoalDiff', cmap=default_cmap)
+        plt.show()
+        #plt.close()
 
     if prefix == "ens/":
         t6 = df.pivot_table(index=["Strategy"],
@@ -843,13 +847,15 @@ def plot_predictions_3(df, prefix, dataset):
                  'ActualRate', 'TargetRate', 'EffRate',
                  'AvgPoints', 'TotalPoints', 'Contribution']]
 
-        print()
-        print(t6)
+        if not silent:
+            print()
+            print(t6)
 
-        plt.axis('equal')
-        plt.pie(t6["Total"], labels=t6['Strategy'], autopct='%1.1f%%')
-        plt.show()
-        #plt.close()
+            plt.axis('equal')
+            plt.pie(t6["Total"], labels=t6['Strategy'], autopct='%1.1f%%')
+            plt.show()
+            #plt.close()
+
 
 
 def prepare_label_fit(predictions, features, labels, team_onehot_encoder, label_column_names, skip_plotting=False,
@@ -1256,8 +1262,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--target_system",
         type=str,
-        default="Pistor",
-        #default="Sky",
+        #default="Pistor",
+        default="Sky",
         # default="TCS",
         # default="GoalDiff",
         help="Point system to optimize for"
@@ -1459,238 +1465,33 @@ if __name__ == "__main__":
     x_test_scaled = scaler.transform(x_test)
     #scaler.inverse_transform(small_x_train)
 
-
-    # @title Custom PSD Kernel
-    class RBFKernelFn(tf.keras.layers.Layer):
-        def __init__(self, **kwargs):
-            super(RBFKernelFn, self).__init__(**kwargs)
-            dtype = kwargs.get('dtype', None)
-
-            self._amplitude = self.add_variable(
-                initializer=tf.constant_initializer(0),
-                dtype=dtype,
-                name='amplitude')
-
-            self._length_scale = self.add_variable(
-                initializer=tf.constant_initializer(0),
-                dtype=dtype,
-                name='length_scale')
-
-        def call(self, x):
-            # Never called -- this is just a layer so it can hold variables
-            # in a way Keras understands.
-            return x
-
-        @property
-        def kernel(self):
-            return tfp.math.psd_kernels.ExponentiatedQuadratic(
-                amplitude=tf.nn.softplus(0.1 * self._amplitude),
-                length_scale=tf.nn.softplus(5. * self._length_scale)
-            )
-
-    unconstrained_amplitude = tf.Variable(np.float64(1.), name='amplitude')
-    unconstrained_length_scale = tf.Variable(np.float64(1.), name='length_scale')
-    unconstrained_observation_noise = tf.Variable(np.float64(1.), name='observation_noise')
-
-    EPS = np.finfo(np.float64).eps
-
-
-    def create_kernel():
-        amplitude = tf.math.softplus(EPS + unconstrained_amplitude)
-        length_scale = tf.math.softplus(EPS + unconstrained_length_scale)
-        kernel = tfk.ExponentiatedQuadratic(amplitude, length_scale)
-        return kernel
-
-
-    # try to learn the mapping
-
-    # Specify the prior over `keras.layers.Dense` `kernel` and `bias`.
-    def prior_trainable(kernel_size, bias_size=0, dtype=None):
-        n = kernel_size + bias_size
-        print("prior_trainable")
-        print(n)
-        return tf.keras.Sequential([
-            tfp.layers.VariableLayer(n, dtype=dtype),
-            tfp.layers.DistributionLambda(lambda t: tfd.Independent(
-                tfd.Normal(loc=t, scale=1),
-                reinterpreted_batch_ndims=1)),
-        ])
-
-
-    # Specify the surrogate posterior over `keras.layers.Dense` `kernel` and `bias`.
-    def posterior_mean_field(kernel_size, bias_size=0, dtype=None):
-        n = kernel_size + bias_size
-        print("posterior_mean_field")
-        print(n)
-        c = np.log(np.expm1(1.))
-        return tf.keras.Sequential([
-            tfp.layers.VariableLayer(2 * n, dtype=dtype),
-            tfp.layers.DistributionLambda(lambda t: tfd.Independent(
-                tfd.Normal(loc=t[..., :n],
-                           scale=1e-5 + tf.nn.softplus(c + t[..., n:])),
-                reinterpreted_batch_ndims=1)),
-        ])
-
-
-    n_train_samples = x_train.shape[0]
-    batch_size = 256
-    num_inducing_points = 20
-
-    def var_loss(y, m):
-        return m.variational_loss(tf.math.log(0.1+y), kl_weight=np.array(batch_size, x_train.dtype) / n_train_samples)
-
-    class BivariatePoisson(tfd.Distribution):
-        def __init__(self, l1, l2, l3, validate_args=False, allow_nan_stats=True, name='BivariatePoisson', dtype=np.float64, reparameterization_type=None):
-            parameters = dict(locals())
-            with tf.name_scope(name) as name:
-                self._l1 = l1
-                self._l2 = l2
-                self._l3 = l3
-                super().__init__(validate_args=validate_args, allow_nan_stats=allow_nan_stats, name=name,
-                                 parameters=parameters, dtype=dtype, reparameterization_type=reparameterization_type)
-
-        def _sample_n(self, n, seed=None, **kwargs):
-            print(self._l1.shape)
-            print(n)
-            return self._l1
-
-    BivariatePoisson(1,2,3)
-
-    d = Y_train.shape[1]
-
-    model = tf.keras.Sequential([ #tfd.JointDistributionSequential([ #
-        tfp.layers.DenseVariational(d, posterior_mean_field, prior_trainable, kl_weight=1000.0 / n_train_samples / x_train.shape[1], input_dim=x_train.shape[1]),
-        # tfp.layers.DistributionLambda(
-        # #     lambda t: tfd.Poisson(log_rate=t)
-        # # )
-        # tfp.layers.DistributionLambda(lambda t: tfd.Normal(loc=t[..., :d],
-        #                                                    scale=1e-3 + tf.math.softplus(0.01 * t[..., d:]))),
-        #
-        # tfp.layers.DistributionLambda(lambda t: tfd.NegativeBinomial(total_count=10+0.001 * t[..., :d],
-        #                                                              logits=0.01*t[...,d:]))
-        #tfp.layers.DistributionLambda(lambda t: tfp.distributions.OneHotCategorical(logits=t, dtype=tf.int32))
-        # tfp.layers.DistributionLambda(lambda t: tfd.MultivariateNormalTriL(loc=t[..., :d],
-        #                  scale_tril=1e-3 + tf.reshape(tf.math.softplus(0.00001 * t[..., d:]), (-1, d, d)))),
-        tfp.layers.DistributionLambda(lambda t: tfd.Poisson(rate=tf.math.softplus(0.01 * t)))
-        # tfp.layers.DistributionLambda(lambda t: BivariatePoisson(l1=tf.math.softplus(0.01 * t[..., :d//2]),
-        #                                                              l2=tf.math.softplus(0.01 * t[..., d//2:d]),
-        #                                                              l3=tf.math.softplus(0.01 * t[..., d:])
-        #                                                              ))
-    ])
-
-    # Do inference.
-    negloglik = lambda y, rv_y: -rv_y.log_prob(y)
-    #catloss = lambda y, rv_y: tf.keras.losses.categorical_crossentropy( y_true=7*y[:,0]+y[:,1], y_pred=rv_y.mean(), from_logits=True, label_smoothing=0)
-        #-tf.reduce_sum(rv_y.log_prob(7*y[:,0]+y[:,1]))
-    catloss = lambda y, rv_y: -rv_y.log_prob(tf.one_hot(7*y[:,0]+y[:,1], 49))
-
-    model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.1), loss=negloglik, metrics=['mse', "mae"])
-    model.summary()
-    model(x_train_scaled).mean()
-    model(x_train_scaled).sample()
-    model(x_train_scaled).stddev()
-    model.trainable_variables
-    model.weights
-    #model.fit(x=x_train_scaled, y=np.log(0.1+Y_train), epochs=300, verbose=True, batch_size=256);
-    model.fit(x=x_train_scaled, y=Y_train, epochs=3, verbose=True, batch_size=batch_size, validation_data=(x_test_scaled, Y_test));
-
-    ks = model.weights[0].shape[0]//2
-    plt.figure()
-    plt.xlim(-5, 5)
-    sns.distplot(model.weights[0].numpy()[:ks], label="post means")
-    sns.distplot(model.weights[0].numpy()[ks:], label="post stddev")
-    sns.distplot(model.weights[1].numpy(), label="prior means")
-    plt.show()
-    # model(x_train_scaled).mean()[0]
-    # model(x_train_scaled).stddev()[0]
-    # yhat = model(x_train_scaled)
-    # yhat.mean()[0]
-    # yhat.stddev()[0]
-    # Y_train[0]
-    # model(x_train_scaled)[0]
-    fig, ax = plt.subplots(4, 4, figsize=(8, 8))
-    for i in range(4):
-        for j in range(4):
-            sns.boxplot(y=model(x_train_scaled).mean()[:,4*i+j], x=Y_train[:,4*i+j], ax=ax[i][j])
-    plt.show()
-
-    fig, ax = plt.subplots(4, 4, figsize=(8, 8))
-    for i in range(4):
-        for j in range(4):
-            sns.boxplot(y=model(x_test_scaled).mean()[:,4*i+j], x=Y_test[:,4*i+j], ax=ax[i][j])
-    plt.show()
-
-    def make_wdl(x):
-        return np.sign(x[:,0]-x[:,1])
-    def make_wl(x):
-        return np.sign(x.mean()[:,0]-x.mean()[:,1])
-    wdl_train = make_wdl(Y_train)
-    wdl_test = make_wdl(Y_test)
-    sample_train = make_wdl(model(x_train_scaled))
-    sample_test = make_wdl(model(x_test_scaled))
-    sample_train = make_wl(model(x_train_scaled))
-    sample_test = make_wl(model(x_test_scaled))
-
-    print(Counter(sample_test==wdl_test))
-    print(Counter(sample_train == wdl_train))
-    print(np.sum(sample_test==wdl_test)/len(wdl_test))
-    print(np.sum(sample_train==wdl_train)/len(wdl_train))
-    print(confusion_matrix(sample_test, wdl_test))
-    print(confusion_matrix(sample_train ,  wdl_train))
-
-    arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
-    arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
-
-    def make_train_sample():
-        yhat = model(x_train_scaled)
+    def sample_df(yhat, Y, dataset):
         sample = yhat.sample().numpy()
-        df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_train)//2),
-                           "GS":Y_train[:,0].astype(int),
-                           "GC":Y_train[:,1].astype(int),
+        l = sample.shape[0]//Y.shape[0]
+        df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
+                           "GS":np.tile(Y[:,0].astype(int), reps=l),
+                           "GC":np.tile(Y[:,1].astype(int), reps=l),
                            "pGS":sample[:,0].astype(int),
                            "pGC":sample[:,1].astype(int),
                            "est1":yhat.mean()[:,0],
                            "est2":yhat.mean()[:,1],
-                           # "pGS":np.argmax(sample, axis=1)//7,
+                               # "pGS":np.argmax(sample, axis=1)//7,
                            # "pGC":np.mod(np.argmax(sample, axis=1), 7),
                            # "est1":np.sum(yhat.mean() * arraygs, axis=1),
                            # "est2":np.sum(yhat.mean() * arraygc, axis=1),
                            "Prefix": "poisson",
-                           "dataset": "Train",
-                           "act":"Y_train[:,0:2]",
+                           "dataset": dataset,
+                           "act":"Y_test[:,0:2]",
                            "Team1":"Team1",
                            "Team2": "Team2",
-                           "match":range(len(wdl_train))
-                           })
-        return df
-
-    def make_test_sample():
-        yhat = model(x_test_scaled)
-        sample = yhat.sample().numpy()
-        df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_test)//2),
-                           "GS":Y_test[:,0].astype(int),
-                           "GC":Y_test[:,1].astype(int),
-                           "pGS":sample[:,0].astype(int),
-                           "pGC":sample[:,1].astype(int),
-                           "est1":yhat.mean()[:,0],
-                           "est2":yhat.mean()[:,1],
-                           # "pGS":np.argmax(sample, axis=1)//7,
-                           # "pGC":np.mod(np.argmax(sample, axis=1), 7),
-                           # "est1":np.sum(yhat.mean() * arraygs, axis=1),
-                           # "est2":np.sum(yhat.mean() * arraygc, axis=1),
-                           "Prefix": "poisson",
-                           "dataset": "Test",
-                           "act":"Y_train[:,0:2]",
-                           "Team1":"Team1",
-                           "Team2": "Team2",
-                           "match":range(len(wdl_test))
+                           "match":np.tile(range(Y[:,0].shape[0]), reps=l)
                            })
         return df
 
     def create_maxpoint_prediction(df):
         dfpoints = np.stack([point_matrix[np.maximum(0, np.minimum(np.round(df.pGS), 6)) * 7 + np.maximum(0, np.minimum(np.round(df.pGC), 6)), i] for i in range(49)],
                             axis=1)
-        dfpoints = pd.DataFrame(dfpoints, index=df.index)
+        dfpoints = pd.DataFrame(dfpoints, index=df.match)
         dfpoints = dfpoints.groupby(dfpoints.index).mean()
         maxpoints = pd.DataFrame({"pGS": np.argmax(dfpoints.to_numpy(), axis=1) // 7,
                                   "pGC": np.mod(np.argmax(dfpoints.to_numpy(), axis=1), 7),
@@ -1703,10 +1504,237 @@ if __name__ == "__main__":
         return df3
 
 
+    n_train_samples = x_train.shape[0]
 
-    df = pd.concat([make_test_sample() for _ in range(200)], axis=0)
-    plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Test", )
+    d = Y_train.shape[1]
 
-    df = pd.concat([make_train_sample() for _ in range(200)], axis=0)
-    plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Train")
+    #@tf.function(autograph=False)
+    # def make_poisson(weights):
+    #     outputs = tf.matmul(x_train_scaled, weights[:-1])+weights[-1:]
+    #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+    #
+    # def make_poisson_test(weights):
+    #     outputs = tf.matmul(x_test_scaled, weights[:-1])+weights[-1:]
+    #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
 
+    def make_joint_model(x):
+        def make_poisson(weights):
+            outputs = tf.matmul(x, weights[:-1]) + weights[-1:]
+            return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+
+        return make_poisson, tfd.JointDistributionNamed(dict(
+            weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
+                                                   scale=np.ones(shape=[x.shape[1] + 1, d])),
+                                        reinterpreted_batch_ndims=2),
+            weight_scale=tfd.Independent(
+                tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
+                              scale=np.ones(shape=[x.shape[1] + 1, d])), reinterpreted_batch_ndims=2),
+            weights=lambda weight_scale, weight_mean: tfd.Independent(
+                tfd.Normal(loc=weight_mean, scale=1.0 * weight_scale), reinterpreted_batch_ndims=2),
+            outputs=make_poisson
+        ))
+
+    make_poisson_train, joint_model = make_joint_model(x_train_scaled)
+    make_poisson_test, joint_model_test = make_joint_model(x_test_scaled)
+
+    # joint_model
+    # joint_model.sample()
+    # joint_model.log_prob(joint_model.sample())
+    # joint_model.mean()
+    # {s:v.shape for s,v in joint_model.sample().items()}
+
+    def target_log_prob(weight_mean, weight_scale, weights):
+        return joint_model.log_prob({
+            'weight_mean': weight_mean,
+            'weight_scale': weight_scale,
+            'weights': weights,
+            'outputs': Y_train
+        })
+
+    def target_log_prob_test(weight_mean, weight_scale, weights):
+        return joint_model_test.log_prob({
+            'weight_mean': weight_mean,
+            'weight_scale': weight_scale,
+            'weights': weights,
+            'outputs': Y_test
+        })
+
+
+    num_results = 500
+    num_burnin_steps = 1000
+
+    #sampler = tfp.mcmc.TransformedTransitionKernel(
+    sampler = tfp.mcmc.HamiltonianMonteCarlo(
+            target_log_prob_fn=target_log_prob,
+            step_size=tf.cast(0.1, tf.float64),
+            num_leapfrog_steps=10)
+            #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
+
+    adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
+        inner_kernel=sampler,
+        num_adaptation_steps=int(0.8 * num_burnin_steps),
+        target_accept_prob=tf.cast(0.75, tf.float64))
+
+    #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
+    initial_state = [np.zeros(shape=[x_train.shape[1]+1, d]),
+                     np.ones(shape=[x_train.shape[1]+1, d]), np.random.randn(x_train.shape[1]+1, d)]
+
+    @tf.function(autograph=False)
+    def sample():
+        return tfp.mcmc.sample_chain(
+            num_results=num_results,
+            num_burnin_steps=num_burnin_steps,
+            current_state=initial_state,
+            kernel=adaptive_sampler,
+            trace_fn=lambda states, kernel_results: states[0]
+            )
+
+    states = sample()
+    #states, kernel_results = r
+    #(kernel_results)
+    weight_mean, weight_scale, weights = states.all_states
+    current_state = [weight_mean[-1], weight_scale[-1], weights[-1]]
+    print(target_log_prob(*initial_state))
+    print(target_log_prob(*current_state))
+
+    loss_curve = [target_log_prob(weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+    loss_curve_test = [target_log_prob_test(weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+    fig, ax = plt.subplots(2,2)
+    sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
+    sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
+    sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
+    ax[1][1].plot(loss_curve)
+    secaxy = ax[1][1].twinx()
+    secaxy.plot(loss_curve_test, c="r")
+    sns.kdeplot(weight_mean[0].numpy().flatten(), ax=ax[0][0])
+    sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
+    sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
+    plt.show()
+    #plt.close()
+
+    initial_state = current_state
+
+    #yhat = make_poisson(weights[-10])
+    #df = sample_train_df(yhat)
+    #plot_predictions_3(df, "poisson", "Train")
+    #yhat.mean()
+    #make_poisson(weights[-1]).sample().numpy()
+
+    #sample = yhat.sample().numpy()
+
+    df = pd.concat([sample_df(make_poisson_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+    df2 = create_maxpoint_prediction(df)
+    plot_predictions_3( df2, "poisson", "Train")
+    #
+    df = pd.concat([sample_df(make_poisson_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
+    df2 = create_maxpoint_prediction(df)
+    plot_predictions_3( df2, "poisson", "Test", silent=True)
+
+    joint_model.resolve_graph()
+
+    w = tf.transpose(weights, (1,2,0))
+    w = tf.reshape(w, (x_train.shape[1]+1, -1))
+    b = tfb.Reshape(event_shape_out=(-1, d, weights.shape[0]), event_shape_in=(-1, d * weights.shape[0]))
+    b2 = tfb.Transpose((2,0,1))
+    b3 = tfb.Reshape(event_shape_out=(-1, d), event_shape_in=[weights.shape[0], -1, d])
+    b4 = b3(b2(b))
+
+    #a = make_poisson_test(w)
+    df = sample_df(b4(make_poisson_test(w)), Y_test, "Test")
+    df2 = create_maxpoint_prediction(df)
+    plot_predictions_3( df2, "poisson", "Test", silent=True)
+    del df
+    del df2
+    df = sample_df(b4(make_poisson_train(w)), Y_train, "Train")
+    df2 = create_maxpoint_prediction(df)
+    plot_predictions_3( df2, "poisson", "Train", silent=True)
+    del df
+    del df2
+
+
+    # fig, ax = plt.subplots(4, 4, figsize=(8, 8))
+    # for i in range(4):
+    #     for j in range(4):
+    #         sns.boxplot(y=model(x_train_scaled).mean()[:,4*i+j], x=Y_train[:,4*i+j], ax=ax[i][j])
+    # plt.show()
+    #
+    # fig, ax = plt.subplots(4, 4, figsize=(8, 8))
+    # for i in range(4):
+    #     for j in range(4):
+    #         sns.boxplot(y=model(x_test_scaled).mean()[:,4*i+j], x=Y_test[:,4*i+j], ax=ax[i][j])
+    # plt.show()
+    #
+    # def make_wdl(x):
+    #     return np.sign(x[:,0]-x[:,1])
+    # def make_wl(x):
+    #     return np.sign(x.mean()[:,0]-x.mean()[:,1])
+    # wdl_train = make_wdl(Y_train)
+    # wdl_test = make_wdl(Y_test)
+    # sample_train = make_wdl(model(x_train_scaled))
+    # sample_test = make_wdl(model(x_test_scaled))
+    # sample_train = make_wl(model(x_train_scaled))
+    # sample_test = make_wl(model(x_test_scaled))
+    #
+    # print(Counter(sample_test==wdl_test))
+    # print(Counter(sample_train == wdl_train))
+    # print(np.sum(sample_test==wdl_test)/len(wdl_test))
+    # print(np.sum(sample_train==wdl_train)/len(wdl_train))
+    # print(confusion_matrix(sample_test, wdl_test))
+    # print(confusion_matrix(sample_train ,  wdl_train))
+    #
+    # arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
+    # arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
+    #
+    # def make_train_sample():
+    #     yhat = model(x_train_scaled)
+    #     sample = yhat.sample().numpy()
+    #     df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_train)//2),
+    #                        "GS":Y_train[:,0].astype(int),
+    #                        "GC":Y_train[:,1].astype(int),
+    #                        "pGS":sample[:,0].astype(int),
+    #                        "pGC":sample[:,1].astype(int),
+    #                        "est1":yhat.mean()[:,0],
+    #                        "est2":yhat.mean()[:,1],
+    #                            # "pGS":np.argmax(sample, axis=1)//7,
+    #                        # "pGC":np.mod(np.argmax(sample, axis=1), 7),
+    #                        # "est1":np.sum(yhat.mean() * arraygs, axis=1),
+    #                        # "est2":np.sum(yhat.mean() * arraygc, axis=1),
+    #                        "Prefix": "poisson",
+    #                        "dataset": "Train",
+    #                        "act":"Y_train[:,0:2]",
+    #                        "Team1":"Team1",
+    #                        "Team2": "Team2",
+    #                        "match":range(len(wdl_train))
+    #                        })
+    #     return df
+    #
+    # def make_test_sample():
+    #     yhat = model(x_test_scaled)
+    #     sample = yhat.sample().numpy()
+    #     df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_test)//2),
+    #                        "GS":Y_test[:,0].astype(int),
+    #                        "GC":Y_test[:,1].astype(int),
+    #                        "pGS":sample[:,0].astype(int),
+    #                        "pGC":sample[:,1].astype(int),
+    #                        "est1":yhat.mean()[:,0],
+    #                        "est2":yhat.mean()[:,1],
+    #                        # "pGS":np.argmax(sample, axis=1)//7,
+    #                        # "pGC":np.mod(np.argmax(sample, axis=1), 7),
+    #                        # "est1":np.sum(yhat.mean() * arraygs, axis=1),
+    #                        # "est2":np.sum(yhat.mean() * arraygc, axis=1),
+    #                        "Prefix": "poisson",
+    #                        "dataset": "Test",
+    #                        "act":"Y_train[:,0:2]",
+    #                        "Team1":"Team1",
+    #                        "Team2": "Team2",
+    #                        "match":range(len(wdl_test))
+    #                        })
+    #     return df
+    #
+    #
+    # df = pd.concat([make_test_sample() for _ in range(200)], axis=0)
+    # plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Test", )
+    #
+    # df = pd.concat([make_train_sample() for _ in range(200)], axis=0)
+    # plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Train")
+    #
