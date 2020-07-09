@@ -1488,8 +1488,35 @@ if __name__ == "__main__":
                            })
         return df
 
+    def sample_categorical_df(yhat, Y, dataset):
+        sample = yhat.sample().numpy()
+        l = sample.shape[0]//Y.shape[0]
+        df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
+                           "GS":np.tile(Y[:,0].astype(int), reps=l),
+                           "GC":np.tile(Y[:,1].astype(int), reps=l),
+                           # "pGS":sample//7,
+                           # "pGC":np.mod(sample, 7),
+                           # "est1":yhat.mean()[:,0],
+                           # "est2":yhat.mean()[:,1],
+                           "pGS":np.argmax(sample, axis=1)//7,
+                           "pGC":np.mod(np.argmax(sample, axis=1), 7),
+                           "est1":np.sum(yhat.mean() * arraygs, axis=1),
+                           "est2":np.sum(yhat.mean() * arraygc, axis=1),
+                           "Prefix": "poisson",
+                           "dataset": dataset,
+                           "act":"Y_test[:,0:2]",
+                           "Team1":"Team1",
+                           "Team2": "Team2",
+                           "match":np.tile(range(Y[:,0].shape[0]), reps=l)
+                           })
+        return df
+
+    def create_result_index(GS, GC):
+        return (np.maximum(0, np.minimum(np.round(GS), 6)) * 7 + np.maximum(0, np.minimum(np.round(GC), 6))).astype(np.int32)
+
+
     def create_maxpoint_prediction(df):
-        dfpoints = np.stack([point_matrix[np.maximum(0, np.minimum(np.round(df.pGS), 6)) * 7 + np.maximum(0, np.minimum(np.round(df.pGC), 6)), i] for i in range(49)],
+        dfpoints = np.stack([point_matrix[create_result_index(df.pGS, df.pGC), i] for i in range(49)],
                             axis=1)
         dfpoints = pd.DataFrame(dfpoints, index=df.match)
         dfpoints = dfpoints.groupby(dfpoints.index).mean()
@@ -1507,6 +1534,10 @@ if __name__ == "__main__":
     n_train_samples = x_train.shape[0]
 
     d = Y_train.shape[1]
+    d = 49
+
+    empirical_results = create_result_index(Y_train[:,0], Y_train[:,1]).astype(np.float64)
+    Counter(empirical_results)
 
     #@tf.function(autograph=False)
     # def make_poisson(weights):
@@ -1516,11 +1547,11 @@ if __name__ == "__main__":
     # def make_poisson_test(weights):
     #     outputs = tf.matmul(x_test_scaled, weights[:-1])+weights[-1:]
     #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
-
     def make_joint_model(x):
         def make_poisson(weights):
-            outputs = tf.matmul(x, weights[:-1]) + weights[-1:]
-            return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+            pp = tf.matmul(x, weights[:-1]) + weights[-1:]
+            #return tfd.Independent(tfd.Poisson(tf.math.softplus(pp)), reinterpreted_batch_ndims=2)
+            return tfd.Independent(tfd.OneHotCategorical(logits = (pp)), reinterpreted_batch_ndims=1)  # tf.math.tanh
 
         return make_poisson, tfd.JointDistributionNamed(dict(
             weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
@@ -1528,7 +1559,8 @@ if __name__ == "__main__":
                                         reinterpreted_batch_ndims=2),
             weight_scale=tfd.Independent(
                 tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
-                              scale=np.ones(shape=[x.shape[1] + 1, d])), reinterpreted_batch_ndims=2),
+                              scale=np.ones(shape=[x.shape[1] + 1, d])),
+                reinterpreted_batch_ndims=2),
             weights=lambda weight_scale, weight_mean: tfd.Independent(
                 tfd.Normal(loc=weight_mean, scale=1.0 * weight_scale), reinterpreted_batch_ndims=2),
             outputs=make_poisson
@@ -1537,28 +1569,58 @@ if __name__ == "__main__":
     make_poisson_train, joint_model = make_joint_model(x_train_scaled)
     make_poisson_test, joint_model_test = make_joint_model(x_test_scaled)
 
-    # joint_model
-    # joint_model.sample()
+    joint_model
+    joint_model.sample()
     # joint_model.log_prob(joint_model.sample())
     # joint_model.mean()
     # {s:v.shape for s,v in joint_model.sample().items()}
+    empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
+    arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
+    arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
+    outputs_ = tf.one_hot(create_result_index(Y_train[:,0], Y_train[:,1]), 49) #.astype(np.float64)
+    test_outputs_ = tf.one_hot(create_result_index(Y_test[:, 0], Y_test[:, 1]), 49) #.astype(np.float64)
+
+    # reinterpreted_batch_ndims=0),
 
     def target_log_prob(weight_mean, weight_scale, weights):
-        return joint_model.log_prob({
+        #s = empiricalDist.sample(Y_train.shape[0])
+        lp = joint_model.log_prob({
             'weight_mean': weight_mean,
             'weight_scale': weight_scale,
             'weights': weights,
-            'outputs': Y_train
+            'outputs': outputs_ # Y_train[:,0:2]
         })
+        #      + 1.01*joint_model.log_prob_parts({
+        #     'weight_mean': weight_mean,
+        #     'weight_scale': weight_scale,
+        #     'weights': weights,
+        #     'outputs': tf.stack([s//7, tf.math.mod(s, 7)], axis=1)
+        # })["outputs"]
+        return lp
 
     def target_log_prob_test(weight_mean, weight_scale, weights):
-        return joint_model_test.log_prob({
+        lp = joint_model_test.log_prob({
             'weight_mean': weight_mean,
             'weight_scale': weight_scale,
             'weights': weights,
-            'outputs': Y_test
+            'outputs': test_outputs_ # Y_train[:,0:2]
         })
+        return lp
 
+    # def target_log_prob_test(weight_mean, weight_scale, weights):
+    #     s = empiricalDist.sample(Y_test.shape[0])
+    #     lp = joint_model_test.log_prob({
+    #         'weight_mean': weight_mean,
+    #         'weight_scale': weight_scale,
+    #         'weights': weights,
+    #         'outputs': Y_test[:,0:2]
+    #     }) + 0.01*joint_model_test.log_prob_parts({
+    #         'weight_mean': weight_mean,
+    #         'weight_scale': weight_scale,
+    #         'weights': weights,
+    #         'outputs': tf.stack([s//7, tf.math.mod(s, 7)], axis=1)
+    #     })["outputs"]
+    #     return lp
 
     num_results = 500
     num_burnin_steps = 1000
@@ -1586,7 +1648,7 @@ if __name__ == "__main__":
             num_burnin_steps=num_burnin_steps,
             current_state=initial_state,
             kernel=adaptive_sampler,
-            trace_fn=lambda states, kernel_results: states[0]
+            trace_fn=lambda states, kernel_results: states
             )
 
     states = sample()
@@ -1622,13 +1684,14 @@ if __name__ == "__main__":
 
     #sample = yhat.sample().numpy()
 
-    df = pd.concat([sample_df(make_poisson_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
-    df2 = create_maxpoint_prediction(df)
-    plot_predictions_3( df2, "poisson", "Train")
-    #
-    df = pd.concat([sample_df(make_poisson_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
-    df2 = create_maxpoint_prediction(df)
-    plot_predictions_3( df2, "poisson", "Test", silent=True)
+    if True:
+        df = pd.concat([sample_categorical_df(make_poisson_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+        df2 = create_maxpoint_prediction(df)
+        plot_predictions_3( df2, "poisson", "Train")
+        #
+        df = pd.concat([sample_categorical_df(make_poisson_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
+        df2 = create_maxpoint_prediction(df)
+        plot_predictions_3( df2, "poisson", "Test", silent=False)
 
     joint_model.resolve_graph()
 
@@ -1639,17 +1702,18 @@ if __name__ == "__main__":
     b3 = tfb.Reshape(event_shape_out=(-1, d), event_shape_in=[weights.shape[0], -1, d])
     b4 = b3(b2(b))
 
-    #a = make_poisson_test(w)
-    df = sample_df(b4(make_poisson_test(w)), Y_test, "Test")
-    df2 = create_maxpoint_prediction(df)
-    plot_predictions_3( df2, "poisson", "Test", silent=True)
-    del df
-    del df2
-    df = sample_df(b4(make_poisson_train(w)), Y_train, "Train")
-    df2 = create_maxpoint_prediction(df)
-    plot_predictions_3( df2, "poisson", "Train", silent=True)
-    del df
-    del df2
+    if False:
+        #a = make_poisson_test(w)
+        df = sample_categorical_df(b4(make_poisson_test(w)), Y_test[:,0:2], "Test")
+        df2 = create_maxpoint_prediction(df)
+        plot_predictions_3( df2, "poisson", "Test", silent=True)
+        del df
+        del df2
+        df = sample_categorical_df(b4(make_poisson_train(w)), Y_train[:,0:2], "Train")
+        df2 = create_maxpoint_prediction(df)
+        plot_predictions_3( df2, "poisson", "Train", silent=True)
+        del df
+        del df2
 
 
     # fig, ax = plt.subplots(4, 4, figsize=(8, 8))
