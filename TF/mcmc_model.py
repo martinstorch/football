@@ -1616,7 +1616,7 @@ if __name__ == "__main__":
                components_distribution=tfd.OneHotCategorical(probs=tf.reshape(tf.tile(component_distribution, [x.shape[0], 1]), [x.shape[0], mixcom, -1]))
             ))
 
-        return make_mixture_probs, tfd.JointDistributionNamed(dict(
+        return make_outputs, tfd.JointDistributionNamed(dict(
             component_distribution = tfd.Independent(tfd.Dirichlet(concentration=np.ones(shape=[mixcom, 49]) / 10000.), 1),
             weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
                                                    scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
@@ -1779,27 +1779,28 @@ if __name__ == "__main__":
     states = sample()
     #states, kernel_results = r
     #(kernel_results)
-    cp, weight_mean, weight_scale, weights = states.all_states
-    current_state = [cp[-1], weight_mean[-1], weight_scale[-1], weights[-1]]
+    cdist, weight_mean, weight_scale, weights = states.all_states
+    current_state = [cdist[-1], weight_mean[-1], weight_scale[-1], weights[-1]]
     print(target_log_prob_cat(*initial_state))
     print(target_log_prob_cat(*current_state))
 
-    loss_curve = [target_log_prob_cat(cp[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
-    loss_curve_test = [target_log_prob_cat_test(cp[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
-    fig, ax = plt.subplots(2,2)
-    sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
-    sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
-    sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
-    ax[1][1].plot(loss_curve)
-    secaxy = ax[1][1].twinx()
-    secaxy.plot(loss_curve_test, c="r")
-    sns.kdeplot(weight_mean[0].numpy().flatten(), ax=ax[0][0])
-    sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
-    sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
-    plt.show()
-    #plt.close()
+    if False:
+        loss_curve = [target_log_prob_cat(cdist[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+        loss_curve_test = [target_log_prob_cat_test(cdist[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+        fig, ax = plt.subplots(2,2)
+        sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
+        sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
+        sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
+        ax[1][1].plot(loss_curve)
+        secaxy = ax[1][1].twinx()
+        secaxy.plot(loss_curve_test, c="r")
+        sns.kdeplot(weight_mean[0].numpy().flatten(), ax=ax[0][0])
+        sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
+        sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
+        plt.show()
+        #plt.close()
 
-    initial_state = current_state
+        initial_state = current_state
 
     #yhat = make_poisson(weights[-10])
     #df = sample_train_df(yhat)
@@ -1808,26 +1809,25 @@ if __name__ == "__main__":
     #make_poisson(weights[-1]).sample().numpy()
 
     #sample = yhat.sample().numpy()
-
     if True:
-        df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+        df = pd.concat([sample_categorical_df(make_mixture_probs_train(cdist[w], weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
         df2 = create_maxpoint_prediction(df)
         plot_predictions_3( df2, "poisson", "Train")
         #
-        df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
+        df = pd.concat([sample_categorical_df(make_mixture_probs_test(cdist[w], weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
         df2 = create_maxpoint_prediction(df)
         plot_predictions_3( df2, "poisson", "Test", silent=False)
 
     joint_model.resolve_graph()
 
-    w = tf.transpose(weights, (1,2,0))
-    w = tf.reshape(w, (x_train.shape[1]+1, -1))
-    b = tfb.Reshape(event_shape_out=(-1, d, weights.shape[0]), event_shape_in=(-1, d * weights.shape[0]))
-    b2 = tfb.Transpose((2,0,1))
-    b3 = tfb.Reshape(event_shape_out=(-1, d), event_shape_in=[weights.shape[0], -1, d])
-    b4 = b3(b2(b))
-
     if False:
+        w = tf.transpose(weights, (1, 2, 0))
+        w = tf.reshape(w, (x_train.shape[1] + 1, -1))
+        b = tfb.Reshape(event_shape_out=(-1, d, weights.shape[0]), event_shape_in=(-1, d * weights.shape[0]))
+        b2 = tfb.Transpose((2, 0, 1))
+        b3 = tfb.Reshape(event_shape_out=(-1, d), event_shape_in=[weights.shape[0], -1, d])
+        b4 = b3(b2(b))
+
         #a = make_poisson_test(w)
         df = sample_categorical_df(b4(make_poisson_test(w)), Y_test[:,0:2], "Test")
         df2 = create_maxpoint_prediction(df)
