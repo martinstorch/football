@@ -1617,7 +1617,7 @@ if __name__ == "__main__":
             ))
 
         return make_mixture_probs, tfd.JointDistributionNamed(dict(
-            component_distribution = tfd.Independent(tfd.Dirichlet(concentration=np.ones(shape=[mixcom, 49]) / 2.), 1),
+            component_distribution = tfd.Independent(tfd.Dirichlet(concentration=np.ones(shape=[mixcom, 49]) / 10000.), 1),
             weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
                                                    scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
                                         reinterpreted_batch_ndims=2),
@@ -1634,9 +1634,12 @@ if __name__ == "__main__":
         )
 
 
-
     make_mixture_probs_train, joint_model = make_joint_mixture_model(x_train_scaled)
     make_mixture_probs_test, joint_model_test = make_joint_mixture_model(x_test_scaled)
+
+    cd = joint_model.parameters["model"]["component_distribution"]
+    cd.sample()
+    cd.log_prob(cd.sample())
 
     joint_model
     joint_model.parameters
@@ -1730,8 +1733,8 @@ if __name__ == "__main__":
     #     })["outputs"]
     #     return lp
 
-    num_results = 5
-    num_burnin_steps = 10
+    num_results = 500
+    num_burnin_steps = 1000
 
     #sampler = tfp.mcmc.TransformedTransitionKernel(
     sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -1746,15 +1749,21 @@ if __name__ == "__main__":
         target_accept_prob=tf.cast(0.75, tf.float64))
 
     #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
-    initial_state = [np.random.randn(mixcom, 49),
+    initial_state = [np.ones(shape=[mixcom, 49])/49.,
                      np.zeros(shape=[x_train.shape[1]+1, mixcom]),
                      np.ones(shape=[x_train.shape[1]+1, mixcom]),
                      np.random.randn(x_train.shape[1]+1, mixcom)]
 
     [v.shape for v in initial_state]
 
-    joint_model.log_prob_parts(value=[*initial_state, outputs_])
-
+    v = {"component_distribution": initial_state[0],
+    'weight_mean': initial_state[1],
+    'weight_scale': initial_state[2],
+    'weights': initial_state[3],
+    'outputs': outputs_  # Y_train[:,0:2]
+     }
+    print(joint_model.log_prob_parts(v))
+    #joint_model.log_prob(*initial_state, outputs_)
     print(target_log_prob_cat(*initial_state))
 
     @tf.function(autograph=False)
