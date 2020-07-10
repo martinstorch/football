@@ -1533,54 +1533,162 @@ if __name__ == "__main__":
 
     n_train_samples = x_train.shape[0]
 
-    d = Y_train.shape[1]
-    d = 49
-
-    empirical_results = create_result_index(Y_train[:,0], Y_train[:,1]).astype(np.float64)
-    Counter(empirical_results)
-
-    #@tf.function(autograph=False)
-    # def make_poisson(weights):
-    #     outputs = tf.matmul(x_train_scaled, weights[:-1])+weights[-1:]
-    #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+    # d = Y_train.shape[1]
+    # d = 49
     #
-    # def make_poisson_test(weights):
-    #     outputs = tf.matmul(x_test_scaled, weights[:-1])+weights[-1:]
-    #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
-    def make_joint_model(x):
-        def make_poisson(weights):
+    # empirical_results = create_result_index(Y_train[:,0], Y_train[:,1]).astype(np.float64)
+    # Counter(empirical_results)
+    #
+    # #@tf.function(autograph=False)
+    # # def make_poisson(weights):
+    # #     outputs = tf.matmul(x_train_scaled, weights[:-1])+weights[-1:]
+    # #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+    # #
+    # # def make_poisson_test(weights):
+    # #     outputs = tf.matmul(x_test_scaled, weights[:-1])+weights[-1:]
+    # #     return tfd.Independent(tfd.Poisson(tf.math.softplus(outputs)), reinterpreted_batch_ndims=2)
+    # def make_joint_model(x):
+    #     def make_poisson(weights):
+    #         pp = tf.matmul(x, weights[:-1]) + weights[-1:]
+    #         #return tfd.Independent(tfd.Poisson(tf.math.softplus(pp)), reinterpreted_batch_ndims=2)
+    #         return tfd.Independent(tfd.OneHotCategorical(logits = (pp)), reinterpreted_batch_ndims=1)  # tf.math.tanh
+    #
+    #     return make_poisson, tfd.JointDistributionNamed(dict(
+    #         weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
+    #                                                scale=np.ones(shape=[x.shape[1] + 1, d])),
+    #                                     reinterpreted_batch_ndims=2),
+    #         weight_scale=tfd.Independent(
+    #             tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
+    #                           scale=np.ones(shape=[x.shape[1] + 1, d])),
+    #             reinterpreted_batch_ndims=2),
+    #         weights=lambda weight_scale, weight_mean: tfd.Independent(
+    #             tfd.Normal(loc=weight_mean, scale=1.0 * weight_scale), reinterpreted_batch_ndims=2),
+    #         outputs=make_poisson
+    #     ))
+    #
+    # make_poisson_train, joint_model = make_joint_model(x_train_scaled)
+    # make_poisson_test, joint_model_test = make_joint_model(x_test_scaled)
+    #
+    #d = 2
+    mixcom = 10 # mixture components
+    num_samples = 20
+
+    ### check
+    x = x_train_scaled
+    component_distribution = tfd.Sample(
+        tfd.Independent(tfd.Dirichlet(concentration=np.ones(shape=[mixcom, 49]) / 49.), 1), sample_shape=x.shape[0],
+        name="repeatSample")
+    weight_mean = tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
+                                             scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
+                                  reinterpreted_batch_ndims=2)
+    weight_scale = tfd.Independent(
+        tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
+                      scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
+        reinterpreted_batch_ndims=2)
+    weights = tfd.Independent(
+        tfd.Normal(loc=weight_mean.sample(), scale=1.0 * weight_scale.sample()), reinterpreted_batch_ndims=2)
+    # comp_dist = lambda component_distribution: tfd.OneHotCategorical(probs=component_distribution),
+    # mix = lambda weights: make_mixture_probs(weights),
+    outputs = tfd.Sample(
+        tfd.MixtureSameFamily(
+            mixture_distribution=tfd.Categorical(logits=tf.matmul(x, weights.sample()[:-1]) + weights.sample()[-1:]),
+            components_distribution=tfd.OneHotCategorical(probs=component_distribution.sample())
+        ), sample_shape=num_samples)
+    tfd.Categorical(logits=tf.matmul(x, weights.sample()[:-1]) + weights.sample()[-1:])
+    tfd.OneHotCategorical(probs=component_distribution.sample())
+    (tf.matmul(x, weights.sample()[:-1]) + weights.sample()[-1:]).shape
+    outputs.log_prob(outputs.sample())
+
+    ### check end
+
+    def make_joint_mixture_model(x):
+        def make_mixture_probs(weights):
             pp = tf.matmul(x, weights[:-1]) + weights[-1:]
             #return tfd.Independent(tfd.Poisson(tf.math.softplus(pp)), reinterpreted_batch_ndims=2)
-            return tfd.Independent(tfd.OneHotCategorical(logits = (pp)), reinterpreted_batch_ndims=1)  # tf.math.tanh
+            return tfd.Categorical(logits = (pp))  # tf.math.tanh
 
-        return make_poisson, tfd.JointDistributionNamed(dict(
-            weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
-                                                   scale=np.ones(shape=[x.shape[1] + 1, d])),
+        def make_outputs(component_distribution, weights): #tfd.Sample(
+           l = tf.matmul(x, weights[:-1]) + weights[-1:]
+           # print("make_outputs")
+           # print(l.shape)
+           return (tfd.MixtureSameFamily(
+               mixture_distribution=tfd.Categorical(logits = l),
+               components_distribution=tfd.OneHotCategorical(probs=tf.reshape(tf.tile(component_distribution, [x.shape[0], 1]), [x.shape[0], mixcom, -1]))
+            ))
+
+        return make_mixture_probs, tfd.JointDistributionNamed(dict(
+            component_distribution = tfd.Independent(tfd.Dirichlet(concentration=np.ones(shape=[mixcom, 49]) / 2.), 1),
+            weight_mean=tfd.Independent(tfd.Normal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
+                                                   scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
                                         reinterpreted_batch_ndims=2),
             weight_scale=tfd.Independent(
-                tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, d]),
-                              scale=np.ones(shape=[x.shape[1] + 1, d])),
+                tfd.LogNormal(loc=np.zeros(shape=[x.shape[1] + 1, mixcom]),
+                              scale=np.ones(shape=[x.shape[1] + 1, mixcom])),
                 reinterpreted_batch_ndims=2),
             weights=lambda weight_scale, weight_mean: tfd.Independent(
                 tfd.Normal(loc=weight_mean, scale=1.0 * weight_scale), reinterpreted_batch_ndims=2),
-            outputs=make_poisson
-        ))
+            # comp_dist = lambda component_distribution: tfd.OneHotCategorical(probs=component_distribution),
+            # mix = lambda weights: make_mixture_probs(weights),
+            outputs=make_outputs
+         )
+        )
 
-    make_poisson_train, joint_model = make_joint_model(x_train_scaled)
-    make_poisson_test, joint_model_test = make_joint_model(x_test_scaled)
+
+
+    make_mixture_probs_train, joint_model = make_joint_mixture_model(x_train_scaled)
+    make_mixture_probs_test, joint_model_test = make_joint_mixture_model(x_test_scaled)
 
     joint_model
+    joint_model.parameters
+    joint_model.event_shape
+    joint_model.batch_shape
+    # joint_model.parameters["model"]["outputs"](
+    #     joint_model.parameters["model"]["component_distribution"].sample(),
+    #     joint_model.parameters["model"]["weights"](
+    #         joint_model.parameters["model"]["weight_scale"].sample(),
+    #         joint_model.parameters["model"]["weight_mean"].sample()
+    #     ).sample()
+    # )
+
     joint_model.sample()
     # joint_model.log_prob(joint_model.sample())
     # joint_model.mean()
     # {s:v.shape for s,v in joint_model.sample().items()}
-    empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
+    #empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
     arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
     arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
     outputs_ = tf.one_hot(create_result_index(Y_train[:,0], Y_train[:,1]), 49) #.astype(np.float64)
     test_outputs_ = tf.one_hot(create_result_index(Y_test[:, 0], Y_test[:, 1]), 49) #.astype(np.float64)
 
     # reinterpreted_batch_ndims=0),
+    def target_log_prob_cat(component_distribution, weight_mean, weight_scale, weights):
+        #s = empiricalDist.sample(Y_train.shape[0])
+        # ot = create_result_index(Y_train[:,0], Y_train[:,1])
+        # print("target_log_prob_cat")
+        # print(joint_model)
+        # print(component_distribution.shape)
+        # print(weight_mean.shape)
+        # print(weight_scale.shape)
+        # print(weights.shape)
+        # print(ot.shape)
+        lp = joint_model.log_prob({
+            "component_distribution": component_distribution,
+            'weight_mean': weight_mean,
+            'weight_scale': weight_scale,
+            'weights': weights,
+            'outputs': outputs_ # Y_train[:,0:2]
+        })
+        return tf.reduce_sum(lp)
+
+    def target_log_prob_cat_test(component_distribution, weight_mean, weight_scale, weights):
+        lp = joint_model_test.log_prob({
+            "component_distribution": component_distribution,
+            'weight_mean': weight_mean,
+            'weight_scale': weight_scale,
+            'weights': weights,
+            'outputs': test_outputs_ # Y_train[:,0:2]
+        })
+        return tf.reduce_sum(lp)
 
     def target_log_prob(weight_mean, weight_scale, weights):
         #s = empiricalDist.sample(Y_train.shape[0])
@@ -1622,12 +1730,12 @@ if __name__ == "__main__":
     #     })["outputs"]
     #     return lp
 
-    num_results = 500
-    num_burnin_steps = 1000
+    num_results = 5
+    num_burnin_steps = 10
 
     #sampler = tfp.mcmc.TransformedTransitionKernel(
     sampler = tfp.mcmc.HamiltonianMonteCarlo(
-            target_log_prob_fn=target_log_prob,
+            target_log_prob_fn=target_log_prob_cat,
             step_size=tf.cast(0.1, tf.float64),
             num_leapfrog_steps=10)
             #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
@@ -1638,8 +1746,16 @@ if __name__ == "__main__":
         target_accept_prob=tf.cast(0.75, tf.float64))
 
     #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
-    initial_state = [np.zeros(shape=[x_train.shape[1]+1, d]),
-                     np.ones(shape=[x_train.shape[1]+1, d]), np.random.randn(x_train.shape[1]+1, d)]
+    initial_state = [np.random.randn(mixcom, 49),
+                     np.zeros(shape=[x_train.shape[1]+1, mixcom]),
+                     np.ones(shape=[x_train.shape[1]+1, mixcom]),
+                     np.random.randn(x_train.shape[1]+1, mixcom)]
+
+    [v.shape for v in initial_state]
+
+    joint_model.log_prob_parts(value=[*initial_state, outputs_])
+
+    print(target_log_prob_cat(*initial_state))
 
     @tf.function(autograph=False)
     def sample():
@@ -1654,13 +1770,13 @@ if __name__ == "__main__":
     states = sample()
     #states, kernel_results = r
     #(kernel_results)
-    weight_mean, weight_scale, weights = states.all_states
-    current_state = [weight_mean[-1], weight_scale[-1], weights[-1]]
-    print(target_log_prob(*initial_state))
-    print(target_log_prob(*current_state))
+    cp, weight_mean, weight_scale, weights = states.all_states
+    current_state = [cp[-1], weight_mean[-1], weight_scale[-1], weights[-1]]
+    print(target_log_prob_cat(*initial_state))
+    print(target_log_prob_cat(*current_state))
 
-    loss_curve = [target_log_prob(weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
-    loss_curve_test = [target_log_prob_test(weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+    loss_curve = [target_log_prob_cat(cp[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
+    loss_curve_test = [target_log_prob_cat_test(cp[i], weight_mean[i], weight_scale[i], weights[i]) for i in range(weights.shape[0])]
     fig, ax = plt.subplots(2,2)
     sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
     sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
@@ -1685,11 +1801,11 @@ if __name__ == "__main__":
     #sample = yhat.sample().numpy()
 
     if True:
-        df = pd.concat([sample_categorical_df(make_poisson_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+        df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
         df2 = create_maxpoint_prediction(df)
         plot_predictions_3( df2, "poisson", "Train")
         #
-        df = pd.concat([sample_categorical_df(make_poisson_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
+        df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
         df2 = create_maxpoint_prediction(df)
         plot_predictions_3( df2, "poisson", "Test", silent=False)
 
