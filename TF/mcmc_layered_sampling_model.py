@@ -1610,7 +1610,7 @@ if __name__ == "__main__":
     # make_poisson_test, joint_model_test = make_joint_model(x_test_scaled)
     #
     #d = 2
-    mixcom = 12 # mixture components
+    mixcom = 20 # mixture components
     l1dim = 32
     num_samples = 20
     batch_size = 128
@@ -1647,20 +1647,23 @@ if __name__ == "__main__":
 
     def make_joint_mixture_model(x):
         def make_outputs(weights, smweights, l2weights): #tfd.Sample(
-           #weights = tf.where(tf.equal(tf.rank(weights),2), weights[tf.newaxis, ...], weights)  # enforce rank 3
-           l2weights = tf.cond(tf.equal(tf.rank(l2weights),2), lambda: l2weights[tf.newaxis, ...], lambda: l2weights)  # enforce rank 3
-           smweights = tf.cond(tf.equal(tf.rank(smweights), 2), lambda: smweights[tf.newaxis, ...], lambda: smweights)  # enforce rank 3
-           weights = tf.cond(tf.equal(tf.rank(weights),2), lambda: weights[tf.newaxis, ...], lambda: weights)  # enforce rank 3
+           # #weights = tf.where(tf.equal(tf.rank(weights),2), weights[tf.newaxis, ...], weights)  # enforce rank 3
+           # l2weights = tf.cond(tf.equal(tf.rank(l2weights),2), lambda: l2weights[tf.newaxis, ...], lambda: l2weights)  # enforce rank 3
+           # smweights = tf.cond(tf.equal(tf.rank(smweights), 2), lambda: smweights[tf.newaxis, ...], lambda: smweights)  # enforce rank 3
+           # weights = tf.cond(tf.equal(tf.rank(weights),2), lambda: weights[tf.newaxis, ...], lambda: weights)  # enforce rank 3
 
            #l = tf.matmul(x[tf.newaxis, ...], weights[:-1]) + weights[-1:]
            # Batch matrix multiplication
-           l = tf.einsum('...ij,...jk->...ik', x[tf.newaxis, ...], weights[:,:-1]) + weights[:,-1:] # out[a,i,k] = sum_j s[a,i,j] * t[a, j, k]
+           l = tf.einsum('...ij,...jk->...ik', x, weights[...,:-1,:]) + weights[...,-1:,:] # out[a,i,k] = sum_j s[a,i,j] * t[a, j, k]
            #l2 = tf.matmul(tf.math.tanh(l), l2weights[:-1]) + l2weights[-1:]
-           l2 = tf.einsum('...aij,...ajk->...aik', tf.math.tanh(l), l2weights[:,:-1]) + l2weights[:,-1:]
-
-           compdist_logits = 100.0*tf.tile(smweights[:, tf.newaxis, ...], [1, x.shape[0], 1, 1])
+           l2 = tf.einsum('...ij,...jk->...ik', tf.math.tanh(l), l2weights[...,:-1,:]) + l2weights[...,-1:,:]
+           multiples = tf.tensor_scatter_nd_update(tensor = tf.ones(dtype=tf.int32, shape=[tf.rank(smweights)+1]),
+                                                   indices = [[tf.rank(smweights)-2]],
+                                                   updates = [x.shape[0]])
+           compdist_logits = 100.0*tf.tile(smweights[..., tf.newaxis,:,:], multiples = multiples)
            #p = (tf.stack([1-(x[:,1]+1)*0.5, 0.5*(1+x[:,1])], axis=1))
            return (#tfd.Sample(
+               tfd.Independent(
                tfd.MixtureSameFamily(
                mixture_distribution=tfd.Categorical(logits = l2*10.0),
                #mixture_distribution=tfd.Categorical(probs = p),
@@ -1669,6 +1672,8 @@ if __name__ == "__main__":
                #components_distribution=tfd.OneHotCategorical(logits=100.0*tf.tile(smweights[tf.newaxis, ...], [x.shape[0], 1, 1]))
                #components_distribution=tfd.Categorical(logits=tf.tile(smweights[tf.newaxis, ...], [x.shape[0], 1, 1]))
            )#, 1)
+                   ,
+                   reinterpreted_batch_ndims=1)
            )
         # def make_batch(batch_dist):
         #     return tfd.Sample(tfd.Categorical(logits=batch_dist), sample_shape=batch_size)
@@ -1764,7 +1769,7 @@ if __name__ == "__main__":
             'outputs': y0
         })
         reg_loss = create_laplacian_loss(smweights, alpha=10.0)
-        return tf.reduce_sum(lp)-tf.reduce_sum(reg_loss)
+        return lp-tf.reduce_sum(reg_loss)
 
 
     # reinterpreted_batch_ndims=0),
@@ -1820,8 +1825,9 @@ if __name__ == "__main__":
         return tf.reduce_sum(lp)-tf.reduce_sum(reg_loss)
 
 
-    num_results = 1000
-    num_burnin_steps = 3000
+    num_results = 200
+    num_burnin_steps = 1000
+    nchains = 3
 
     #sampler = tfp.mcmc.TransformedTransitionKernel(
     sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -1833,7 +1839,7 @@ if __name__ == "__main__":
     adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
         inner_kernel=sampler,
         #num_adaptation_steps=int(0.8 * num_burnin_steps),
-        num_adaptation_steps=tf.cast(0.8 * num_burnin_steps, tf.int32),
+        num_adaptation_steps=tf.cast(tf.math.maximum(500.0, 0.8 * num_burnin_steps), tf.int32),
         target_accept_prob=tf.cast(0.75, tf.float64))
 
     #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
@@ -1849,19 +1855,18 @@ if __name__ == "__main__":
         # joint_model.sample()["batch_dist"],
         # joint_model.sample()["batch"]
     ]  # compdist
-
-    s = joint_model.sample()
-    joint_model.log_prob(s)
-    #initial_state = [s['weight_mean'].numpy(), s['weight_scale'].numpy(), s['weights'].numpy(), s['smweights'].numpy()] #, s['component_distribution'].numpy()]
+    s = joint_model.sample(nchains)
+    print(joint_model.log_prob(s))
+    initial_state = [s['weight_mean'].numpy(), s['weight_scale'].numpy(), s['weights'].numpy(), s['smweights'].numpy(), s['l2weights'].numpy()] #, s['component_distribution'].numpy()]
     #initial_state = [s['weight_mean'], s['weight_scale'], s['weights'], s['smweights']] #, s['component_distribution'].numpy()]
-
-    # inputfilename = "mcmc_allstatesL2_20200812_183402.pickle"
+    print(target_log_prob_cat_batched(*initial_state))
+    # inputfilename = "mcmc_allstatesL2_20200902_084017.pickle"
     # filehandler = open(inputfilename, 'rb')
     # all_states = pickle.load(filehandler)
     # weight_mean, weight_scale, weights, smweights, l2weights = all_states
     # initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1], l2weights[-1]]
-
-    [v.shape for v in initial_state]
+    print("initial_state")
+    print([v.shape for v in initial_state])
 
     # v = {"component_distribution": initial_state[0],
     # 'weight_mean': initial_state[1],
@@ -1914,7 +1919,7 @@ if __name__ == "__main__":
     # print(cdist[0,0]-cdist[-1, 0])
     weight_mean[0, 1]
     weight_mean[-1, 1]
-    weight_mean[-1, 18]
+    #weight_mean[-1, 18]
     weight_mean[0, -1] # bias
     weight_mean[-1, -1] # bias
     weight_scale[0, 0]
@@ -1988,18 +1993,22 @@ if __name__ == "__main__":
                            })
         return df
 
+
+    plotcompontent = 1  # in range(nchains)
     if True:
-        # to do: enable batch - remove [0] index
-        df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w], l2weights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)][0], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
-        #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
-        #df2 = create_maxpoint_prediction(df)
-        print(df2)
-        plot_predictions_3( df2, "poisson", "Train", silent=False)
+        #for plotcompontent in range(nchains):
+            # to do: enable batch - remove [0] index
+            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w], l2weights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)], axis=0)[plotcompontent], Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
+            #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+            #df2 = create_maxpoint_prediction(df)
+            print(df2)
+            plot_predictions_3( df2, "poisson", "Train", silent=False)
         #
         # df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w], smweights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
         # df2 = create_maxpoint_prediction(df)
-        df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w], l2weights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)][0], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
-        plot_predictions_3( df2, "poisson", "Test", silent=False)
+        #for plotcompontent in range(nchains):
+            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w], l2weights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)], axis=0)[plotcompontent], Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
+            plot_predictions_3( df2, "poisson", "Test", silent=False)
 
     #joint_model.resolve_graph()
     if False:
@@ -2159,6 +2168,8 @@ def plot_softprob_simple(sp, title="", prefix=""):
                              radius=1.0, wedgeprops={"alpha": 0.5})
     plt.show()
 
+plotcompontent = 1 #  in range(nchains)
 w = -1
 for i in range(mixcom):
-    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w], l2weights[w]).components_distribution[0].mean()[0, i], title="component "+str(i))
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w], l2weights[w]).distribution.components_distribution.mean()[plotcompontent,0,i], title="component "+str(i))
+
