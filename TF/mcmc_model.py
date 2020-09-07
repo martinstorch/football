@@ -1807,8 +1807,8 @@
         #     })["outputs"]
         #     return lp
 
-        num_results = 1000
-        num_burnin_steps = 100
+        num_results = 300
+        num_burnin_steps = 200
 
         #sampler = tfp.mcmc.TransformedTransitionKernel(
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -2142,5 +2142,7 @@
         plt.show()
 
     w = -1
-    for i in range(mixcom):
+    #for i in range(mixcom):
+    for i in range(2):
         plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i))
+

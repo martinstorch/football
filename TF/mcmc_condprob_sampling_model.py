@@ -1659,12 +1659,12 @@
         def make_joint_mixture_model(x, y=None):
             def make_h1dist(weights, smweights):
                 h1logits = tf.matmul(x, weights[...,0,:-1, :]) + weights[...,0,-1:, :]
-                compdist_logits_h1 = 1.0*smweights[..., tf.newaxis,:mixcom,:]*tf.ones([x.shape[0], 1, 1], dtype=tf.float64)
+                compdist_logits_h1 = 100.0*smweights[..., tf.newaxis,:mixcom,:]*tf.ones([x.shape[0], 1, 1], dtype=tf.float64)
                 # print(h1logits.shape)
                 # print(compdist_logits_h1.shape)
                 h1dist = tfd.Independent(
                    tfd.MixtureSameFamily(
-                       mixture_distribution=tfd.Categorical(logits = 0.01*h1logits),
+                       mixture_distribution=tfd.Categorical(logits = 1.0*h1logits),
                        components_distribution=tfd.OneHotCategorical(logits=compdist_logits_h1)
                    ), reinterpreted_batch_ndims=1)
                 return h1dist
@@ -1685,8 +1685,8 @@
                 # print(h2logits.shape)
                 h2dist = tfd.Independent(
                        tfd.MixtureSameFamily(
-                           mixture_distribution=tfd.Categorical(logits = 0.01*h2logits),
-                           components_distribution=tfd.OneHotCategorical(logits=compdist_logits_h2)
+                           mixture_distribution=tfd.Categorical(logits = 1.0*h2logits),
+                           components_distribution=tfd.OneHotCategorical(logits=100*compdist_logits_h2)
                        ), reinterpreted_batch_ndims=1)
     
                 #p = (tf.stack([1-(x[:,1]+1)*0.5, 0.5*(1+x[:,1])], axis=1))
@@ -1696,18 +1696,18 @@
                 (make_h1dist, make_h2dist), \
                 tfd.JointDistributionNamed(dict(
                     weight_mean=tfd.Independent(tfd.Normal(loc=tf.zeros(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64),
-                                                           scale=100*tf.ones(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64)),
+                                                           scale=tf.ones(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64)),
                                                 reinterpreted_batch_ndims=3),
                     weight_scale=tfd.Independent(
                         tfd.LogNormal(loc=tf.zeros(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64),
-                                      scale=100*tf.ones(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64)),
+                                      scale=tf.ones(shape=[4, x.shape[1] + 1, l1dim], dtype=tf.float64)),
                         reinterpreted_batch_ndims=3),
                     weights=lambda weight_scale, weight_mean: tfd.Independent(
-                        tfd.Normal(loc=weight_mean, scale=100.0 * weight_scale), reinterpreted_batch_ndims=3),
+                        tfd.Normal(loc=weight_mean, scale=weight_scale), reinterpreted_batch_ndims=3),
                     # l2weights=tfd.Independent(tfd.Normal(loc=tf.zeros(shape=[l1dim+1, mixcom], dtype=tf.float64), scale=tf.ones(shape=[l1dim+1, mixcom], dtype=tf.float64)),
                     #                                      reinterpreted_batch_ndims=2),
                     smweights = tfd.Independent(tfd.Normal(loc=tf.zeros(shape=[2*mixcom, 49], dtype=tf.float64),
-                                                           scale=10.0*tf.ones(shape=[2*mixcom, 49], dtype=tf.float64)),
+                                                           scale=tf.ones(shape=[2*mixcom, 49], dtype=tf.float64)),
                                                 reinterpreted_batch_ndims=2),
                     #h1dist=make_h1dist,
                     outputs=make_h2dist
@@ -1741,7 +1741,7 @@
             make_h1dist, _ = mk
             h1distribution = make_h1dist(weights, smweights)
             h1_log_prob = h1distribution.log_prob(Y[...,:49])
-            reg_loss = create_laplacian_loss(smweights, alpha=0.01)
+            reg_loss = create_laplacian_loss(smweights, alpha=10.0)
             return lp - reg_loss + h1_log_prob
     
         def analyse_losses(weight_mean, weight_scale, weights, smweights, X, Y):
@@ -1754,7 +1754,7 @@
                 'smweights': smweights,
                 'outputs': Y[...,49:]
             })
-            reg_loss = create_laplacian_loss(smweights, alpha=0.01)
+            reg_loss = create_laplacian_loss(smweights, alpha=10.0)
             lp["reg_loss"]=reg_loss
             lp["total"]=loss_function(weight_mean, weight_scale, weights, smweights, X, Y)
             make_h1dist, _ = mk
@@ -1786,8 +1786,8 @@
         #empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
     
     
-        num_results = 500
-        num_burnin_steps = 1500
+        num_results = 300
+        num_burnin_steps = 300
         nchains = 2
     
         #sampler = tfp.mcmc.TransformedTransitionKernel(
@@ -1804,21 +1804,21 @@
             target_accept_prob=tf.cast(0.75, tf.float64))
     
         #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
-        # initial_state = [#np.random.randn(x_train.shape[1]+1, mixcom), # np.zeros # weight_mean
-        #                  tf.zeros(shape=[x_train.shape[1]+1, l1dim], dtype=tf.float64), # weight_mean
-        #                  tf.ones(shape=[x_train.shape[1]+1, l1dim], dtype=tf.float64), # weight_scale
-        #                  tf.ones(shape=[x_train.shape[1]+1, l1dim], dtype=tf.float64), # weights
-        #     #np.ones(shape=[mixcom, 49]) / 49.
-        #     tf.zeros(shape=[mixcom, 49], dtype=tf.float64),  # smweight
-        #     tf.ones(shape=[l1dim+1, mixcom], dtype=tf.float64),  # l2weight
-        #     #np.log(joint_model.sample()["component_distribution"]),
+        initial_state = [#np.random.randn(x_train.shape[1]+1, mixcom), # np.zeros # weight_mean
+                         tf.zeros(shape=[4, x_train.shape[1]+1, l1dim], dtype=tf.float64), # weight_mean
+                         tf.ones(shape=[4, x_train.shape[1]+1, l1dim], dtype=tf.float64), # weight_scale
+                         tf.ones(shape=[4, x_train.shape[1]+1, l1dim], dtype=tf.float64), # weights
+            #np.ones(shape=[mixcom, 49]) / 49.
+            tf.zeros(shape=[2*mixcom, 49], dtype=tf.float64),  # smweight
+            # tf.ones(shape=[l1dim+1, mixcom], dtype=tf.float64),  # l2weight
+            #np.log(joint_model.sample()["component_distribution"]),
         #     #joint_model.sample()["component_distribution"]
         #     # joint_model.sample()["batch_dist"],
         #     # joint_model.sample()["batch"]
-        # ]  # compdist
+        ]  # compdist
         s = joint_model_batch.sample(nchains)
         print(joint_model_batch.log_prob(s))
-        initial_state = [s['weight_mean'].numpy(), s['weight_scale'].numpy(), s['weights'].numpy(), s['smweights'].numpy()]
+        #initial_state = [s['weight_mean'].numpy(), s['weight_scale'].numpy(), s['weights'].numpy(), s['smweights'].numpy()]
         print("initial_state")
         print([v.shape for v in initial_state])
         print(target_log_prob_cat(*initial_state))
@@ -1853,8 +1853,7 @@
                 num_burnin_steps=num_burnin_steps,
                 current_state=initial_state,
                 kernel=adaptive_sampler,
-                trace_fn=lambda states, kernel_results: states,
-                parallel_iterations=30
+                trace_fn=lambda states, kernel_results: states
                 )
     
         states = sample()
@@ -2100,7 +2099,7 @@
     if False:
         plotcompontent = 1 #  in range(nchains)
         w = -1
-        for i in range(mixcom):
+        for i in range(2):
             plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).distribution.components_distribution.mean()[plotcompontent,0,i], title="component "+str(i))
     
         for i in range(mixcom):
