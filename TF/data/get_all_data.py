@@ -38,8 +38,7 @@ def load_expected_goals(season):
   #  f.write(text_content1)
   
   soup = BeautifulSoup(html_content, 'html.parser')
-  xgoals= soup.find_all('script')[1].get_text()
-  
+  xgoals= soup.find_all('script')[1].string
   jsontext = re.search(r'\(\'''(.*)\'''\)', xgoals).groups()[0]
   decoded_string = bytes(jsontext, "utf-8").decode("unicode_escape")
   jsonobj = json.loads(decoded_string)
@@ -242,7 +241,7 @@ data538 = getFiveThirtyEightData(skip_download)
 if skip_download:
     xgdf = pd.read_csv(dir_path+'/xgoals.csv')  
 else:
-    xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019]
+    xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019, 2020]
     xgdf=pd.DataFrame()
     for s in xg_season_list:
       xg = load_expected_goals(s)
@@ -251,7 +250,7 @@ else:
     xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
 print(xgdf)
 
-all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920"]
+all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920"] #, "2021"]
 all_data = []
 for s in all_seasons:
   sdata = download_data(dir_path, s, skip_download=skip_download) 
@@ -309,7 +308,7 @@ quotes_bwin = quotes_bwin.rename(columns=
                    {"HomeTeam":"HomeTeam_bwin", "AwayTeam":"AwayTeam_bwin",
                     "stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
 quotes_bwin ["Predict"]=True
-quotes_bwin ["Season"]="1920"
+quotes_bwin ["Season"]="2021"
 quotes_bwin ["Dow"]= pd.to_datetime(quotes_bwin.Date, dayfirst=True).apply(lambda x: x.strftime('%A'))
 
 print(quotes_bwin.drop(columns=["HomeTeam", "AwayTeam"]))

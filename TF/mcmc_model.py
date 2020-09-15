@@ -1570,6 +1570,36 @@
             df3 = pd.concat([df2, maxpoints], axis=1)
             return df3
 
+        def create_maxpoint_prediction_from_mean(probs, Ylen):
+            l = probs.shape[0]//Ylen
+            expPoints = np.mean(np.matmul(probs, point_matrix).reshape((-1, Ylen,49)), axis=0)
+            maxpoints = pd.DataFrame({"pGS": np.argmax(expPoints, axis=1) // 7,
+                                      "pGC": np.mod(np.argmax(expPoints, axis=1), 7),
+                                      "points": np.amax(expPoints, axis=1),
+                                      "est1": np.mean(np.sum(probs * arraygs, axis=1).reshape((-1, Ylen)), axis=0),
+                                      "est2": np.mean(np.sum(probs * arraygc, axis=1).reshape((-1, Ylen)), axis=0)
+                                      })
+            return maxpoints
+
+        def create_df(maxpoints, Y, dataset):
+            l = maxpoints.shape[0]//Y.shape[0]
+            df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
+                               "GS":np.tile(Y[:,0].astype(int), reps=l),
+                               "GC":np.tile(Y[:,1].astype(int), reps=l),
+                               "pGS":maxpoints.pGS,
+                               "pGC":maxpoints.pGC,
+                               "est1":maxpoints.est1,
+                               "est2":maxpoints.est2,
+                               "points":maxpoints.points,
+                               "Prefix": "poisson",
+                               "dataset": dataset,
+                               "act":"act",
+                               "Team1":"Team1",
+                               "Team2": "Team2",
+                               "match":np.tile(range(Y[:,0].shape[0]), reps=l)
+                               })
+            return df
+
 
         n_train_samples = x_train.shape[0]
 
@@ -1644,16 +1674,19 @@
 
         def make_joint_mixture_model(x):
             def make_outputs(weights, smweights): #tfd.Sample(
-               l = tf.matmul(x, weights[:-1]) + weights[-1:]
-               p = (tf.stack([1-(x[:,1]+1)*0.5, 0.5*(1+x[:,1])], axis=1))
-               return (#tfd.Sample(
+               l = tf.matmul(x, weights[..., :-1, :]) + weights[..., -1:, :]
+               #p = (tf.stack([1-(x[:,1]+1)*0.5, 0.5*(1+x[:,1])], axis=1))
+               compdist_logits = 100.0 * smweights[..., tf.newaxis, :mixcom, :] * tf.ones([x.shape[0], 1, 1],
+                                                                                            dtype=tf.float64)
+               return (#tfd.Independent(#tfd.Sample(
                    tfd.MixtureSameFamily(
                    mixture_distribution=tfd.Categorical(logits = l),
                    #mixture_distribution=tfd.Categorical(probs = p),
                    #components_distribution=tfd.OneHotCategorical(probs=tf.tile(component_distribution[tf.newaxis, ...], [x.shape[0], 1, 1]))
-                   components_distribution=tfd.OneHotCategorical(logits=100.0*tf.tile(smweights[tf.newaxis, ...], [x.shape[0], 1, 1]))
+                   components_distribution=tfd.OneHotCategorical(logits=compdist_logits)
                    #components_distribution=tfd.Categorical(logits=tf.tile(smweights[tf.newaxis, ...], [x.shape[0], 1, 1]))
                )#, 1)
+                   #, reinterpreted_batch_ndims=1)
                )
 
             return make_outputs, tfd.JointDistributionNamed(dict(
@@ -1715,97 +1748,50 @@
         # {s:v.shape for s,v in joint_model.sample().items()}
         #empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
 
-        # reinterpreted_batch_ndims=0),
-        def target_log_prob_cat( weight_mean, weight_scale, weights, smweights):
-            #s = empiricalDist.sample(Y_train.shape[0])
-            # ot = create_result_index(Y_train[:,0], Y_train[:,1])
-            # print("target_log_prob_cat")
-            # print(joint_model)
-            # print(component_distribution.shape)
-            # print(weight_mean.shape)
-            # print(weight_scale.shape)
-            # print(weights.shape)
-            # print(ot.shape)
+        def loss_function(weight_mean, weight_scale, weights, smweights, X, Y):
+            mk, joint_model = make_joint_mixture_model(X)
+            lpp = joint_model.log_prob_parts({
+                'weight_mean': weight_mean,
+                'weight_scale': weight_scale,
+                'weights': weights,
+                'smweights': smweights,
+                'outputs': Y
+            })
             lp = joint_model.log_prob({
                 'weight_mean': weight_mean,
                 'weight_scale': weight_scale,
                 'weights': weights,
                 'smweights': smweights,
-                #"component_distribution": component_distribution,
-                'outputs': outputs_ # Y_train[:,0:2]
+                'outputs': Y
             })
             reg_loss = create_laplacian_loss(smweights, alpha=10.0)
-            return tf.reduce_sum(lp)-tf.reduce_sum(reg_loss)
 
-        def analyse_target_log_prob_cat( weight_mean, weight_scale, weights, smweights):
-            lp = joint_model.log_prob_parts(
-                {
-                'weight_mean': weight_mean,
-                'weight_scale': weight_scale,
-                'weights': weights,
-                'smweights': smweights,
-                #"component_distribution": component_distribution,
-                'outputs': outputs_ # Y_train[:,0:2]
-            })
-            reg_loss = create_laplacian_loss(smweights, alpha=10.0)
-            lp["reg_loss"]=reg_loss
-            return(lp)
+            lpp.update({"laplacian_reg_loss":reg_loss, "joint_model_log_prob":lp})
+            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) #- lpp["outputs"] + lpp["outputs"]*0.3
 
-        #analyse_target_log_prob_cat(*initial_state)
-        #analyse_target_log_prob_cat(*current_state)
+            return lpp
 
+        def analyse_losses(weight_mean, weight_scale, weights, smweights, X, Y):
+            return loss_function(weight_mean, weight_scale, weights, smweights, X, Y)
 
-        def target_log_prob_cat_test(weight_mean, weight_scale, weights, smweights): # , component_distribution
-            lp = joint_model_test.log_prob({
-                'weight_mean': weight_mean,
-                'weight_scale': weight_scale,
-                'weights': weights,
-                'smweights': smweights,
-                #"component_distribution": component_distribution,
-                'outputs': test_outputs_ # Y_train[:,0:2]
-            })
-            reg_loss = create_laplacian_loss(smweights, alpha=10.0)
-            return tf.reduce_sum(lp)-tf.reduce_sum(reg_loss)
-
-        # def target_log_prob(weight_mean, weight_scale, weights):
-        #     #s = empiricalDist.sample(Y_train.shape[0])
-        #     lp = joint_model.log_prob({
-        #         'weight_mean': weight_mean,
-        #         'weight_scale': weight_scale,
-        #         'weights': weights,
-        #         'outputs': outputs_ # Y_train[:,0:2]
-        #     })
-        #     #      + 1.01*joint_model.log_prob_parts({
-        #     #     'weight_mean': weight_mean,
-        #     #     'weight_scale': weight_scale,
-        #     #     'weights': weights,
-        #     #     'outputs': tf.stack([s//7, tf.math.mod(s, 7)], axis=1)
-        #     # })["outputs"]
-        #     return lp
+        # def target_log_prob_cat_batched(weight_mean, weight_scale, weights, smweights):
+        #     index = tf.random.stateless_uniform(shape=[batch_size], maxval=x.shape[0], dtype=tf.int32, seed=(1, 2))
+        #     index2 = tf.random.stateless_uniform(shape=[batch_size], maxval=x.shape[0], dtype=tf.int32, seed=(1, 2))
+        #     x0 = tf.gather(params=x_train_scaled, indices=index)
+        #     y0 = tf.gather(params=outputs_, indices=index2)
+        #     return loss_function(weight_mean, weight_scale, weights, smweights, x0, y0)
         #
-        # def target_log_prob_test(weight_mean, weight_scale, weights):
-        #     lp = joint_model_test.log_prob({
-        #         'weight_mean': weight_mean,
-        #         'weight_scale': weight_scale,
-        #         'weights': weights,
-        #         'outputs': test_outputs_ # Y_train[:,0:2]
-        #     })
-        #     return lp
-        #
-        # def target_log_prob_test(weight_mean, weight_scale, weights):
-        #     s = empiricalDist.sample(Y_test.shape[0])
-        #     lp = joint_model_test.log_prob({
-        #         'weight_mean': weight_mean,
-        #         'weight_scale': weight_scale,
-        #         'weights': weights,
-        #         'outputs': Y_test[:,0:2]
-        #     }) + 0.01*joint_model_test.log_prob_parts({
-        #         'weight_mean': weight_mean,
-        #         'weight_scale': weight_scale,
-        #         'weights': weights,
-        #         'outputs': tf.stack([s//7, tf.math.mod(s, 7)], axis=1)
-        #     })["outputs"]
-        #     return lp
+
+        def target_log_prob_cat(weight_mean, weight_scale, weights, smweights):
+            return loss_function(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)["total"]
+
+
+        def target_log_prob_cat_test(weight_mean, weight_scale, weights, smweights):
+            return loss_function(weight_mean, weight_scale, weights, smweights, x_test_scaled, test_outputs_)["total"]
+
+
+        def analyse_target_log_prob_cat(weight_mean, weight_scale, weights, smweights):
+            return analyse_losses(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)
 
         num_results = 300
         num_burnin_steps = 200
@@ -1814,7 +1800,7 @@
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
                 target_log_prob_fn=target_log_prob_cat,
                 step_size=tf.cast(0.1, tf.float64),
-                num_leapfrog_steps=10)
+                num_leapfrog_steps=16)
                 #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
 
         adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
@@ -1868,62 +1854,37 @@
                 trace_fn=lambda states, kernel_results: states
                 )
 
-        states = sample()
-        #states, kernel_results = r
-        #(kernel_results)
+        print(target_log_prob_cat(*initial_state))
+        print(analyse_target_log_prob_cat(*initial_state))
 
+        states = sample()
         filename = "mcmc_allstates_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
         filehandler = open(filename, 'wb')
         pickle.dump(states.all_states, filehandler)
-
         weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
+
         current_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
         current_state2 = [weight_mean[-10], weight_scale[-10], weights[-10], smweights[-10]]
-        print(target_log_prob_cat(*initial_state))
         print(target_log_prob_cat(*current_state))
-        print(analyse_target_log_prob_cat(*initial_state))
         print(analyse_target_log_prob_cat(*current_state))
         tf.reduce_mean(analyse_target_log_prob_cat(*initial_state)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
         tf.reduce_mean(analyse_target_log_prob_cat(*current_state2)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
 
-#        cdist[-1, 2]
-#        cdist[-1, 2]-cdist[0, 2]
-
-        # cdist[0, 0]
-        # cdist[-1, 0]
-        # cdist[0, 1]
-        # cdist[-1, 1]
-        # print(initial_state[3][-1,1]-cdist[-1, 1])
-        # print(cdist[0,1]-cdist[-1, 1])
-        # print(initial_state[3][-1,0]-cdist[-1, 0])
-        # print(cdist[0,0]-cdist[-1, 0])
-        weight_mean[0, 1]
-        weight_mean[-1, 1]
-        weight_mean[-1, 18]
-        weight_mean[0, -1] # bias
-        weight_mean[-1, -1] # bias
-        weight_scale[0, 0]
-        weight_scale[-1, 0]
-        weights[0, 0]
-        weights[-1, 0]
-        weights[0, -1]
-        weights[-1, -1]
-        smweights[0, 0]
-        smweights[-1, 0]
-        smweights[0, -1]
-        smweights[-1, -1]
 
         if True:
             loss_curve = [target_log_prob_cat(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
             loss_curve_test = [target_log_prob_cat_test(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
+            #stepsize = 10
+            #loss_curve = np.concatenate([target_log_prob_cat(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
+            #loss_curve_test = np.concatenate([target_log_prob_cat_test(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
+
             fig, ax = plt.subplots(3,2)
             sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
             sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
             sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
             sns.kdeplot(smweights[-1].numpy().flatten(), ax=ax[1][1])
-            ax[2][1].plot(loss_curve)
-            secaxy = ax[2][1].twinx()
-            secaxy.plot(loss_curve_test, c="r")
+            ax[2][0].plot(loss_curve)
+            ax[2][1].plot(loss_curve_test)
             sns.kdeplot(weight_mean[0].numpy().flatten(), ax=ax[0][0])
             sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
             sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
@@ -1941,36 +1902,6 @@
         #make_poisson(weights[-1]).sample().numpy()
 
         #sample = yhat.sample().numpy()
-        def create_maxpoint_prediction_from_mean(probs, Ylen):
-            l = probs.shape[0]//Ylen
-            expPoints = np.mean(np.matmul(probs, point_matrix).reshape((-1, Ylen,49)), axis=0)
-            maxpoints = pd.DataFrame({"pGS": np.argmax(expPoints, axis=1) // 7,
-                                      "pGC": np.mod(np.argmax(expPoints, axis=1), 7),
-                                      "points": np.amax(expPoints, axis=1),
-                                      "est1": np.mean(np.sum(probs * arraygs, axis=1).reshape((-1, Ylen)), axis=0),
-                                      "est2": np.mean(np.sum(probs * arraygc, axis=1).reshape((-1, Ylen)), axis=0)
-                                      })
-            return maxpoints
-
-        def create_df(maxpoints, Y, dataset):
-            l = maxpoints.shape[0]//Y.shape[0]
-            df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
-                               "GS":np.tile(Y[:,0].astype(int), reps=l),
-                               "GC":np.tile(Y[:,1].astype(int), reps=l),
-                               "pGS":maxpoints.pGS,
-                               "pGC":maxpoints.pGC,
-                               "est1":maxpoints.est1,
-                               "est2":maxpoints.est2,
-                               "points":maxpoints.points,
-                               "Prefix": "poisson",
-                               "dataset": dataset,
-                               "act":"act",
-                               "Team1":"Team1",
-                               "Team2": "Team2",
-                               "match":np.tile(range(Y[:,0].shape[0]), reps=l)
-                               })
-            return df
-
         if True:
             df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
             #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
@@ -2143,6 +2074,6 @@
 
     w = -1
     #for i in range(mixcom):
-    for i in range(2):
+    for i in range(4):
         plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i))
 
