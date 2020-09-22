@@ -250,7 +250,7 @@ else:
     xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
 print(xgdf)
 
-all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920"] #, "2021"]
+all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021"]
 all_data = []
 for s in all_seasons:
   sdata = download_data(dir_path, s, skip_download=skip_download) 

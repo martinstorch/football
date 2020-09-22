@@ -53,6 +53,7 @@ def build_features(df_data):
   print(team_encoder.transform(team_encoder.classes_))
   
   print(df_data["Date"].tail(18))
+  df_data["DateOrig"] = df_data["Date"]
   df_data["Date"]= [(datetime.strptime(dt, '%d.%m.%Y').toordinal()-734138) for dt in df_data["Date"]]
   df_data.sort_values("Date").reset_index(drop=True)
   
@@ -66,6 +67,7 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.Hxnsg), "Hxnsg"]=df_data.loc[pd.isna(df_data.Hxnsg), "FTHG"]/2
   df_data.loc[pd.isna(df_data.Axnsg), "Axnsg"]=df_data.loc[pd.isna(df_data.Axnsg), "FTAG"]/2
   df_data.loc[pd.isna(df_data.Time), "Time"]="15:30"
+  df_data["DateOrig"] = pd.to_datetime(df_data['DateOrig'] + ' ' + df_data['Time'])
   df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-14.5
   
   #fill NA with mean() of each column in boston dataset
@@ -89,6 +91,7 @@ def build_features(df_data):
   df1['Season'] = df_data["Season"]
   #df1["Train"] = df_data["Train"]
   df1["Date"]= df_data["Date"]
+  df1["DateOrig"]= df_data["DateOrig"]
   df1["Time"]= df_data["Time"]
   df1["Predict"]= df_data["Predict"]
 
@@ -112,6 +115,7 @@ def build_features(df_data):
   df2['Season'] = df_data["Season"]
   #df2["Train"] = df_data["Train"]
   df2["Date"]= df_data["Date"]
+  df2["DateOrig"]= df_data["DateOrig"]
   df2["Time"]= df_data["Time"]
   df2["Predict"]= df_data["Predict"]
 
@@ -248,7 +252,9 @@ def build_features(df_data):
   gt2 = features.groupby(["Season", "Team2_index"])
   gt1w = features.groupby(["Season", "Team1_index","Where"])
   gt2w = features.groupby(["Season", "Team2_index","Where"])
-  
+  gtt1 = features.groupby(["Team1_index"])
+  gtt2 = features.groupby(["Team2_index"])
+  halftime_ema = "30 days"
   features["t1games"] = gt1.cumcount()
   features["t2games"] = gt2.cumcount()
   features["roundsleft"] = 34-features["t1games"]
@@ -265,6 +271,8 @@ def build_features(df_data):
   features["t2rank6_attention"] = [np.exp(-0.1*np.square(x-6)) for x in features["t2rank"]]
   features["t1rank16_attention"] = [np.exp(-0.1*np.square(x-16)) for x in features["t1rank"]]   
   features["t2rank16_attention"] = [np.exp(-0.1*np.square(x-16)) for x in features["t2rank"]]
+  features["t1goals_ema"] = gtt1.OwnGoals.apply(lambda x: x.shift(1).ewm(halflife=halftime_ema, times=features.loc[x.index].DateOrig.shift(1,  fill_value=datetime(2000, 1, 1))).mean())
+  features["t2goals_ema"] = gtt2.OwnGoals.apply(lambda x: x.shift(1).ewm(halflife=halftime_ema, times=features.loc[x.index].DateOrig.shift(1,  fill_value=datetime(2000, 1, 1))).mean())
 
   features["t1cards_ema"] = gt1.t1cards.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
   features["t2cards_ema"] = gt2.t2cards.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
@@ -278,7 +286,7 @@ def build_features(df_data):
                           "roundsleft", "t1promoted", "t2promoted"]
   feature_column_names += ["t1points", "t2points", "t1rank", "t2rank", 
                            "t1rank6_attention", "t2rank6_attention", "t1rank16_attention", "t2rank16_attention",
-                           "t1cards_ema", "t2cards_ema"]
+                           "t1cards_ema", "t2cards_ema", "t1goals_ema", "t2goals_ema"]
   
   feature_column_names += ["T1_spi", "T2_spi", "T1_imp", "T2_imp", "T1_GFTe", "T2_GFTe", "pp1", "pp0", "pp2"]
 #  print(features[["Date", "t1games", "t1points", "t2points", "t1rank", "t2rank", 
@@ -317,7 +325,13 @@ def build_features(df_data):
     features.loc[features["t2games"]==0, "T2_CUM_T1_"+colname] = features.loc[features["t2games"]>0, "T2_CUM_T1_"+colname].mean()
     features.loc[features["t1games_where"]==0, "T1_CUM_T2_W_"+colname] = features.loc[features["t1games_where"]>0, "T1_CUM_T2_W_"+colname].mean()
     features.loc[features["t2games_where"]==0, "T2_CUM_T1_W_"+colname] = features.loc[features["t2games_where"]>0, "T2_CUM_T1_W_"+colname].mean()
+    features["T1_EMA_"+colname] = gtt1["T1_"+colname].apply(
+      lambda x: x.shift(1).ewm(halflife=halftime_ema, times=features.loc[x.index].DateOrig.shift(1,  fill_value=datetime(2000, 1, 1))).mean())
+    features["T2_EMA_"+colname] = gtt2["T2_"+colname].apply(
+      lambda x: x.shift(1).ewm(halflife=halftime_ema, times=features.loc[x.index].DateOrig.shift(1,  fill_value=datetime(2000, 1, 1))).mean())
+
     feature_column_names += ["T1_CUM_T1_"+colname, "T2_CUM_T2_"+colname,
+                             "T1_EMA_" + colname, "T2_EMA_"+colname,
                              "T1_CUM_T1_W_"+colname, "T2_CUM_T2_W_"+colname,
                              "T1_CUM_T2_"+colname, "T2_CUM_T1_"+colname,
                              "T1_CUM_T2_W_"+colname, "T2_CUM_T1_W_"+colname,

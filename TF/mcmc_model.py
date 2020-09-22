@@ -169,7 +169,10 @@
                           "T2_CUM_T1_W_GFTe", "T12_CUM_T1_GFTe", "T12_CUM_T1_W_GFTe", "T21_CUM_T2_GFTe",
                           "T21_CUM_T2_W_GFTe", "T12_CUM_T12_GFTe", "T12_CUM_T12_W_GFTe", "T1221_CUM_GFTe",
                           "T1221_CUM_W_GFTe"]
-
+        feature_names += ['t1goals_ema', 't2goals_ema', 'T1_EMA_GFT', 'T2_EMA_GFT', 'T1_EMA_GHT', 'T2_EMA_GHT', 'T1_EMA_ST', 'T2_EMA_ST',
+                         'T1_EMA_S', 'T2_EMA_S', 'T1_EMA_C', 'T2_EMA_C', 'T1_EMA_F', 'T2_EMA_F', 'T1_EMA_Y', 'T2_EMA_Y', 'T1_EMA_R', 'T2_EMA_R',
+                         'T1_EMA_xG', 'T2_EMA_xG', 'T1_EMA_GFTa', 'T2_EMA_GFTa', 'T1_EMA_xsg', 'T2_EMA_xsg', 'T1_EMA_xnsg', 'T2_EMA_xnsg',
+                         'T1_EMA_spi', 'T2_EMA_spi', 'T1_EMA_imp', 'T2_EMA_imp', 'T1_EMA_GFTe', 'T2_EMA_GFTe', 'T1_EMA_GH2', 'T2_EMA_GH2']
         all_features = all_data[feature_names].copy()
         all_data["Train"] = is_train.values & (~all_data["Predict"])
         all_data["Test"] = is_test.values & (~all_data["Predict"])
@@ -1119,6 +1122,9 @@
         train_idx = all_data.index[all_data['Train']].tolist()
         test_idx = all_data.index[all_data['Test']].tolist()
         pred_idx = all_data.index[all_data['Predict']].tolist()
+        team1 = all_data.Team1[pred_idx].tolist()
+        team2 = all_data.Team2[pred_idx].tolist()
+
         # skip first rounds if test data is placed in front
         if test_idx and np.min(test_idx) == 0 and np.min(train_idx) > 45:
             test_idx = [t for t in test_idx if t > 45]
@@ -1153,7 +1159,7 @@
         #    cps = find_checkpoints_in_scope(model_dir, checkpoints, use_swa)
         #    predict_checkpoints(model_data, cps, all_data, skip_plotting)
 
-        return model_data, point_scheme, label_column_names
+        return model_data, point_scheme, label_column_names, team1, team2
 
 
     FLAGS = None
@@ -1307,7 +1313,7 @@
         FLAGS, unparsed = parser.parse_known_args()
         print([sys.argv[0]] + unparsed)
         print(FLAGS)
-        model_data, point_scheme, label_column_names = main([sys.argv[0]] + unparsed)
+        model_data, point_scheme, label_column_names, team1, team2 = main([sys.argv[0]] + unparsed)
 
         # Path('C:/tmp/Football/models/reset.txt').touch()
 
@@ -1464,13 +1470,16 @@
 
         Y_train = labels_array[train_idx, 0:16]
         Y_test = labels_array[test_idx, 0:16]
+        Y_pred = labels_array[pred_idx, 0:16]
 
         x_train = X_train[:, feature_idx].astype(np.float64)
         x_test = X_test[:, feature_idx].astype(np.float64)
+        x_pred = X_pred[:, feature_idx].astype(np.float64)
 
         scaler = preprocessing.StandardScaler().fit(x_train)
         x_train_scaled = scaler.transform(x_train)
         x_test_scaled = scaler.transform(x_test)
+        x_pred_scaled = scaler.transform(x_pred)
         #scaler.inverse_transform(small_x_train)
 
         def sample_df(yhat, Y, dataset):
@@ -1581,7 +1590,7 @@
                                       })
             return maxpoints
 
-        def create_df(maxpoints, Y, dataset):
+        def create_df(maxpoints, Y, dataset, team1=None, team2=None):
             l = maxpoints.shape[0]//Y.shape[0]
             df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
                                "GS":np.tile(Y[:,0].astype(int), reps=l),
@@ -1594,8 +1603,8 @@
                                "Prefix": "poisson",
                                "dataset": dataset,
                                "act":"act",
-                               "Team1":"Team1",
-                               "Team2": "Team2",
+                               "Team1":team1,
+                               "Team2": team2,
                                "match":np.tile(range(Y[:,0].shape[0]), reps=l)
                                })
             return df
@@ -1827,12 +1836,15 @@
         # inputfilename = "mcmc_allstates_20200804_102700.pickle"
         # inputfilename = "mcmc_allstates_20200805_142138.pickle"
         # inputfilename = "mcmc_allstates_20200805_185024.pickle"
-        # filehandler = open(inputfilename, 'rb')
-        # all_states = pickle.load(filehandler)
-        # weight_mean, weight_scale, weights, smweights = all_states
-        # initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
-        #
-        # [v.shape for v in initial_state]
+        # inputfilename = "mcmc_allstates_20200915_110729.pickle"
+        inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_allstates_.*pickle", f)])[-1]
+        print(inputfilename)
+        filehandler = open(inputfilename, 'rb')
+        all_states = pickle.load(filehandler)
+        weight_mean, weight_scale, weights, smweights = all_states
+        initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
+
+        [v.shape for v in initial_state]
 
         # v = {"component_distribution": initial_state[0],
         # 'weight_mean': initial_state[1],
@@ -1903,7 +1915,7 @@
 
         #sample = yhat.sample().numpy()
         if True:
-            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
+            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
             #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
             #df2 = create_maxpoint_prediction(df)
             print(df2)
@@ -1911,10 +1923,37 @@
             #
             # df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w], smweights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
             # df2 = create_maxpoint_prediction(df)
-            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 10)], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
+            df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
             plot_predictions_3( df2, "poisson", "Test", silent=False)
 
+        make_mixture_probs_pred, joint_model_pred = make_joint_mixture_model(x_pred_scaled)
+        df_pred = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate(
+            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 300)],
+            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(300)], axis=0)
+        df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
+        print(df_pred)
+
+        m0 = df_pred.loc[df_pred.match == 5].copy()
+        colour = ['gray', 'blue', 'green', 'darkorange', "yellow", "red"]
+        plt.figure()
+        for (group2Name, df2), c in zip(m0.groupby("pred"), colour):
+            sns.kdeplot(df2["points"], shade=True, label=group2Name, color=c)
+        plt.plot()
+        m0.groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points")
+        # sns.pairplot(m0[["est1", "est2"]])
+        # plt.plot()
+        #for i in range(df_pred.match.nunique()):
+        for i in range(18):
+            print(df_pred.loc[df_pred.match == i].groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points"))
         #joint_model.resolve_graph()
+
+        df_pred = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate(
+            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 300)],
+            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(300)], axis=0)
+        df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
+
+
+
         if False:
             w=-1
             print(make_mixture_probs_train(weights[w], smweights[w]).mean())
@@ -2072,8 +2111,9 @@
                                  radius=1.0, wedgeprops={"alpha": 0.5})
         plt.show()
 
-    w = -1
-    #for i in range(mixcom):
-    for i in range(4):
-        plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i))
+    if True:
+        w = -1
+        #for i in range(mixcom):
+        for i in range(4):
+            plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i))
 
