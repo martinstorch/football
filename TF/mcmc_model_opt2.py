@@ -1270,10 +1270,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1418,6 +1418,10 @@
                           "T2_CUM_T1_W_GFTe", "T12_CUM_T1_GFTe", "T12_CUM_T1_W_GFTe", "T21_CUM_T2_GFTe",
                           "T21_CUM_T2_W_GFTe", "T12_CUM_T12_GFTe", "T12_CUM_T12_W_GFTe", "T1221_CUM_GFTe",
                           "T1221_CUM_W_GFTe"]
+        # feature_names += ['t1goals_ema', 't2goals_ema', 'T1_EMA_GFT', 'T2_EMA_GFT', 'T1_EMA_GHT', 'T2_EMA_GHT', 'T1_EMA_ST', 'T2_EMA_ST',
+        #                  'T1_EMA_S', 'T2_EMA_S', 'T1_EMA_C', 'T2_EMA_C', 'T1_EMA_F', 'T2_EMA_F', 'T1_EMA_Y', 'T2_EMA_Y', 'T1_EMA_R', 'T2_EMA_R',
+        #                  'T1_EMA_xG', 'T2_EMA_xG', 'T1_EMA_GFTa', 'T2_EMA_GFTa', 'T1_EMA_xsg', 'T2_EMA_xsg', 'T1_EMA_xnsg', 'T2_EMA_xnsg',
+        #                  'T1_EMA_spi', 'T2_EMA_spi', 'T1_EMA_imp', 'T2_EMA_imp', 'T1_EMA_GFTe', 'T2_EMA_GFTe', 'T1_EMA_GH2', 'T2_EMA_GH2']
         feature_names += label_column_names_extended
 
         print(X.shape)
@@ -1801,8 +1805,10 @@
             actual_points = dist_probs[...,tf.newaxis] * actual_points # (5508, 10, 49)
             actual_points = tf.reduce_sum(tf.reduce_sum(actual_points, axis=-2), axis=-1)
 
-            lpp.update({"laplacian_reg_loss":reg_loss, "joint_model_log_prob":lp, "mean_points":tf.reduce_mean(actual_points)})
-            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) + 5.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3
+            real_points = tf.reduce_sum(tf.one_hot(tf.argmax(pred.mean(), axis=-1), 49) * achievable_points, axis=-1)
+
+            lpp.update({"laplacian_reg_loss":reg_loss, "joint_model_log_prob":lp, "mean_points":tf.reduce_mean(actual_points), "real_points":tf.reduce_mean(real_points)})
+            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) + 10.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3
 
             return lpp
 
@@ -1829,7 +1835,7 @@
             return analyse_losses(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)
 
         num_results = 1000
-        num_burnin_steps = 1000
+        num_burnin_steps = 3000
 
         #sampler = tfp.mcmc.TransformedTransitionKernel(
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -1838,8 +1844,12 @@
                 num_leapfrog_steps=16)
                 #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
 
-        adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
+        sampler_bij = tfp.mcmc.TransformedTransitionKernel(
             inner_kernel=sampler,
+            bijector=[tfb.Identity(), tfb.Softplus(), tfb.Identity(), tfb.Identity()]) # tfb.Affine(shift=0.135, scale_identity_multiplier=0.01, dtype=tf.float64)
+
+        adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
+            inner_kernel=sampler_bij,
             #num_adaptation_steps=int(0.8 * num_burnin_steps),
             num_adaptation_steps=tf.cast(0.8 * num_burnin_steps, tf.int32),
             target_accept_prob=tf.cast(0.75, tf.float64))
@@ -1897,11 +1907,11 @@
         print(target_log_prob_cat(*initial_state))
         print(analyse_target_log_prob_cat(*initial_state))
 
-        states = sample()
-        filename = "mcmc_opt2_"+FLAGS.target_system+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
-        filehandler = open(filename, 'wb')
-        pickle.dump(states.all_states, filehandler)
-        weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
+        # states = sample()
+        # filename = "mcmc_opt2c_"+FLAGS.target_system+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
+        # filehandler = open(filename, 'wb')
+        # pickle.dump(states.all_states, filehandler)
+        # weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
 
         current_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
         current_state2 = [weight_mean[-10], weight_scale[-10], weights[-10], smweights[-10]]
@@ -1945,6 +1955,12 @@
             ax[3][1].plot(avg_points_test)
             plt.show()
             #plt.close()
+            fig, ax = plt.subplots(2,2)
+            ax[0,0].plot(np.stack([joint_model.parameters["model"]["weight_mean"].log_prob(weight_mean[q]).numpy() for q in range(weight_scale.shape[0])]))
+            ax[0,1].plot(np.stack([joint_model.parameters["model"]["weight_scale"].log_prob(weight_scale[q]).numpy() for q in range(weight_scale.shape[0])]))
+            ax[1,0].plot(np.stack([joint_model.parameters["model"]["weights"](weight_scale[q], weight_mean[q]).log_prob(weights[q]).numpy() for q in range(weights.shape[0])]))
+            ax[1,1].plot(np.stack([joint_model.parameters["model"]["smweights"].log_prob(smweights[q]).numpy() for q in range(weight_scale.shape[0])]))
+            plt.show()
 
             initial_state = current_state
 

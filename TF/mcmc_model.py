@@ -1251,7 +1251,7 @@
             # default="1011,1213,1415,1617,1819", #
             # default="0910,1011,1112,1213", #
             # default="1617,1718", #
-            default="1819,1920",
+            default="1819,1920,2021",
             help="Path to the test data."
         )
         parser.add_argument(
@@ -1270,10 +1270,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1837,12 +1837,14 @@
         # inputfilename = "mcmc_allstates_20200805_142138.pickle"
         # inputfilename = "mcmc_allstates_20200805_185024.pickle"
         # inputfilename = "mcmc_allstates_20200915_110729.pickle"
-        inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_allstates_.*pickle", f)])[-1]
-        print(inputfilename)
-        filehandler = open(inputfilename, 'rb')
-        all_states = pickle.load(filehandler)
-        weight_mean, weight_scale, weights, smweights = all_states
-        initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
+        inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_allstates_.*pickle", f)])
+        if len(inputfilename) > 0:
+            inputfilename = inputfilename[-1]
+            print(inputfilename)
+            filehandler = open(inputfilename, 'rb')
+            all_states = pickle.load(filehandler)
+            weight_mean, weight_scale, weights, smweights = all_states
+            initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
 
         [v.shape for v in initial_state]
 
@@ -1869,11 +1871,11 @@
         print(target_log_prob_cat(*initial_state))
         print(analyse_target_log_prob_cat(*initial_state))
 
-        states = sample()
-        filename = "mcmc_allstates_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
-        filehandler = open(filename, 'wb')
-        pickle.dump(states.all_states, filehandler)
-        weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
+        # states = sample()
+        # filename = "mcmc_allstates_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
+        # filehandler = open(filename, 'wb')
+        # pickle.dump(states.all_states, filehandler)
+        # weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
 
         current_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
         current_state2 = [weight_mean[-10], weight_scale[-10], weights[-10], smweights[-10]]
@@ -1928,8 +1930,8 @@
 
         make_mixture_probs_pred, joint_model_pred = make_joint_mixture_model(x_pred_scaled)
         df_pred = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate(
-            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 300)],
-            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(300)], axis=0)
+            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], weights.shape[0])],
+            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(weights.shape[0])], axis=0)
         df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
         print(df_pred)
 
@@ -1948,8 +1950,8 @@
         #joint_model.resolve_graph()
 
         df_pred = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate(
-            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 300)],
-            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(300)], axis=0)
+            [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], weights.shape[0])],
+            axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(weights.shape[0])], axis=0)
         df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
 
 

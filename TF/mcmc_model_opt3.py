@@ -1607,7 +1607,7 @@
                                       })
             return maxpoints
 
-        def create_df(maxpoints, Y, dataset, team1=None, team2=None):
+        def create_df(maxpoints, Y, dataset, team1=None, team2=None, prefix="Total"):
             l = maxpoints.shape[0]//Y.shape[0]
             df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
                                "GS":np.tile(Y[:,0].astype(int), reps=l),
@@ -1617,7 +1617,7 @@
                                "est1":maxpoints.est1,
                                "est2":maxpoints.est2,
                                "points":maxpoints.points,
-                               "Prefix": "poisson",
+                               "Prefix": prefix,
                                "dataset": dataset,
                                "act":"act",
                                "Team1":team1,
@@ -1759,6 +1759,7 @@
         cd.prob(cd.sample())
 
         #np.sum(cd.sample(), axis=1)
+        ws = joint_model.parameters["model"]["weight_scale"]
 
 
         joint_model
@@ -1795,18 +1796,21 @@
                 'smweights': smweights,
                 'outputs': Y
             })
-            reg_loss = create_laplacian_loss(smweights, alpha=10.0)
+            reg_loss = create_laplacian_loss(smweights, alpha=100.0)
 
             achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
 
             pred = make_outputs(weights, smweights)
-            actual_points = tf.nn.softmax(pred.components_distribution.logits, axis=-1) * tf.tile(tf.cast(achievable_points, tf.float64)[...,tf.newaxis, :], [1,mixcom,1])
-            dist_probs = tf.nn.softmax(pred.mixture_distribution.logits_parameter(), axis=-1)
-            actual_points = dist_probs[...,tf.newaxis] * actual_points # (5508, 10, 49)
-            actual_points = tf.reduce_sum(tf.reduce_sum(actual_points, axis=-2), axis=-1)
+            comp_probs = tf.nn.softmax(pred.components_distribution.logits, axis=-1) #(5508, 10, 49)
+            #actual_points = comp_probs * tf.tile(tf.cast(achievable_points, tf.float64)[...,tf.newaxis, :], [1,mixcom,1])
+            dist_probs = tf.nn.softmax(pred.mixture_distribution.logits_parameter(), axis=-1) # (5508, 10)
+            match_probs = tf.reduce_sum(comp_probs * dist_probs[...,tf.newaxis], axis=-2) #(5508, 49)
+            reg_loss2 = create_laplacian_loss(match_probs, alpha=1.0)
+            actual_points = tf.minimum(match_probs, 0.2) * tf.cast(achievable_points, tf.float64) # (5508, 49)
+            actual_points = tf.reduce_sum(actual_points, axis=-1)
 
-            lpp.update({"laplacian_reg_loss":reg_loss, "joint_model_log_prob":lp, "mean_points":tf.reduce_mean(actual_points)})
-            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) + 2.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3
+            lpp.update({"laplacian_reg_loss":reg_loss, "laplacian_reg_loss2":reg_loss2, "joint_model_log_prob":lp, "mean_points":tf.reduce_mean(actual_points)})
+            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) - tf.reduce_sum(reg_loss2) + 10.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3
 
             return lpp
 
@@ -1840,10 +1844,13 @@
                 target_log_prob_fn=target_log_prob_cat,
                 step_size=tf.cast(0.1, tf.float64),
                 num_leapfrog_steps=16)
-                #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
+
+        sampler_bij = tfp.mcmc.TransformedTransitionKernel(
+            inner_kernel=sampler,
+            bijector=[tfb.Identity(), tfb.Affine(shift=0.135, scale_identity_multiplier=0.01, dtype=tf.float64), tfb.Identity(), tfb.Identity()])
 
         adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
-            inner_kernel=sampler,
+            inner_kernel=sampler_bij,
             #num_adaptation_steps=int(0.8 * num_burnin_steps),
             num_adaptation_steps=tf.cast(0.8 * num_burnin_steps, tf.int32),
             target_accept_prob=tf.cast(0.75, tf.float64))
@@ -1911,15 +1918,26 @@
         tf.reduce_mean(analyse_target_log_prob_cat(*initial_state)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
         tf.reduce_mean(analyse_target_log_prob_cat(*current_state2)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
 
+        def avg_points(weights, smweights, X, Y):
+            mk, _ = make_joint_mixture_model(X)
+            pred = mk(weights, smweights)
+            achievable_points = Y # tf.matmul(Y, tf.cast(point_matrix, tf.float32))
+            actual_points = pred.mean() * tf.cast(achievable_points, tf.float64)
+            actual_points = tf.reduce_sum(actual_points, axis=-1)
+            return actual_points
 
         if True:
             loss_curve = [target_log_prob_cat(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
             loss_curve_test = [target_log_prob_cat_test(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
+            avg_points_train = [tf.reduce_mean(avg_points(weights[i], smweights[i], x_train_scaled, outputs_)) for i in
+             range(weights.shape[0])]
+            avg_points_test = [tf.reduce_mean(avg_points(weights[i], smweights[i], x_test_scaled, test_outputs_)) for i in
+             range(weights.shape[0])]
             #stepsize = 10
             #loss_curve = np.concatenate([target_log_prob_cat(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
             #loss_curve_test = np.concatenate([target_log_prob_cat_test(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
 
-            fig, ax = plt.subplots(3,2)
+            fig, ax = plt.subplots(4,2)
             sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
             sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
             sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
@@ -1930,8 +1948,16 @@
             sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
             sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
             sns.kdeplot(smweights[0].numpy().flatten(), ax=ax[1][1])
+            ax[3][0].plot(avg_points_train)
+            ax[3][1].plot(avg_points_test)
             plt.show()
             #plt.close()
+            fig, ax = plt.subplots(2,2)
+            ax[0,0].plot(np.stack([joint_model.parameters["model"]["weight_mean"].log_prob(weight_mean[q]).numpy() for q in range(weight_scale.shape[0])]))
+            ax[0,1].plot(np.stack([joint_model.parameters["model"]["weight_scale"].log_prob(weight_scale[q]).numpy() for q in range(weight_scale.shape[0])]))
+            ax[1,0].plot(np.stack([joint_model.parameters["model"]["weights"](weight_scale[q], weight_mean[q]).log_prob(weights[q]).numpy() for q in range(weights.shape[0])]))
+            ax[1,1].plot(np.stack([joint_model.parameters["model"]["smweights"].log_prob(smweights[q]).numpy() for q in range(weight_scale.shape[0])]))
+            plt.show()
 
             initial_state = current_state
 
@@ -1948,12 +1974,24 @@
             #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
             #df2 = create_maxpoint_prediction(df)
             print(df2)
-            plot_predictions_3( df2, "poisson", "Train", silent=False)
+            plot_predictions_3( df2, "Total", "Train", silent=False)
             #
+            # df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy()[::2] for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]//2), Y_train[::2], "Train", prefix="Home") for i in range(10)], axis=0)
+            # #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+            # #df2 = create_maxpoint_prediction(df)
+            # print(df2)
+            # plot_predictions_3( df2, "Home", "Train", silent=False)
+            #
+            # df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy()[1::2] for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]//2), Y_train[1::2], "Train", prefix="Away") for i in range(10)], axis=0)
+            # #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
+            # #df2 = create_maxpoint_prediction(df)
+            # print(df2)
+            # plot_predictions_3( df2, "Away", "Train", silent=False)
+
             # df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w], smweights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
             # df2 = create_maxpoint_prediction(df)
             df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
-            plot_predictions_3( df2, "poisson", "Test", silent=False)
+            plot_predictions_3( df2, "Total", "Test", silent=False)
 
         make_mixture_probs_pred, joint_model_pred = make_joint_mixture_model(x_pred_scaled)
         df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate(
@@ -2144,3 +2182,10 @@
 
     #plot_softprob_simple(np.mean(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean(), axis=-2), title="home total")
     #plot_softprob_simple(np.mean(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[1].mean(), axis=-2), title="away total")
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2000])
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2001])
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2002])
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2003])
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2004])
+    plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).mean()[2005])
+    plot_softprob_simple(make_mixture_probs_pred(weights[w], smweights[w]).mean()[14])
