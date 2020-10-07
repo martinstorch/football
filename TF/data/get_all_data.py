@@ -6,6 +6,9 @@ Created on Fri Dec 14 09:05:44 2018
 """
 from bs4 import BeautifulSoup
 import pandas as pd
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 200)
 #import numpy as np
 import re
 import json

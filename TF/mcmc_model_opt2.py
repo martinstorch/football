@@ -1993,7 +1993,7 @@
         df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
         print(df_pred)
 
-        m0 = df_pred.loc[df_pred.match == 5].copy()
+        m0 = df_pred.loc[df_pred.match == 0].copy()
         colour = ['gray', 'blue', 'green', 'darkorange', "yellow", "red"]
         plt.figure()
         for (group2Name, df2), c in zip(m0.groupby("pred"), colour):
@@ -2003,7 +2003,7 @@
         # sns.pairplot(m0[["est1", "est2"]])
         # plt.plot()
         #for i in range(df_pred.match.nunique()):
-        for i in range(18):
+        for i in range(36):
             print(df_pred.loc[df_pred.match == i].groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points"))
         #joint_model.resolve_graph()
 
