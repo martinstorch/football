@@ -96,6 +96,7 @@ def load_bwin_quotes():
           outfile.write(pem + '\n')
   
   url='https://sports.bwin.com/de/sports/4/43/wetten/bundesliga#leagueIds=43&sportId=4'
+  url='https://sports.bwin.de/de/sports/fu%C3%9Fball-4/wetten/deutschland-17/bundesliga-43'
   #html_content = request.urlopen(url).read()
   
   #text_content1 = html_content.decode('unicode_escape')  # Converts bytes to unicode
@@ -108,6 +109,7 @@ def load_bwin_quotes():
   #print(r.html.html)
   if re.search("gladbach", r.html.html) is None:
     print("Rendering not successful")
+    print(url)
     sys.exit()
   
   with open("bwin.html", "w+", encoding="utf-8") as f:
