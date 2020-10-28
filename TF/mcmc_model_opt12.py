@@ -1801,7 +1801,7 @@
             #     'outputs': Y
             # })
             #lp = (lpp['weight_mean']+lpp['weight_scale']+lpp['weights']+lpp['smweights'])[..., tf.newaxis] + lpp['outputs']
-            lp = tf.reduce_sum(lpp['weight_mean']+lpp['weight_scale']+lpp['weights']+lpp['smweights'])*(X.shape[-2]) + tf.reduce_sum(lpp['outputs'], axis=-1)*0.5
+            lp = tf.reduce_sum(lpp['weight_mean']+lpp['weight_scale']+lpp['weights']+lpp['smweights'])*(X.shape[-2]) + tf.reduce_sum(lpp['outputs'], axis=-1)*0.75
             reg_loss = create_laplacian_loss(smweights, alpha=0.1)
 
             achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
@@ -1824,7 +1824,7 @@
             real_points = tf.reduce_sum(tf.one_hot(tf.argmax(pred.mean(), axis=-1), 49) * achievable_points, axis=-1)
 
             lpp.update({"laplacian_reg_loss":reg_loss, "joint_model_log_prob":lp, "mean_points":tf.reduce_mean(actual_points), "real_points":tf.reduce_mean(real_points)})
-            lpp["total"] = tf.reduce_sum(lp) - tf.reduce_sum(reg_loss) + 5.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3
+            lpp["total"] = tf.reduce_sum(lp) + 5.0*tf.reduce_sum(actual_points)#- lpp["outputs"] + lpp["outputs"]*0.3 # - tf.reduce_sum(reg_loss)
 
             return lpp
 
@@ -1850,8 +1850,8 @@
         def analyse_target_log_prob_cat(weight_mean, weight_scale, weights, smweights):
             return analyse_losses(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)
 
-        num_results = 200
-        num_burnin_steps = 100
+        num_results = 1000
+        num_burnin_steps = 1000
 
         #sampler = tfp.mcmc.TransformedTransitionKernel(
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
