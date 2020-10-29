@@ -1444,7 +1444,7 @@ if __name__ == "__main__":
   )
   parser.add_argument(
       "--train_data", type=str,
-      default="1314,1415,1516,1617,1718,1819,1920", #
+      default="1314,1415,1516,1617,1718,1819,1920,2021", #
       #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819", #
       help="Path to the training data."
   )

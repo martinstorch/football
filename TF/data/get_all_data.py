@@ -95,7 +95,7 @@ def load_bwin_quotes():
       for pem in pem_certs:
           outfile.write(pem + '\n')
   
-  url='https://sports.bwin.com/de/sports/4/43/wetten/bundesliga#leagueIds=43&sportId=4'
+  #url='https://sports.bwin.com/de/sports/4/43/wetten/bundesliga#leagueIds=43&sportId=4'
   url='https://sports.bwin.de/de/sports/fu%C3%9Fball-4/wetten/deutschland-17/bundesliga-43'
   #html_content = request.urlopen(url).read()
   
@@ -107,6 +107,16 @@ def load_bwin_quotes():
   r = session.get(url)
   r.html.render()
   #print(r.html.html)
+  script = """
+         () => {
+                $(document).ready(function() {  
+                     ## $("span.ui-icon.theme-ex").click();
+                })
+          }
+           """
+  #r.html.render(script=script, reload=False)
+  #print(r.html.html)
+  #div class="content-message-container"
   if re.search("gladbach", r.html.html) is None:
     print("Rendering not successful")
     print(url)

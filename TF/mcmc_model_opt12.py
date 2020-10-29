@@ -1851,7 +1851,7 @@
             return analyse_losses(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)
 
         num_results = 1000
-        num_burnin_steps = 1000
+        num_burnin_steps = 3000
 
         #sampler = tfp.mcmc.TransformedTransitionKernel(
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -1977,6 +1977,7 @@
             #loss_curve_test = np.concatenate([target_log_prob_cat_test(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
 
             fig, ax = plt.subplots(6,2)
+            plt.subplots_adjust(left=0.04, bottom=0.03, right=0.96, top=0.97, wspace=0.08, hspace=0.18)
             sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
             sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
             sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
@@ -2234,9 +2235,9 @@
         #ax0.set_yticklabels([])
         #ax0.set_xticklabels([])
 
-        ax1.set_title(prefix)
         max_sp = max(sp)
         max_sp_index = np.argmax(sp)
+        ax1.set_title(prefix + " " + str(max_sp_index // 7)+":"+ str(np.mod(max_sp_index, 7)))
         ax0.scatter((max_sp_index // 7).astype(float), np.mod(max_sp_index, 7).astype(float), s=max_sp * 5000.0,
                       facecolors='none', edgecolors='black', linewidth=1)
 
@@ -2276,3 +2277,13 @@
             pr = (pred_probs[2*i] + np.dot(pred_probs[2*i+1], home_away_inversion_matrix))/2
             plot_softprob_grid(pr, ax[i//3][2*np.mod(i,3)], ax[i//3][2*np.mod(i,3)+1], prefix=df_pred.Team1.iloc[i*2] + " - " + df_pred.Team2.iloc[i*2])
         plt.show()
+
+
+plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
+plot_softprob_simple(np.mean(test_outputs_[::2], axis=0), prefix="Test Seasons Summary")
+
+print("Best points - Train")
+print(np.dot(np.mean(outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+print("Best points - Test")
+print(np.dot(np.mean(test_outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+
