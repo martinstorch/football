@@ -1270,9 +1270,9 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            #default="Pistor",
-            default="Sky",
-            # default="TCS",
+            default="Pistor",
+            #default="Sky",
+            #default="TCS",
             #default="GoalDiff",
             help="Point system to optimize for"
         )
@@ -1995,10 +1995,10 @@
 
         m0 = df_pred.loc[df_pred.match == 0].copy()
         colour = ['gray', 'blue', 'green', 'darkorange', "yellow", "red"]
-        plt.figure()
-        for (group2Name, df2), c in zip(m0.groupby("pred"), colour):
-            sns.kdeplot(df2["points"], shade=True, label=group2Name, color=c)
-        plt.plot()
+        # plt.figure()
+        # for (group2Name, df2), c in zip(m0.groupby("pred"), colour):
+        #     sns.kdeplot(df2["points"], shade=True, label=group2Name, color=c)
+        # plt.plot()
         m0.groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points")
         # sns.pairplot(m0[["est1", "est2"]])
         # plt.plot()
@@ -2173,12 +2173,70 @@
                                  radius=1.0, wedgeprops={"alpha": 0.5})
         plt.show()
 
-    if True:
+    def plot_softprob_grid(sp, ax0, ax1, prefix=""):
+        g = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        g1 = [0.0] * 7 + [1.0] * 7 + [2.0] * 7 + [3.0] * 7 + [4.0] * 7 + [5.0] * 7 + [6.0] * 7
+        g2 = g * 7
+        ax0.scatter(g1, g2, s=sp * 5000, alpha=0.4)
+        # for i, txt in enumerate(sp):
+        #     ax0.annotate("{:4.2f}".format(txt * 100), (g1[i] - 0.3, g2[i] - 0.1))
+        for i, txt in enumerate(sp):
+            ax0.text(g1[i] - 0.3, g2[i] - 0.1, "{:4.2f}".format(txt * 100), size=8)
+        ax0.axis('off')
+        # Turn off tick labels
+        #ax0.set_yticklabels([])
+        #ax0.set_xticklabels([])
+
+        max_sp = max(sp)
+        max_sp_index = np.argmax(sp)
+        ax1.set_title(prefix + " " + str(max_sp_index // 7)+":"+ str(np.mod(max_sp_index, 7)))
+        ax0.scatter((max_sp_index // 7).astype(float), np.mod(max_sp_index, 7).astype(float), s=max_sp * 5000.0,
+                      facecolors='none', edgecolors='black', linewidth=1)
+
+        p_loss = 0.0
+        p_win = 0.0
+        p_draw = 0.0
+        for i in range(7):
+            for j in range(7):
+                if i > j:
+                    p_win += sp[i * 7 + j]
+                if i < j:
+                    p_loss += sp[i * 7 + j]
+                if i == j:
+                    p_draw += sp[i * 7 + j]
+        ax1.axis('equal')
+        wedges, _, _ = ax1.pie([p_win, p_draw, p_loss], labels=["Win", "Draw", "Loss"],
+                                 colors=["blue", "green", "red"],
+                                 startangle=90, autopct='%1.1f%%',
+                                 radius=1.0, wedgeprops={"alpha": 0.5})
+
+    if False:
         w = -1
-        #for i in range(mixcom):
-        for i in range(4):
+        for i in range(mixcom):
+        #for i in range(4):
             plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i), prefix="component "+str(i))
 
-    pred_probs = np.mean(make_mixture_probs_pred(weights, smweights).mean().numpy(), axis=0)
-    for i in range(18):
-        plot_softprob_simple(pred_probs[i], prefix=df_pred.Team1.iloc[i]+" - "+df_pred.Team2.iloc[i])
+    if False:
+        pred_probs = np.mean(make_mixture_probs_pred(weights, smweights).mean().numpy(), axis=0)
+        for i in range(18):
+            plot_softprob_simple(pred_probs[i], prefix=df_pred.Team1.iloc[i]+" - "+df_pred.Team2.iloc[i])
+
+    if True:
+        pred_probs = np.mean(make_mixture_probs_pred(weights, smweights).mean().numpy(), axis=0)
+        fig, ax = plt.subplots(3, 6, figsize=(20, 10))
+        plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
+        for i in range(9):
+            pr = (pred_probs[2*i] + np.dot(pred_probs[2*i+1], home_away_inversion_matrix))/2
+            plot_softprob_grid(pr, ax[i//3][2*np.mod(i,3)], ax[i//3][2*np.mod(i,3)+1], prefix=df_pred.Team1.iloc[i*2] + " - " + df_pred.Team2.iloc[i*2])
+        plt.show()
+
+
+plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
+plot_softprob_simple(np.mean(test_outputs_[::2], axis=0), prefix="Test Seasons Summary")
+
+print("Best points - Train")
+print(np.dot(np.mean(outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+print("Best points - Test")
+print(np.dot(np.mean(test_outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+
+

@@ -1239,9 +1239,9 @@
         parser.add_argument(
             "--train_data", type=str,
             # default="0910,1112,1314,1516,1718,1920", #
-            # default="1314,1415,1516,1617,1718,1819,1920", #
+            default="1314,1415,1516,1617,1718,1819,1920,2021", #
             #default="0910,1011,1112,1213,1314",
-            default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
+            #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
             #default="1617,1718",  #
             # default="1819,1920",
             help="Path to the training data."
@@ -1249,9 +1249,9 @@
         parser.add_argument(
             "--test_data", type=str,
             # default="1011,1213,1415,1617,1819", #
-            # default="0910,1011,1112,1213", #
+            default="0910,1011,1112,1213", #
             # default="1617,1718", #
-            default="1819,1920,2021",
+            #default="1819,1920,2021",
             help="Path to the test data."
         )
         parser.add_argument(
@@ -1270,8 +1270,8 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            #default="Pistor",
-            default="Sky",
+            default="Pistor",
+            #default="Sky",
             # default="TCS",
             #default="GoalDiff",
             help="Point system to optimize for"
@@ -1851,7 +1851,7 @@
             return analyse_losses(weight_mean, weight_scale, weights, smweights, x_train_scaled, outputs_)
 
         num_results = 1000
-        num_burnin_steps = 3000
+        num_burnin_steps = 1000
 
         #sampler = tfp.mcmc.TransformedTransitionKernel(
         sampler = tfp.mcmc.HamiltonianMonteCarlo(
@@ -1889,7 +1889,7 @@
         # inputfilename = "mcmc_allstates_20200805_142138.pickle"
         # inputfilename = "mcmc_allstates_20200805_185024.pickle"
         # inputfilename = "mcmc_allstates_20200915_110729.pickle"
-        inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_opt12_"+FLAGS.target_system+".*pickle", f)])
+        inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_opt12a_"+FLAGS.target_system+".*pickle", f)])
         if len(inputfilename) > 0:
             inputfilename = inputfilename[-1]
             print(inputfilename)
@@ -1923,11 +1923,11 @@
         print(target_log_prob_cat(*initial_state))
         print(analyse_target_log_prob_cat(*initial_state))
 
-        states = sample()
-        filename = "mcmc_opt12_"+FLAGS.target_system+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
-        filehandler = open(filename, 'wb')
-        pickle.dump(states.all_states, filehandler)
-        weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
+        # states = sample()
+        # filename = "mcmc_opt12a_"+FLAGS.target_system+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
+        # filehandler = open(filename, 'wb')
+        # pickle.dump(states.all_states, filehandler)
+        # weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
 
         current_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
         current_state2 = [weight_mean[-10], weight_scale[-10], weights[-10], smweights[-10]]
