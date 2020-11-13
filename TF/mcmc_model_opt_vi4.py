@@ -1844,11 +1844,12 @@
             poisson_lp = pred.parameters["model"]["sidebets"].log_prob(Y2)
 
             softmax_acc = tf.reduce_sum(tf.one_hot(tf.argmax(pred.parameters["model"]["softmax"].mean(), axis=-1), 49) * Y, axis=-1)
-
-            lpp.update({"rl_l1":rl_l1, "rl_l2":rl_l2, "rl_w":rl_w, "rl_sm":rl_sm, "laplacian_prob_reg_loss":reg_loss3, "logpoints":tf.reduce_mean(logpoints),
+            kl_div = pred.parameters["model"]["mainresult"].kl_divergence(pred.parameters["model"]["softmax"])
+            lpp.update({"rl_l1":rl_l1, "rl_l2":rl_l2, "rl_w":rl_w, "rl_sm":rl_sm, "laplacian_prob_reg_loss":reg_loss3, "logpoints":tf.reduce_mean(logpoints), "kl_div":tf.reduce_mean(kl_div),
                         "joint_model_log_prob":lp,  "softmax_lp_mean":tf.reduce_mean(softmax_lp), "softmax_mean_acc":tf.reduce_mean(softmax_acc), "poisson_lp_mean":tf.reduce_mean(poisson_lp), "mean_points":tf.reduce_mean(actual_points), "real_points":tf.reduce_mean(real_points)
                        })
-            lpp["total"] = tf.reduce_sum(lp) + 0.1*tf.reduce_sum(logpoints) - tf.reduce_sum(reg_loss2)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            lpp["total"] = tf.reduce_sum(lp) - 0.03*tf.reduce_sum(kl_div) + 0.2*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            #
             #+0.3 * tf.reduce_sum(actual_points)
             # - tf.reduce_sum(reg_loss3)+0.0*tf.reduce_sum(lpp["outputs"])
             return lpp
@@ -1937,7 +1938,8 @@
             surrogate_posterior,
             optimizer=optimizer,
             variational_loss_fn=reverse_kl_loss,
-            num_steps=3000,
+            num_steps=2000,
+            trainable_variables=surrogate_posterior.trainable_variables,
             seed=42,
             trace_fn = lambda loss, grads, vars: (loss, [], analyse_losses(*[v.mean() for v in surrogate_posterior.sample_distributions()[0]], x_test_scaled, test_outputs_, Y_test)["mean_points"]),
             sample_size=4)
