@@ -106,7 +106,7 @@ def load_bwin_quotes():
   session = HTMLSession()
   r = session.get(url)
   r.html.render()
-  #print(r.html.html)
+  print(r.html.html)
   script = """
          () => {
                 $(document).ready(function() {  
@@ -128,7 +128,8 @@ def load_bwin_quotes():
     html_content = f.read()    
   soup = BeautifulSoup(html_content, 'html.parser')
   quotes = soup.find_all('a', attrs={'class':'grid-event-wrapper'})
-  
+  if len(quotes)==0:
+      quotes = soup.find_all('div', attrs={'class':'grid-event-wrapper'})
   hometeams=[]
   awayteams=[]
   dates=[]

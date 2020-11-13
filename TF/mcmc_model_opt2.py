@@ -1270,10 +1270,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             #default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1336,6 +1336,7 @@
             point_matrix = np.array([[np.maximum(5, 10 - np.abs(i // 7 - j // 7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (
                     np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
                                       0 for i in range(49)] for j in range(49)])
+        home_away_inversion_matrix = np.array([[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
 
         X = features_arrays["match_input_layer"]
         label_filter = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 46, 47, 48, 49, 50, 51, 52, 53]
