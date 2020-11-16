@@ -1308,9 +1308,10 @@
         parser.add_argument(
             "--train_data", type=str,
             # default="0910,1112,1314,1516,1718,1920", #
-            #default="1314,1415,1516,1617,1718,1819,1920,2021", #
+            default="1314,1415,1516,1617,1718,1819,1920,2021", #
             #default="0910,1011,1112,1213,1314",
-            default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
+            #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
+            #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819,1920", #
             #default="1617,1718",  #
             # default="1819,1920",
             help="Path to the training data."
@@ -1318,9 +1319,9 @@
         parser.add_argument(
             "--test_data", type=str,
             # default="1011,1213,1415,1617,1819", #
-            #default="0910,1011,1112,1213", #
-            # default="1617,1718", #
-            default="1819,1920,2021",
+            default="0910,1011,1112,1213", #
+            #default="2021", #
+            #default="1819,1920,2021",
             help="Path to the test data."
         )
         parser.add_argument(
@@ -1339,8 +1340,8 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
-            #default="Sky",
+            #default="Pistor",
+            default="Sky",
             # default="TCS",
             #default="GoalDiff",
             help="Point system to optimize for"
@@ -1848,7 +1849,15 @@
             lpp.update({"rl_l1":rl_l1, "rl_l2":rl_l2, "rl_w":rl_w, "rl_sm":rl_sm, "laplacian_prob_reg_loss":reg_loss3, "logpoints":tf.reduce_mean(logpoints), "kl_div":tf.reduce_mean(kl_div),
                         "joint_model_log_prob":lp,  "softmax_lp_mean":tf.reduce_mean(softmax_lp), "softmax_mean_acc":tf.reduce_mean(softmax_acc), "poisson_lp_mean":tf.reduce_mean(poisson_lp), "mean_points":tf.reduce_mean(actual_points), "real_points":tf.reduce_mean(real_points)
                        })
-            lpp["total"] = tf.reduce_sum(lp) - 0.03*tf.reduce_sum(kl_div) + 0.2*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            # Pistor lpp["total"] = tf.reduce_sum(lp) - 0.03*tf.reduce_sum(kl_div) + 0.2*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            # lpp["total"] = tf.reduce_sum(lp) - 0.06 * tf.reduce_sum(kl_div) + 0.3 * tf.reduce_sum(
+            #     logpoints) + 0.202 * tf.reduce_sum(poisson_lp) + 0.5 * tf.reduce_sum(softmax_lp) - tf.reduce_sum(
+            #     reg_loss2)  # Pistor
+            # Sky lpp["total"] = tf.reduce_sum(lp) - 0.01*tf.reduce_sum(kl_div) + 0.3*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            lpp["total"] = tf.reduce_sum(lp) - 0.25*tf.reduce_sum(kl_div) + 0.6*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
+            #lpp["total"] = tf.reduce_sum(lp) - 0.95*tf.reduce_sum(kl_div) + 0.5*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 # Sky
+            # GD
+            #lpp["total"] = tf.reduce_sum(lp) - 0.001*tf.reduce_sum(kl_div) + 0.25*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)# GoalDiff
             #
             #+0.3 * tf.reduce_sum(actual_points)
             # - tf.reduce_sum(reg_loss3)+0.0*tf.reduce_sum(lpp["outputs"])
@@ -1889,7 +1898,7 @@
         # print(surrogate_posterior)
         # print(surrogate_posterior.model[0].distribution)
         # surrogate_posterior.model[0].distribution.mean()
-        optimizer = tf.optimizers.Adam(learning_rate=1e-2)
+        optimizer = tf.optimizers.Adam(learning_rate=1e-3)
 
         inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+".*pickle", f)])
         if FLAGS.checkpoints != "" and len(inputfilename) > 0:
@@ -2428,7 +2437,7 @@
             plot_softprob_grid(pr, ax[i//3][2*np.mod(i,3)], ax[i//3][2*np.mod(i,3)+1], prefix=df_pred.Team1.iloc[i*2] + " - " + df_pred.Team2.iloc[i*2])
         plt.show()
 
-    if False:
+    if True:
         plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
         plot_softprob_simple(np.mean(test_outputs_[::2], axis=0), prefix="Test Seasons Summary")
 
