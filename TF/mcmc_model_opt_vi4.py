@@ -1941,14 +1941,15 @@
         # l2weights0_stddev = l2weights0.stddev().numpy()
         # weights0_stddev = weights0.stddev().numpy()
         # smweights0_stddev = smweights0.stddev().numpy()
-
+        l1weights0, l2weights0, weights0, smweights0 = l1weights.numpy(), l2weights.numpy(), weights.numpy(), smweights.numpy()
+        #l1weights0, l2weights0, weights0, smweights0 = all_weights
         losses, grads, vars = tfp.vi.fit_surrogate_posterior(
             target_log_prob_cat,
             surrogate_posterior,
             optimizer=optimizer,
             variational_loss_fn=reverse_kl_loss,
-            num_steps=2000,
-            trainable_variables=surrogate_posterior.trainable_variables,
+            num_steps=1000,
+            #trainable_variables=surrogate_posterior.trainable_variables,
             seed=42,
             trace_fn = lambda loss, grads, vars: (loss, [], analyse_losses(*[v.mean() for v in surrogate_posterior.sample_distributions()[0]], x_test_scaled, test_outputs_, Y_test)["mean_points"]),
             sample_size=4)
@@ -2000,6 +2001,18 @@
         ax[4][0].plot(losses.numpy())
         ax[4][1].plot(losses.numpy()[500:])
         plt.show()
+
+        fig, ax = plt.subplots(4, 2)
+        sns.distplot(((l1weights - l1weights0) * 2 / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][0])
+        sns.distplot(((l2weights - l2weights0) * 2 / (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][0])
+        sns.distplot(((smweights - smweights0) * 2 / (smweights + smweights0)).numpy(), rug=True, ax=ax[2][0])
+        sns.distplot(((weights - weights0) * 2 / (weights + weights0)).numpy(), rug=True, ax=ax[3][0])
+        sns.distplot(((l1weights - l1weights0) * 2 * l1weights / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][1])
+        sns.distplot(((l2weights - l2weights0) * 2 * l2weights/ (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][1])
+        sns.distplot(((smweights - smweights0) * 2 * weights/ (smweights + smweights0)).numpy(), rug=True, ax=ax[2][1])
+        sns.distplot(((weights - weights0) * 2 * smweights / (weights + weights0)).numpy(), rug=True, ax=ax[3][1])
+        plt.show()
+
 
         target_log_prob_cat_test(*[v.sample() for v in surrpost_vars])
         train_points = [analyse_losses(*[v.sample() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["real_points"].numpy() for i in range(100)]
@@ -2437,7 +2450,7 @@
             plot_softprob_grid(pr, ax[i//3][2*np.mod(i,3)], ax[i//3][2*np.mod(i,3)+1], prefix=df_pred.Team1.iloc[i*2] + " - " + df_pred.Team2.iloc[i*2])
         plt.show()
 
-    if True:
+    if False:
         plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
         plot_softprob_simple(np.mean(test_outputs_[::2], axis=0), prefix="Test Seasons Summary")
 
