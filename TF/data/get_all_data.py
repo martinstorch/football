@@ -160,6 +160,12 @@ def load_bwin_quotes():
       dow = mdate.strftime('%A')
       print(dow)
       mdate = mdate.strftime('%d.%m.%Y')
+    elif matchdate == "Heute":
+      mdate = datetime.now()
+      print(mdate)
+      dow = mdate.strftime('%A')
+      print(dow)
+      mdate = mdate.strftime('%d.%m.%Y')
     else:
       dow, mdate = dowdate
       mdate = datetime.strptime(mdate, '%d.%m.%y').strftime('%d.%m.%Y') # convert two-digit year to four-digit

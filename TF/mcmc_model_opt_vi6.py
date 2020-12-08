@@ -1285,7 +1285,7 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=50,
+            default=25,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1302,16 +1302,16 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=0,
+            default=10,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_data", type=str,
             # default="0910,1112,1314,1516,1718,1920", #
-            default="1314,1415,1516,1617,1718,1819,1920,2021", #
+            #default="1314,1415,1516,1617,1718,1819,1920,2021", #
             #default="0910,1011,1112,1213,1314",
             #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
-            #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819,1920", #
+            default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819,1920", #
             #default="1617,1718",  #
             # default="1819,1920",
             help="Path to the training data."
@@ -1319,8 +1319,8 @@
         parser.add_argument(
             "--test_data", type=str,
             # default="1011,1213,1415,1617,1819", #
-            default="0910,1011,1112,1213", #
-            #default="2021", #
+            #default="0910,1011,1112,1213", #
+            default="2021", #
             #default="1819,1920,2021",
             help="Path to the test data."
         )
@@ -1340,15 +1340,15 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            #default="Pistor",
+            default="Pistor",
             #default="Sky",
             # default="TCS",
-            default="GoalDiff",
+            #default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi5d",
+            default="vi6",
             help="The prefix to be used for model files"
         )
         parser.add_argument(
@@ -1361,9 +1361,9 @@
             "--action",
             type=str,
             # default="static",
-            #default="train",
+            default="train",
             # default="eval_stop",
-            default="eval",
+            #default="eval",
             # default="predict",
             # default="upgrade",
             # default="train_eval",

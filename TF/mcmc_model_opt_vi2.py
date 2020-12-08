@@ -1339,8 +1339,8 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
-            #default="Sky",
+            #default="Pistor",
+            default="Sky",
             # default="TCS",
             #default="GoalDiff",
             help="Point system to optimize for"
