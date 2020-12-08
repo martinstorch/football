@@ -420,7 +420,7 @@
         print(match_dates)
         return match_dates
 
-
+    #plot_predictions_3(df2, "poisson", "Train", silent=False)
     def plot_predictions_3(df, prefix, dataset, silent=False):
         df = df.loc[(df.Prefix == prefix) & (df.dataset == dataset)].copy()
         if not silent:
@@ -654,23 +654,44 @@
 
         t1 = df.pivot_table(index=[df["sort_idx"], 'pGoals'], columns=['gof'], values=["Team1"], aggfunc=len, margins=False,
                             fill_value=0)
-        t1.columns = ["None", "Tendency", "Diff", "Full"][:len(t1.columns)]
+        t1 = df.pivot_table(index=[df["sort_idx"], 'pGoals'], columns=['total_points'], values=["Team1"], aggfunc=len, margins=False,
+                            fill_value=0, )
+
+        #t1.columns = ["None", "Tendency", "Diff", "Full"][:len(t1.columns)]
         t1.index = t1.index.droplevel(level=0)
+        t1 = t1.droplevel(level=0, axis=1)
+        t1.columns = t1.columns.astype(int)
         if not silent:
-            t1.plot(kind='bar', stacked=True, ax=ax1)
+            barcolors = [plt.cm.RdYlBu_r((i + 0.5) / (len(t1.columns))) for i in range(len(t1.columns))]
+            t1.plot(kind='bar', stacked=True, ax=ax1, color=barcolors) # cmap=plt.cm.RdYlBu_r
             ax1.set_title("{}".format(prefix)).set_size(15)
 
-            _, _, autotexts = ax2.pie(pie_chart_values,
-                                      labels=["None", "Tendency", "Diff", "Full"], autopct='%1.1f%%', startangle=90)
-            for t in autotexts:
-                t.set_color("white")
+                # n=7
+                # colors = [plt.cm.RdYlBu_r((i + 0.5) / n) for i in range(n)]
+                # plt.figure()
+                # plt.pie([1]*n,  colors=colors, autopct='%1.1f%%')
+                # plt.show()
+
+            # _, _, autotexts = ax2.pie(pie_chart_values,
+            #                           labels=["None", "Tendency", "Diff", "Full"], autopct='%1.1f%%', startangle=90)
+            _, _, autotexts = ax2.pie(np.sum(t1, axis=0), colors=barcolors,
+                                      autopct='%1.1f%%', startangle=90)
+            #autotexts[0].set_color("white")
+            #autotexts[1].set_color("white")
+            #autotexts[-1].set_color("white")
+            autotexts[1].set_fontsize("large")
+            autotexts[1].set_position([z*0.75 for z in autotexts[1].get_position()])
+            autotexts[1].set_verticalalignment("center")
+            autotexts[2].set_verticalalignment("top")
             ax2.set_title("{}: {:.04f} ({})".format(prefix, avg_points, dataset)).set_size(20)
 
-            percentages = [pie_chart_values[0],  # None
-                           pie_chart_values[1] + pie_chart_values[2] + pie_chart_values[3],  # Tendency
-                           pie_chart_values[2] + pie_chart_values[3],  # GDiff
-                           pie_chart_values[3],  # Full
-                           ]
+            # percentages = [pie_chart_values[0],  # None
+            #                pie_chart_values[1] + pie_chart_values[2] + pie_chart_values[3],  # Tendency
+            #                pie_chart_values[2] + pie_chart_values[3],  # GDiff
+            #                pie_chart_values[3],  # Full
+            #                ]
+            c = len(t1.columns)
+            percentages = [np.sum(t1.values[:,0])]+[np.sum(t1.values[:,i:]) for i in range(1, c)]
             for t, p in zip(autotexts, percentages):
                 t.set_text("{:.01f}%".format(100.0 * p / len(df)))
 
@@ -1340,13 +1361,13 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=5,
+            default=10,
             help="Number of training steps."
         )
         parser.add_argument(
             "--save_steps", type=int,
             # default=200,
-            default=250,
+            default=150,
             help="Number of training steps between checkpoint files."
         )
         parser.add_argument(
@@ -1379,13 +1400,13 @@
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8",
+            default="vi8relu",
             help="The prefix to be used for model files"
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            default="best",
-            #default="-1",  # slice(-2, None)
+            #default="best",
+            default="-1",  # slice(-2, None)
             #default="",
              #default="20201201_081025", # Sky 2
             #default="20201130_141446", # Pistor 2
@@ -1396,9 +1417,9 @@
             "--action",
             type=str,
             # default="static",
-            #default="train",
+            default="train",
             # default="eval_stop",
-            default="eval",
+            #default="eval",
             # default="predict",
             # default="upgrade",
             # default="train_eval",
@@ -1765,8 +1786,8 @@
             last_score = observations_[searchlog.accept.astype(int)].iloc[-1]
             current_point = observation_index_points_[searchlog.accept.astype(int)][-1]
 
-            if np.random.random() < 0.15:
-                current_point = [m * np.random.lognormal(0, 0.15) for m in current_point] # introduce some randomness into the search
+            # if np.random.random() < 0.15:
+            #     current_point = [m * np.random.lognormal(0, 0.15) for m in current_point] # introduce some randomness into the search
 
             #mm_scaler = preprocessing.MinMaxScaler()
             #observation_index_points_ = mm_scaler.fit_transform(np.log(observation_index_points_))
@@ -1777,8 +1798,8 @@
                 # Create the covariance kernel, which will be shared between the prior (which we
                 # use for maximum likelihood training) and the posterior (which we use for
                 # posterior predictive sampling)
-                kernel = tfk.MaternOneHalf(amplitude, length_scale, feature_ndims=1)
-                #kernel = tfk.MaternFiveHalves(amplitude, length_scale, feature_ndims=1)
+                #kernel = tfk.MaternOneHalf(amplitude, length_scale, feature_ndims=1)
+                kernel = tfk.MaternFiveHalves(amplitude, length_scale, feature_ndims=1)
                 #kernel = tfk.ExponentiatedQuadratic(amplitude, length_scale, feature_ndims=1)
                 kernel = tfk.FeatureScaled(kernel, scale_diag)
                 # Create the GP prior distribution, which we will use to train the model
@@ -1861,8 +1882,8 @@
             print('scale_diag: {}'.format(scale_diag_var._value().numpy()))
             print('observation_noise_variance: {}'.format(observation_noise_variance_var._value().numpy()))
 
-            #optimized_kernel = tfk.MaternFiveHalves(amplitude_var, length_scale_var, feature_ndims=1)
-            optimized_kernel = tfk.MaternOneHalf(amplitude_var, length_scale_var, feature_ndims=1)
+            optimized_kernel = tfk.MaternFiveHalves(amplitude_var, length_scale_var, feature_ndims=1)
+            #optimized_kernel = tfk.MaternOneHalf(amplitude_var, length_scale_var, feature_ndims=1)
             #optimized_kernel = tfk.ExponentiatedQuadratic(amplitude_var, length_scale_var, feature_ndims=1)
             optimized_kernel = tfk.FeatureScaled(optimized_kernel, scale_diag_var)
 
@@ -1917,30 +1938,46 @@
             # print(last_score)
             print("New search point base:")
             print(current_point)
-            print({"expected_improvement":expected_improvement(np.array(current_point)[tf.newaxis, ...]),
+            print({"expected_improvement":[v.numpy() for v in expected_improvement(np.array(current_point)[tf.newaxis, ...])],
                    "distance log prob": prior_dist.log_prob(np.array(current_point)[tf.newaxis, ...])})
             #stop()
             lls_ = np.zeros((num_iters3, b), np.float64)
+            early_stop_rounds = 20
+            minloss = 1e20
+            rounds_without_improvement = 0
             for i in range(num_iters3):
                 with tf.GradientTape() as tape:
                     ei = expected_improvement(best_index_var)[0]
                     pp = prior_dist.log_prob(best_index_var)
-                    loss = -ei - 0.01*pp #-ei#+0.0001*tf.reduce_sum(tf.math.reduce_variance(tf.concat([observation_index_points_, best_index_var], axis=0), axis=0))
+                    loss = -ei - 0.1*pp #-ei#+0.0001*tf.reduce_sum(tf.math.reduce_variance(tf.concat([observation_index_points_, best_index_var], axis=0), axis=0))
                     # if np.mod(i,50) == 0:
                     #     print((i, ei, pp))
                     #     print(best_index_var.trainable_variables[0])
                 grads = tape.gradient(loss, [best_index_var.trainable_variables[0]])
                 optimizer3.apply_gradients(zip(grads, [best_index_var.trainable_variables[0]]))
                 lls_[i] = loss
+                if np.min(loss) < minloss:
+                    minloss = np.min(loss)
+                    rounds_without_improvement = 0
+                else:
+                    rounds_without_improvement += 1
+                    if rounds_without_improvement > early_stop_rounds:
+                        break
+            print("Optimization Rounds:")
+            print(i)
             print(best_index_var)
             print("Expected Improvement:")
-            print(expected_improvement(best_index_var))
+            print([v.numpy() for v in expected_improvement(best_index_var)])
             print("Prior Log Prob:")
             print(prior_dist.log_prob(best_index_var))
             #print("Expected Improvement: "+str(expected_improvement(best_index_var).numpy()[0]))
             result = np.exp(best_index_var.numpy())
+
+            best_ei_idx = np.argmax(expected_improvement(best_index_var)[0])
+            print("Selected:")
+            print(best_index_var.numpy()[best_ei_idx].tolist())
             #print(result)
-            return result[0].tolist()
+            return result[best_ei_idx].tolist()
 
         n_train_samples = x_train.shape[0]
 
@@ -1964,7 +2001,7 @@
                lgw = lgweights *  lgw_out[...,tf.newaxis, :]
                wgt = weights *  w_out[...,tf.newaxis, :]
                smw = smweights  * sm_out[...,tf.newaxis, :]
-               x1 = (tf.matmul(x, l1w[..., :-1, :]) + l1w[..., -1:, :]) # tf.math.tanh
+               x1 = tf.nn.relu(tf.matmul(x, l1w[..., :-1, :]) + l1w[..., -1:, :]) # tf.math.tanh
                x2 = tf.matmul(x1, l2w[..., :-1, :]) + l2w[..., -1:, :]
                x2g = tf.matmul(x1, lgw[..., :-1, :]) + lgw[..., -1:, :]
                l = tf.matmul(x1, wgt[..., :-1, :]) + wgt[..., -1:, :]
@@ -2047,6 +2084,17 @@
         pois = 40.0
         gaus = 100.0
         smx = 250.0
+
+        reg1 = 3.3
+        reg2 = 3.3
+        reg2g = 3.3
+        reg3 = 3.3
+        reg4 = 3.3
+        kl = 10.0
+        lpt = 125.0
+        pois = 40.0
+        gaus = 100.0
+        smx = 200.0
         metaparams = (reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx )
 
         #metaparams = (0.0051081069220212175, 0.059952482246497935, 0.19331630222128357, 0.035694381954010014, 0.8370222414757852, 116.83426393946185, 183.8459838528271, 207.63877420562545)
@@ -2189,7 +2237,7 @@
             all_states, all_weights, metaparams = pickle.load(filehandler)
             for value, variable in zip(all_states, surrogate_posterior.trainable_variables):
                 variable.assign(value)
-            for value, variable in zip(all_weights, [l1weights, l2weights, weights, smweights]):
+            for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, weights, smweights]):
                 variable.assign(value)
             reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
 
@@ -2197,6 +2245,11 @@
             print(searchlog)
             for i in range(FLAGS.train_steps):
                 print({"Round":i})
+
+                oldoldmetaparams = metaparams
+                if (np.mod(i, 5)==0): # jump away every five rounds
+                    metaparams = [m * np.random.lognormal(0, 0.1) for m in metaparams]
+
                 oldmetaparams = metaparams
 
                 if (i<FLAGS.warmup):
@@ -2204,6 +2257,9 @@
                 else:
                     metaparams = find_next_params_from_gaussian_process(searchlog)
 
+                comparedf = pd.DataFrame({"previous":oldoldmetaparams, "candidate":metaparams},
+                                         index = ["reg1", "reg2", "reg2g", "reg3", "reg4", "kl", "lpt", "pois", "gaus", "smx"])
+                print(comparedf)
                 reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
                 print(metaparams)
                 # trace_fn = lambda loss, grads, vars: (loss, [], analyse_losses(*[v.mean() for v in surrogate_posterior.sample_distributions()[0]], x_test_scaled, test_outputs_, Y_test)["mean_points"]),
@@ -2221,7 +2277,7 @@
                     return(score0)
 
                 # save previous values
-                oldvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, weights, smweights]]
+                oldvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, lgweights, weights, smweights]]
                 # loss0a = analyse_target_log_prob_cat(*[v.mean() for v in surrpost_vars])
                 # loss0b = analyse_test_log_prob_cat(*[v.mean() for v in surrpost_vars])
                 loss0a = analyse_target_log_prob_cat(*samples)
@@ -2261,7 +2317,7 @@
                 es2 = eval_score(loss2a, loss2b)
                 loss2b["score"] = es2
 
-                newvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, weights, smweights]]
+                newvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, lgweights, weights, smweights]]
 
                 print(pd.DataFrame([loss0a, loss2a, dictdiff(loss0a, loss2a), loss0b, loss2b, dictdiff(loss0b, loss2b)]).T.iloc[11:])
 
@@ -2285,7 +2341,7 @@
                 if accept:
                     filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+".pickle"
                     filehandler = open(filename, 'wb')
-                    pickle.dump((surrogate_posterior.trainable_variables, (l1weights, l2weights, weights, smweights), metaparams), filehandler)
+                    pickle.dump((surrogate_posterior.trainable_variables, (l1weights, l2weights, lgweights, weights, smweights), metaparams), filehandler)
 
                 else:
                     # restore previous values
@@ -2294,7 +2350,7 @@
                     l = len(surrogate_posterior.trainable_variables)
                     for value, variable in zip(oldvalues[:l], surrogate_posterior.trainable_variables):
                         variable.assign(value)
-                    for value, variable in zip(oldvalues[l:], [l1weights, l2weights, weights, smweights]):
+                    for value, variable in zip(oldvalues[l:], [l1weights, l2weights, lgweights, weights, smweights]):
                         variable.assign(value)
                 if i == FLAGS.warmup-1:
                     filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
@@ -2442,10 +2498,10 @@
 
         sample_train = analyse_losses(*[v.sample(100) for v in surrpost_vars], x_train_scaled, outputs_, Y_train, reduce_axis=-1)
         train_points = sample_train["real_points"].numpy()
-        train_soft_points = sample_train["mean_points"].numpy()
+        train_softpoints = sample_train["mean_points"].numpy()
         sample_test = analyse_losses(*[v.sample(100) for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test, reduce_axis=-1)
         test_points = sample_test["real_points"].numpy()
-        test_soft_points = sample_test["mean_points"].numpy()
+        test_softpoints = sample_test["mean_points"].numpy()
 
         #train_points = [analyse_losses(*[v.sample() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["real_points"].numpy() for i in range(100)]
         train_mean_points = analyse_losses(*[v.mean() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["real_points"].numpy()
@@ -2455,20 +2511,28 @@
 
         #train_softpoints = [analyse_losses(*[v.sample() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["mean_points"].numpy() for i in range(100)]
         train_mean_softpoints = analyse_losses(*[v.mean() for v in surrpost_vars],  x_train_scaled, outputs_, Y_train)["mean_points"].numpy()
+        train_mean_logpoints = analyse_losses(*[v.mean() for v in surrpost_vars],  x_train_scaled, outputs_, Y_train)["logpoints"].numpy()
 
         #test_softpoints = [analyse_losses(*[v.sample() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["mean_points"] .numpy() for i in range(100)]
         test_mean_softpoints = analyse_losses(*[v.mean() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["mean_points"].numpy()
+        test_mean_logpoints = analyse_losses(*[v.mean() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["logpoints"].numpy()
 
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         plt.subplots_adjust(left=0.04, bottom=0.08, right=0.96, top=0.92, wspace=0.08, hspace=0.18)
         sns.kdeplot(train_points, ax=ax[0][0])
         ax[0][0].axvline(x=train_mean_points)
         sns.kdeplot(test_points, ax=ax[0][1], color="red")
+
         ax[0][1].axvline(x=test_mean_points)
         sns.kdeplot(train_softpoints, ax=ax[1][0])
         ax[1][0].axvline(x=train_mean_softpoints)
         sns.kdeplot(test_softpoints, ax=ax[1][1], color="red")
         ax[1][1].axvline(x=test_mean_softpoints)
+
+        sns.kdeplot(sample_train["logpoints"].numpy(), ax=ax[2][0])
+        ax[2][0].axvline(x=train_mean_logpoints)
+        sns.kdeplot(sample_test["logpoints"].numpy(), ax=ax[2][1], color="red")
+        ax[2][1].axvline(x=test_mean_logpoints)
         plt.show()
 
         t2 = make_mixture_probs_train(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
