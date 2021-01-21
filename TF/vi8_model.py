@@ -663,7 +663,7 @@
         t1.columns = t1.columns.astype(int)
         if not silent:
             barcolors = [plt.cm.RdYlBu_r((i + 0.5) / (len(t1.columns))) for i in range(len(t1.columns))]
-            t1.plot(kind='bar', stacked=True, ax=ax1, color=barcolors) # cmap=plt.cm.RdYlBu_r
+            t1.plot(kind='bar', stacked=True, ax=ax1, color=barcolors, linewidth=1, edgecolor = 'darkblue') # cmap=plt.cm.RdYlBu_r
             ax1.set_title("{}".format(prefix)).set_size(15)
 
                 # n=7
@@ -674,7 +674,7 @@
 
             # _, _, autotexts = ax2.pie(pie_chart_values,
             #                           labels=["None", "Tendency", "Diff", "Full"], autopct='%1.1f%%', startangle=90)
-            _, _, autotexts = ax2.pie(np.sum(t1, axis=0), colors=barcolors,
+            _, _, autotexts = ax2.pie(np.sum(t1, axis=0), colors=barcolors,  wedgeprops = {'linewidth': 1, 'edgecolor' : 'darkblue'},
                                       autopct='%1.1f%%', startangle=90)
             #autotexts[0].set_color("white")
             #autotexts[1].set_color("white")
@@ -1361,7 +1361,7 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=10,
+            default=3,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1392,10 +1392,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1405,8 +1405,8 @@
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            #default="best",
-            default="-1",  # slice(-2, None)
+            default="best",
+            #default="-1",  # slice(-2, None)
             #default="",
              #default="20201201_081025", # Sky 2
             #default="20201130_141446", # Pistor 2
@@ -2237,8 +2237,13 @@
             all_states, all_weights, metaparams = pickle.load(filehandler)
             for value, variable in zip(all_states, surrogate_posterior.trainable_variables):
                 variable.assign(value)
-            for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, weights, smweights]):
-                variable.assign(value)
+            if len(all_weights) == 4: # bugfix
+                for value, variable in zip(all_weights, [l1weights, l2weights, weights, smweights]):
+                    variable.assign(value)
+            else:
+                for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, weights, smweights]):
+                    variable.assign(value)
+
             reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
 
         if FLAGS.action=="train":
@@ -2321,7 +2326,8 @@
 
                 print(pd.DataFrame([loss0a, loss2a, dictdiff(loss0a, loss2a), loss0b, loss2b, dictdiff(loss0b, loss2b)]).T.iloc[11:])
 
-                accept_prob = np.exp((es0-es2)/0.03)
+                #accept_prob = np.exp((es0-es2)/0.03)
+                accept_prob = np.exp((es0-es2)/0.12)
                 #accept_prob = np.exp((loss2b["real_points"] - loss0b["real_points"]) / 0.02)
 
                 best_points = searchlog.pts.max()
@@ -2372,7 +2378,7 @@
         plt.plot(searchlog.tpts)
         plt.plot(searchlog.tpts.loc[searchlog.accept])
         plt.axhline(searchlog.pts.max(), color="gray")
-        plt.ylim(np.quantile(searchlog.pts, 0.2),np.quantile(searchlog.tpts, 0.8))
+        plt.ylim(np.quantile(searchlog.pts, 0.1),np.quantile(searchlog.tpts, 0.9))
         plt.show()
 
         def plot_searchlog(xlabel, ylabel, ylabel2=None, x=None, y=None, y2=None, logy=False, lim=5, lim_x=None, lim_y=None):
@@ -2442,6 +2448,16 @@
             plot_searchlog("wkl", "pts")
             plot_searchlog("wlpt", "wkl", logy=True)
             plot_searchlog("score", "pts", lim=4)
+            plot_searchlog("wlpt", "score", lim=None)
+            plot_searchlog("wpois", "score")
+            plot_searchlog("wsmx", "score")
+            plot_searchlog("wgaus", "score")
+            plot_searchlog("reg1", "score")
+            plot_searchlog("reg2", "score")
+            plot_searchlog("reg2g", "score")
+            plot_searchlog("reg3", "score")
+            plot_searchlog("reg4", "score")
+            plot_searchlog("wkl", "score")
 
 
         surrpost_vars, _ = surrogate_posterior.sample_distributions()
