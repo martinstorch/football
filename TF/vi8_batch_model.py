@@ -1403,10 +1403,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1417,8 +1417,8 @@
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            default="best",
-            #default="-1",  # slice(-2, None)
+            #default="best",
+            default="-1",  # slice(-2, None)
             #default="",
              #default="20201201_081025", # Sky 2
             #default="20201130_141446", # Pistor 2
@@ -2596,8 +2596,8 @@
         inputfilename = ["mcmc_deterministic_vi5d2_Pistor_20201128_202100.pickle"] # 0.84
         inputfilename = sorted([f for f in os.listdir("models") if re.search("mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+".*pickle", f)])
         if FLAGS.checkpoints != "" and len(inputfilename) > 0:
-            if FLAGS.checkpoints=="-1":
-                inputfilename = inputfilename[-1]
+            if str.isnumeric(FLAGS.checkpoints[1:]):
+                inputfilename = inputfilename[int(FLAGS.checkpoints)]
             elif FLAGS.checkpoints=="best":
                 inputfilename = "mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+searchlog.dtn[searchlog.pts==searchlog.pts.max()].iloc[-1]+".pickle" # row with max points
             else:
