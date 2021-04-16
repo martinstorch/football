@@ -1368,7 +1368,7 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=5,
+            default=2,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1403,10 +1403,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            #default="Pistor",
+            default="Pistor",
             #default="Sky",
             # default="TCS",
-            default="GoalDiff",
+            #default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(

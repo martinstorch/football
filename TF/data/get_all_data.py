@@ -102,28 +102,58 @@ def load_bwin_quotes():
   #text_content1 = html_content.decode('unicode_escape')  # Converts bytes to unicode
   #with open("books_utf8.html", "w+") as f:
   #  f.write(text_content1)
+  #"C:\Users\marti\AppData\Local\Google\Chrome SxS\Application\chrome.exe"
 
-  session = HTMLSession()
-  r = session.get(url)
-  r.html.render()
-  print(r.html.html)
-  script = """
-         () => {
-                $(document).ready(function() {  
-                     ## $("span.ui-icon.theme-ex").click();
-                })
-          }
-           """
-  #r.html.render(script=script, reload=False)
-  #print(r.html.html)
-  #div class="content-message-container"
-  if re.search("gladbach", r.html.html) is None:
-    print("Rendering not successful")
-    print(url)
-    sys.exit()
-  
+  import os
+  from selenium import webdriver
+  from selenium.webdriver.common.keys import Keys
+  from selenium.webdriver.chrome.options import Options
+
+  chrome_options = Options()
+  chrome_options.add_argument("--headless")
+  #chrome_options.binary_location = '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+  chrome_options.binary_location = 'C:/Users/marti/AppData/Local/Google/Chrome SxS/Application'
+  chrome_options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+
+  #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
+  #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
+  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver89/chromedriver.exe",   chrome_options=chrome_options)
+
+  driver.get(url)
+  #print(driver)
+  #magnifying_glass = driver. find_elements_by_xpath("//*") # find_element_by_class_name('grid-event-wrapper')
+  #print(magnifying_glass)
+  html = driver.execute_script("return document.documentElement.outerHTML")
+  if re.search("gladbach", html) is None:
+      print("Rendering not successful")
+      print(url)
+      sys.exit()
+  #print(html)
   with open("bwin.html", "w+", encoding="utf-8") as f:
-    f.write(r.html.html)
+      f.write(html)
+
+  if False:
+      session = HTMLSession()
+      r = session.get(url, timeout=10000)
+      r.html.render(timeout=10000)
+      print(r.html.html)
+      script = """
+             () => {
+                    $(document).ready(function() {  
+                         ## $("span.ui-icon.theme-ex").click();
+                    })
+              }
+               """
+      #r.html.render(script=script, reload=False)
+      #print(r.html.html)
+      #div class="content-message-container"
+      if re.search("gladbach", r.html.html) is None:
+        print("Rendering not successful")
+        print(url)
+        sys.exit()
+
+      with open("bwin.html", "w+", encoding="utf-8") as f:
+        f.write(r.html.html)
   with open("bwin.html", "r", encoding="utf-8") as f:
     html_content = f.read()    
   soup = BeautifulSoup(html_content, 'html.parser')
