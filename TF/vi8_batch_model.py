@@ -1368,7 +1368,7 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=2,
+            default=4,
             help="Number of training steps."
         )
         parser.add_argument(

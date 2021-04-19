@@ -118,19 +118,17 @@ def load_bwin_quotes():
   #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
   #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
   driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver89/chromedriver.exe",   chrome_options=chrome_options)
-
+  driver.set_page_load_timeout(30000)
+  driver.set_script_timeout(30000)
   driver.get(url)
-  #print(driver)
-  #magnifying_glass = driver. find_elements_by_xpath("//*") # find_element_by_class_name('grid-event-wrapper')
-  #print(magnifying_glass)
   html = driver.execute_script("return document.documentElement.outerHTML")
+  with open("bwin.html", "w+", encoding="utf-8") as f:
+      f.write(html)
   if re.search("gladbach", html) is None:
       print("Rendering not successful")
       print(url)
       sys.exit()
   #print(html)
-  with open("bwin.html", "w+", encoding="utf-8") as f:
-      f.write(html)
 
   if False:
       session = HTMLSession()
