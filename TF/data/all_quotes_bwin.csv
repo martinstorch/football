@@ -1,17 +1,11 @@
 Date,Time,HomeTeam,AwayTeam,BWH,BWD,BWA,DOW
-20.04.2021,18:30,1. FC Köln,RB Leipzig,7.25,4.60,1.44,Tuesday
-20.04.2021,20:30,FC Bayern München,Bayer Leverkusen,1.40,5.25,7.00,Tuesday
-20.04.2021,20:30,Eintracht Frankfurt,FC Augsburg,1.48,4.33,7.00,Tuesday
-20.04.2021,20:30,Arminia Bielefeld,FC Schalke 04,1.80,3.60,4.60,Tuesday
-21.04.2021,20:30,Borussia Dortmund,1. FC Union Berlin,1.55,4.40,5.75,Mittwoch
-21.04.2021,20:30,1899 Hoffenheim,Borussia Mönchengladbach,3.10,3.80,2.15,Mittwoch
-21.04.2021,20:30,Werder Bremen,1. FSV Mainz 05,2.90,3.30,2.50,Mittwoch
-21.04.2021,20:30,VfB Stuttgart,VfL Wolfsburg,3.20,3.70,2.15,Mittwoch
-23.04.2021,20:30,FC Augsburg,1. FC Köln,2.70,3.30,2.50,Freitag
-24.04.2021,15:30,1. FSV Mainz 05,FC Bayern München,9.25,5.50,1.28,Samstag
-24.04.2021,15:30,SC Freiburg,1899 Hoffenheim,2.75,3.40,2.40,Samstag
-24.04.2021,15:30,1. FC Union Berlin,Werder Bremen,1.85,3.50,4.10,Samstag
-24.04.2021,15:30,VfL Wolfsburg,Borussia Dortmund,3.00,3.60,2.20,Samstag
-24.04.2021,18:30,Bayer Leverkusen,Eintracht Frankfurt,2.25,3.50,2.95,Samstag
-25.04.2021,15:30,RB Leipzig,VfB Stuttgart,1.36,5.00,7.25,Sonntag
-25.04.2021,18:00,Borussia Mönchengladbach,Arminia Bielefeld,1.45,4.20,7.00,Sonntag
+12.05.2021,18:00,FC Schalke 04,Hertha BSC,7.75,4.75,1.40,Wednesday
+15.05.2021,15:30,Borussia Mönchengladbach,VfB Stuttgart,1.67,4.33,4.10,Samstag
+15.05.2021,15:30,Bayer Leverkusen,1. FC Union Berlin,1.78,3.75,4.20,Samstag
+15.05.2021,15:30,SC Freiburg,FC Bayern München,8.25,5.50,1.30,Samstag
+15.05.2021,15:30,Hertha BSC,1. FC Köln,2.25,3.30,3.10,Samstag
+15.05.2021,15:30,FC Schalke 04,Eintracht Frankfurt,9.25,6.00,1.26,Samstag
+15.05.2021,15:30,FC Augsburg,Werder Bremen,2.60,3.00,2.85,Samstag
+15.05.2021,15:30,Arminia Bielefeld,1899 Hoffenheim,2.80,3.60,2.30,Samstag
+16.05.2021,18:00,1. FSV Mainz 05,Borussia Dortmund,6.50,4.75,1.42,Sonntag
+16.05.2021,20:30,RB Leipzig,VfL Wolfsburg,2.00,3.40,3.60,Sonntag

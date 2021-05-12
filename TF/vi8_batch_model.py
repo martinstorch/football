@@ -1363,12 +1363,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=0,
+            default=4,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=4,
+            default=8,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1403,10 +1403,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
-            #default="Sky",
+            #default="Pistor",
+            # default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -1429,9 +1429,9 @@
             "--action",
             type=str,
             # default="static",
-            default="train",
+            #default="train",
             # default="eval_stop",
-            #default="eval",
+            default="eval",
             # default="predict",
             # default="upgrade",
             # default="train_eval",
@@ -1440,8 +1440,8 @@
         )
         parser.add_argument(
             "--useBWIN", type=bool,
-            default=True,
-            # default=False,
+            #default=True,
+            default=False,
             help="Run in Stochastic Weight Averaging mode."
         )
         FLAGS, unparsed = parser.parse_known_args()
@@ -3011,12 +3011,12 @@
                 plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
                                    prefix="C" + str(i))
             plt.show()
-
+        numMatches = min(9, pred_probs.shape[1]//2)
         if True:
             fig, ax = plt.subplots(3, 6, figsize=(20, 10))
             plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
             for j in range(batch_size):
-                for i in range(9):
+                for i in range(numMatches):
                     pr = (pred_probs[j, 2 * i] + np.dot(pred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
                     plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
                                        prefix=df_pred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_pred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
@@ -3026,7 +3026,7 @@
             fig, ax = plt.subplots(3, 6, figsize=(20, 10))
             plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
             for j in range(batch_size):
-                for i in range(9):
+                for i in range(numMatches):
                     pr = (smpred_probs[j, 2 * i] + np.dot(smpred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
                     plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
                                        prefix=df_smpred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_smpred.Team2.iloc[j*pred_probs.shape[1] + i * 2])

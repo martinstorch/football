@@ -19,6 +19,7 @@ from datetime import datetime, date, time, timedelta
 from requests_html import HTMLSession
 import re
 import sys
+import time
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -110,7 +111,7 @@ def load_bwin_quotes():
   from selenium.webdriver.chrome.options import Options
 
   chrome_options = Options()
-  chrome_options.add_argument("--headless")
+  #chrome_options.add_argument("--headless")
   #chrome_options.binary_location = '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
   chrome_options.binary_location = 'C:/Users/marti/AppData/Local/Google/Chrome SxS/Application'
   chrome_options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
@@ -121,6 +122,7 @@ def load_bwin_quotes():
   driver.set_page_load_timeout(30000)
   driver.set_script_timeout(30000)
   driver.get(url)
+  time.sleep(5)
   html = driver.execute_script("return document.documentElement.outerHTML")
   with open("bwin.html", "w+", encoding="utf-8") as f:
       f.write(html)
