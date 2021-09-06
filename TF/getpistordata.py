@@ -316,7 +316,7 @@ def thread_function(threadID, start, stop):
       count = 1
       while count != 0:
         try:
-          i_user_data = collect_user_tipps(session, roundfrom=32, roundto=32, userid=userid)
+          i_user_data = collect_user_tipps(session, roundfrom=33, roundto=33, userid=userid)
           count = 0
         except:
           time.sleep(10*count)
@@ -347,18 +347,18 @@ def thread_function(threadID, start, stop):
 # thread2 = threading.Thread(target=thread_function, args=(2, 50000, 60000))
 # thread4 = threading.Thread(target=thread_function, args=(4, 60000, 70000))
 # thread3 = threading.Thread(target=thread_function, args=(3, 70000, 78000))
-thread1 = threading.Thread(target=thread_function, args=(1, 1, 20000))
-thread2 = threading.Thread(target=thread_function, args=(2, 20000, 40000))
-thread3 = threading.Thread(target=thread_function, args=(3, 40000, 60000))
-thread4 = threading.Thread(target=thread_function, args=(4, 60000, 80000))
+thread1 = threading.Thread(target=thread_function, args=(1, 1, 40000))
+thread2 = threading.Thread(target=thread_function, args=(2, 40000, 80000))
+#thread3 = threading.Thread(target=thread_function, args=(3, 40000, 60000))
+#thread4 = threading.Thread(target=thread_function, args=(4, 60000, 80000))
 
 # Start new Threads
 #print(thread1)
 #thread_function(1, 7860, 8000)
 thread1.start()
 thread2.start()
-thread3.start()
-thread4.start()
+#thread3.start()
+#thread4.start()
 # thread5.start()
 # thread6.start()
 

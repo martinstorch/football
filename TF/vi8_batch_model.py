@@ -1224,7 +1224,7 @@
             point_scale = 3
         elif target_system == "GoalDiff":
             point_scheme = point_scheme_goal_diff
-            point_scale = 1
+            point_scale = 0.25
         else:
             raise Exception("Unknown point scheme")
 
@@ -1363,12 +1363,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=4,
+            default=5,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=8,
+            default=5,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1382,43 +1382,44 @@
             "--train_data", type=str,
             # default="0910,1112,1314,1516,1718,1920", #
             #default="0910,1011,1112,1213,1314,1415", #
-            default="1516,1617,1718,1819,1920,2021", #
             #default="0910,1011,1112,1213,1314",
             #default="0910,1011,1112,1213,1314,1415,1516,1617,1718", #
             #default="0910,1011,1112,1213,1314,1415,1516,1617,1718,1819,1920", #
             #default="1617,1718",  #
             #default="1819,1920",
             #default="1920",
+            default="1415,1516,1617,1718",
             help="Path to the training data."
         )
         parser.add_argument(
             "--test_data", type=str,
             # default="1011,1213,1415,1617,1819", #
-            default="0910,1011,1112,1213,1314,1415", #
+            #default="0910,1011,1112,1213,1314,1415", #
             #default="1516,1617,1718,1819,1920,2021",  #
             #default="2021", #
             #default="1819,1920,2021",
+            default="1819,1920,2021,2122", #
             help="Path to the test data."
         )
         parser.add_argument(
             "--target_system",
             type=str,
             #default="Pistor",
-            # default="Sky",
+            #default="Sky",
             # default="TCS",
             default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8reset",
+            default="vi8_2122_batch",
             #default="vi8relubatch",
             help="The prefix to be used for model files"
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            #default="best",
-            default="-1",  # slice(-2, None)
+            default="best",
+            #default="-6",  # slice(-2, None)
             #default="",
              #default="20201201_081025", # Sky 2
             #default="20201130_141446", # Pistor 2
@@ -1440,8 +1441,8 @@
         )
         parser.add_argument(
             "--useBWIN", type=bool,
-            #default=True,
-            default=False,
+            default=True,
+            #default=False,
             help="Run in Stochastic Weight Averaging mode."
         )
         FLAGS, unparsed = parser.parse_known_args()
@@ -2431,34 +2432,34 @@
          228.4353119286165,
          778.1051397543414] # GoalDiff
 
-        reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-            7.790581026476395,
-         54.118634654859505,
-         6.45872733699362,
-         3.5960901202501345,
-         3.5185993570104217,
-         1.9763906465042098,
-         1463.2568888902092,
-         184.14446596325726,
-         498.2907336214255,
-         836.6541099515921] # Pistor
+        # reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
+        #     7.790581026476395,
+        #  54.118634654859505,
+        #  6.45872733699362,
+        #  3.5960901202501345,
+        #  3.5185993570104217,
+        #  1.9763906465042098,
+        #  1463.2568888902092,
+        #  184.14446596325726,
+        #  498.2907336214255,
+        #  836.6541099515921] # Pistor
 
         # Sky
-        reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [30.06458190875656,	40.1918119676015,	4.321314865899112,	2.524883871214151,	7.122375159069683,	7.5613837836437146,	3390.5851157718234,	433.29620880964984,	826.7903719059955,	921.7516541247792]
+        #reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [30.06458190875656,	40.1918119676015,	4.321314865899112,	2.524883871214151,	7.122375159069683,	7.5613837836437146,	3390.5851157718234,	433.29620880964984,	826.7903719059955,	921.7516541247792]
 
         # Sky 64
-        reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-        65.95459628358374,
-        16.401733089714277,
-        1.3146886990891065,
-        1.0183184492433304,
-        3.520335892462611,
-        4.882879118372497,
-        5780.341648714803,
-        796.3056309968048,
-        861.3450940373662,
-        758.1406346008536
-        ]
+        # reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
+        # 65.95459628358374,
+        # 16.401733089714277,
+        # 1.3146886990891065,
+        # 1.0183184492433304,
+        # 3.520335892462611,
+        # 4.882879118372497,
+        # 5780.341648714803,
+        # 796.3056309968048,
+        # 861.3450940373662,
+        # 758.1406346008536
+        # ]
         metaparams = (reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx )
 
         #metaparams = (0.0051081069220212175, 0.059952482246497935, 0.19331630222128357, 0.035694381954010014, 0.8370222414757852, 116.83426393946185, 183.8459838528271, 207.63877420562545)
@@ -2675,11 +2676,11 @@
                     return {k:y[k]-x[k] for k in x.keys()}
 
                 def eval_score(loss0a, loss0b):
-                    sm0 = 0.2*loss0a["softmax_lp_mean"]-loss0b["softmax_lp_mean"]
-                    lp0 = 0.2*loss0a["logpoints"] - loss0b["logpoints"]
-                    ps0 = 0.2*loss0a["poisson_lp_mean"] - loss0b["poisson_lp_mean"]
-                    gs0 = 0.2*loss0a["gaussian_lp_mean"] - loss0b["gaussian_lp_mean"]
-                    pt0 = 0.2*loss0a["real_points"] - loss0b["real_points"]
+                    sm0 = 0.1*loss0a["softmax_lp_mean"]-loss0b["softmax_lp_mean"]
+                    lp0 = 0.1*loss0a["logpoints"] - loss0b["logpoints"]
+                    ps0 = 0.1*loss0a["poisson_lp_mean"] - loss0b["poisson_lp_mean"]
+                    gs0 = 0.1*loss0a["gaussian_lp_mean"] - loss0b["gaussian_lp_mean"]
+                    pt0 = 0.1*loss0a["real_points"] - loss0b["real_points"]
                     #score0=sm0+lp0+ps0+pt0-10*loss0b["real_points"]
                     score0 = sm0 + 0.3*ps0 + gs0 + point_scale*(10*lp0 + 0.5*pt0)
                     return(score0)

@@ -118,7 +118,7 @@ def load_bwin_quotes():
 
   #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
   #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
-  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver89/chromedriver.exe",   chrome_options=chrome_options)
+  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver92/chromedriver.exe",   chrome_options=chrome_options)
   driver.set_page_load_timeout(30000)
   driver.set_script_timeout(30000)
   driver.get(url)
@@ -293,7 +293,7 @@ data538 = getFiveThirtyEightData(skip_download)
 if skip_download:
     xgdf = pd.read_csv(dir_path+'/xgoals.csv')  
 else:
-    xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019, 2020]
+    xg_season_list=[2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     xgdf=pd.DataFrame()
     for s in xg_season_list:
       xg = load_expected_goals(s)
@@ -302,7 +302,7 @@ else:
     xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
 print(xgdf)
 
-all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021"]
+all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
 all_data = []
 for s in all_seasons:
   sdata = download_data(dir_path, s, skip_download=skip_download) 
