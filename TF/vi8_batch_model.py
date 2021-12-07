@@ -1368,7 +1368,7 @@
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=5,
+            default=10,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1388,7 +1388,7 @@
             #default="1617,1718",  #
             #default="1819,1920",
             #default="1920",
-            default="1415,1516,1617,1718",
+            default="1819,1920,2021,2122",
             help="Path to the training data."
         )
         parser.add_argument(
@@ -1398,7 +1398,7 @@
             #default="1516,1617,1718,1819,1920,2021",  #
             #default="2021", #
             #default="1819,1920,2021",
-            default="1819,1920,2021,2122", #
+            default="1415,1516,1617,1718", #
             help="Path to the test data."
         )
         parser.add_argument(
@@ -1418,10 +1418,12 @@
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            default="best",
-            #default="-6",  # slice(-2, None)
-            #default="",
-             #default="20201201_081025", # Sky 2
+            #default="best",
+            default="-1",  # slice(-2, None)
+            #default="20211101_135039",
+            #default = "20211108_090047",
+            # default="",
+            #default="20201201_081025", # Sky 2
             #default="20201130_141446", # Pistor 2
             # default="60000:92000",
             help="Range of checkpoints for evaluation / prediction. Format: "
@@ -1430,9 +1432,9 @@
             "--action",
             type=str,
             # default="static",
-            #default="train",
+            default="train",
             # default="eval_stop",
-            default="eval",
+            #default="eval",
             # default="predict",
             # default="upgrade",
             # default="train_eval",
@@ -2800,7 +2802,7 @@
         plt.plot(searchlog.tpts)
         plt.plot(searchlog.tpts.loc[searchlog.accept])
         plt.axhline(searchlog.pts.max(), color="gray")
-        plt.ylim(np.quantile(searchlog.pts, 0.1),np.quantile(searchlog.tpts, 1.0))
+        plt.ylim(np.quantile(searchlog.pts, 0.05),np.quantile(searchlog.tpts, 0.9))
         plt.show()
 
         def plot_searchlog(xlabel, ylabel, ylabel2=None, x=None, y=None, y2=None, logy=False, lim=5, lim_x=None, lim_y=None):

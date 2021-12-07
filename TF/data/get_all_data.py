@@ -118,7 +118,7 @@ def load_bwin_quotes():
 
   #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
   #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
-  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver92/chromedriver.exe",   chrome_options=chrome_options)
+  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver96/chromedriver.exe",   chrome_options=chrome_options)
   driver.set_page_load_timeout(30000)
   driver.set_script_timeout(30000)
   driver.get(url)
@@ -360,7 +360,7 @@ quotes_bwin = quotes_bwin.rename(columns=
                    {"HomeTeam":"HomeTeam_bwin", "AwayTeam":"AwayTeam_bwin",
                     "stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
 quotes_bwin ["Predict"]=True
-quotes_bwin ["Season"]="2021"
+quotes_bwin ["Season"]="2122"
 quotes_bwin ["Dow"]= pd.to_datetime(quotes_bwin.Date, dayfirst=True).apply(lambda x: x.strftime('%A'))
 
 print(quotes_bwin.drop(columns=["HomeTeam", "AwayTeam"]))

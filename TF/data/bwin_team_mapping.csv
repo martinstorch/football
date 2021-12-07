@@ -2,6 +2,7 @@ bwinTeam	stdTeam
 FC Schalke 04	Schalke 04
 1. FSV Mainz 05	Mainz
 FSV Mainz 05	Mainz
+FSV Mainz	Mainz
 FC Bayern München	Bayern Munich
 1. FC Köln	FC Koln
 Hertha BSC	Hertha
@@ -9,6 +10,7 @@ SC Paderborn 07	Paderborn
 SC Freiburg	Freiburg
 Bayer Leverkusen	Leverkusen
 1. FC Union Berlin	Union Berlin
+Union Berlin	Union Berlin
 Werder Bremen	Werder Bremen
 RB Leipzig	RB Leipzig
 Borussia Mönchengladbach	M'gladbach
@@ -17,8 +19,10 @@ Eintracht Frankfurt	Ein Frankfurt
 Borussia Dortmund	Dortmund
 VfL Wolfsburg	Wolfsburg
 1899 Hoffenheim	Hoffenheim
+TSG Hoffenheim	Hoffenheim
 FC Augsburg	Augsburg
 Arminia Bielefeld	Bielefeld
 VfB Stuttgart	Stuttgart
 SpVgg Greuther Fürth	Greuther Furth
+Greuther Fürth	Greuther Furth
 VfL Bochum	Bochum

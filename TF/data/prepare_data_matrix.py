@@ -46,7 +46,7 @@ TIMESERIES_COL = 'rawdata'
 
 def build_features(df_data):
   print(df_data.shape)
-
+  print(df_data["HomeTeam"].unique())
   team_encoder = preprocessing.LabelEncoder()
   team_encoder.fit(df_data["HomeTeam"])
   print(team_encoder.classes_)
