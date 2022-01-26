@@ -257,6 +257,28 @@ def download_data(model_dir, season, skip_download):
     data["Season"]= season
     return data
 
+
+def download_betonjamesdata(model_dir, season, skip_download):
+    """Maybe downloads training data and returns train and test file names."""
+    file_name = dir_path + "/boj_DE_" + season + ".csv"
+    print(file_name)
+    if (not skip_download):
+        url = "https://www.betonjames.com/wp-content/uploads/boj-free-data-downloads/germany-bundesliga-20"+season[:2]+"-20"+season[2:] + ".csv"
+        print("Downloading %s" % url)
+        request.urlretrieve(
+            url,
+            file_name)  # pylint: disable=line-too-long
+        print("Data is downloaded to %s" % file_name)
+    data = pd.read_csv(
+        file_name,
+        skipinitialspace=True,
+        engine="python",
+        encoding = "utf-8",
+        skiprows=0)
+    data["Season"] = season
+    return data
+
+
 def getFiveThirtyEightData(skip_download):
     url = "https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv"
     file_name = dir_path + "/spi_matches.csv"
@@ -303,6 +325,16 @@ else:
 print(xgdf)
 
 all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
+boj_data = []
+for s in all_seasons[1:]:
+  sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download)
+  #print(sdata.columns.values)
+  sdata["Predict"]=False
+  boj_data.append(sdata)
+boj_data = pd.concat(boj_data, ignore_index=True)
+boj_data = boj_data[['Season' ,'Predict',"DATE","HOME_TEAM","AWAY_TEAM","FTHG","FTAG","FTR","HTHG","HTAG","HTR","H_ST","H_SOG","H_SFG","H_PT","H_COR","H_FL","H_YC","H_RC","A_ST","A_SOG","A_SFG","A_PT","A_COR","A_FL","A_YC","A_RC"]]
+print(boj_data.HOME_TEAM.unique())
+
 all_data = []
 for s in all_seasons:
   sdata = download_data(dir_path, s, skip_download=skip_download) 
@@ -316,6 +348,14 @@ print(all_data.iloc[-9:,list(range(22))+[24, 25, 26]])
 #print(all_data.columns.values)
 #print(set(all_data.columns.values)-set(sdata.columns.values))
 
+# standardize team names
+boj_team_mapping= pd.read_csv(dir_path+"/boj_team_mapping.csv", sep='\t')
+boj_data= boj_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
+boj_data["Date"]=pd.to_datetime(boj_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
+boj_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
+print(boj_data[-9:])
 # standardize team names
 team_mapping= pd.read_csv(dir_path+"/xg_team_mapping.csv").drop(columns="Unnamed: 0")
 xgdf= pd.read_csv(dir_path+"/xgoals.csv")
@@ -377,6 +417,8 @@ full_data["Date"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x:
 
 full_data = full_data.merge(xgdf[["HomeTeam", "AwayTeam", "Date", "Time", "xHG" , "xAG"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 
+full_data = full_data.merge(boj_data[["HomeTeam", "AwayTeam", "Date", "H_PT" , "A_PT"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
+
 full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA", "HGFTa", "AGFTa", "Hxsg", "Axsg", "Hxnsg", "Axnsg"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 
 new_data = quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]
@@ -384,4 +426,4 @@ new_data = new_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi",
 full_data = pd.concat([full_data, new_data])
 
 full_data.to_csv(dir_path+"/full_data.csv", index=False)
-
+full_data.info()

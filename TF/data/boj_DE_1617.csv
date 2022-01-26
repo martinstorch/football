@@ -1,0 +1,307 @@
+DATE,COUNTRY,LEAGUE,TYPE,SEASON,HOME_TEAM,AWAY_TEAM,FTR,FTHG,FTAG,HTR,HTHG,HTAG,ETR,ETHG,ETAG,PENR,PENHG,PENAG,H_ST,H_SOG,H_SFG,H_PT,H_COR,H_FL,H_YC,H_RC,A_ST,A_SOG,A_SFG,A_PT,A_COR,A_FL,A_YC,A_RC
+2016-08-26,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Werder Bremen,H,6,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,27,14,6,70,8,7,0,0,4,2,1,30,1,8,1,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Wolfsburg,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,2,7,46,2,15,1,0,12,6,3,54,3,17,2,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Mainz 05,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,8,5,73,7,3,0,0,12,4,4,27,2,20,3,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Bayer Leverkusen,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,9,2,50,7,11,3,0,12,6,4,50,3,16,3,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Darmstadt 98,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,21,8,10,59,6,11,3,0,12,3,5,41,5,15,3,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Schalke 04,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,6,44,7,11,2,1,11,3,7,56,5,15,2,0
+2016-08-27,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Ingolstadt,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,5,47,4,17,2,0,13,5,4,53,5,15,2,0
+2016-08-28,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,RB Leipzig,D,2,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,5,56,2,12,2,0,23,9,7,44,9,14,4,0
+2016-08-28,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Freiburg,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,5,54,5,10,0,0,8,2,3,46,2,10,3,0
+2016-09-09,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Bayern München,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,4,31,2,13,2,0,18,2,11,69,7,12,4,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Hamburger SV,H,3,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,7,61,4,13,2,0,6,2,3,39,1,20,1,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Eintracht Frankfurt,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,7,22,1,16,1,0,14,3,6,78,4,13,2,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Hertha BSC,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,59,6,13,3,0,7,6,1,41,1,20,1,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Köln,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,4,12,65,8,13,2,0,16,9,5,35,4,14,3,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Borussia M'gladbach,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,18,7,4,34,3,17,2,0,5,2,2,66,4,11,2,0
+2016-09-10,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Borussia Dortmund,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,34,5,16,2,0,8,1,5,66,7,10,2,0
+2016-09-11,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Hoffenheim,D,4,4,H,4,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,5,30,8,19,1,1,20,5,8,70,5,16,3,0
+2016-09-11,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Augsburg,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,1,6,52,0,14,2,0,18,5,8,48,4,28,3,0
+2016-09-16,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Freiburg,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,4,34,4,12,1,0,17,8,6,66,6,10,1,0
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,RB Leipzig,A,0,4,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,2,7,62,8,17,5,0,12,6,4,38,3,13,1,0
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Ingolstadt,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,4,69,5,18,1,0,13,5,7,31,5,17,2,0
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Bayer Leverkusen,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,8,7,40,1,22,3,0,7,3,4,60,3,14,0,0
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Darmstadt 98,H,6,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,13,4,79,12,8,0,0,5,1,3,21,2,16,6,1
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Wolfsburg,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,5,9,49,3,17,2,0,21,9,7,51,11,18,1,0
+2016-09-17,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Werder Bremen,H,4,1,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,15,7,4,62,10,9,0,0,9,5,3,38,4,19,3,1
+2016-09-18,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Schalke 04,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,49,4,12,1,0,11,4,3,51,6,17,1,0
+2016-09-18,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Mainz 05,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,5,4,53,2,15,1,0,11,6,4,47,7,16,2,1
+2016-09-20,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Eintracht Frankfurt,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,3,6,56,6,20,0,0,9,5,3,44,4,19,1,0
+2016-09-20,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Borussia Dortmund,A,1,5,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,16,9,6,49,2,15,2,0,10,9,0,51,3,12,0,0
+2016-09-20,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Hamburger SV,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,4,5,48,7,17,1,0,7,0,6,52,0,17,0,0
+2016-09-20,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Hoffenheim,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,3,7,28,2,16,1,0,15,4,5,72,6,18,1,0
+2016-09-21,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Augsburg,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,6,72,6,14,0,0,5,2,2,28,3,16,2,0
+2016-09-21,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Hertha BSC,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,7,7,75,6,9,1,0,2,2,0,25,2,9,0,0
+2016-09-21,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Mainz 05,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,7,5,39,3,15,2,0,13,6,6,61,14,14,2,0
+2016-09-21,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Borussia M'gladbach,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,3,42,5,15,1,0,3,1,1,58,2,16,2,0
+2016-09-21,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Köln,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,8,1,67,8,17,2,0,9,5,3,33,4,9,1,0
+2016-09-23,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Freiburg,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,24,5,13,71,15,8,2,0,9,5,3,29,3,27,3,0
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Bayern München,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,1,5,30,3,17,2,0,17,8,4,70,5,12,3,0
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Hertha BSC,D,3,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,4,4,56,4,15,4,0,6,4,1,44,1,13,2,0
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Bayer Leverkusen,A,2,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,9,5,3,37,6,12,3,0,16,6,8,63,1,14,2,0
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Darmstadt 98,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,6,10,66,3,7,2,0,5,0,3,34,5,14,3,1
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Ingolstadt,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,5,2,55,1,24,2,0,8,2,5,45,3,14,3,0
+2016-09-24,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Wolfsburg,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,10,39,6,17,1,0,11,3,4,61,2,14,3,0
+2016-09-25,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Schalke 04,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,14,2,9,43,2,11,1,0,12,5,5,57,6,14,1,0
+2016-09-25,Germany,Bundesliga,LEAGUE,2016/2017,Köln,RB Leipzig,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,6,45,1,10,1,0,12,2,6,55,6,16,2,0
+2016-09-30,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Augsburg,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,10,3,57,6,15,0,0,6,2,1,43,3,12,3,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Köln,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,26,3,18,68,10,4,1,0,5,2,3,32,3,12,2,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Werder Bremen,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,4,40,5,18,2,0,15,7,4,60,10,20,1,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Hamburger SV,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,6,41,7,11,2,0,16,3,8,59,3,20,6,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Hoffenheim,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,18,5,7,51,8,22,1,0,20,9,8,49,5,22,2,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Eintracht Frankfurt,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,6,37,9,12,4,0,14,3,7,63,4,13,3,0
+2016-10-01,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Borussia Dortmund,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,29,1,21,5,0,10,4,3,71,9,7,1,0
+2016-10-02,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Mainz 05,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,3,8,60,11,10,0,0,7,2,4,40,3,7,0,0
+2016-10-02,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Borussia M'gladbach,H,4,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,8,5,27,3,11,0,0,12,4,4,73,5,10,0,0
+2016-10-14,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Hertha BSC,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,7,74,5,13,1,1,9,2,5,26,0,22,5,1
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Bayer Leverkusen,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,33,0,10,2,0,13,6,5,67,2,15,2,0
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Freiburg,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,6,45,8,18,2,0,13,6,5,55,5,15,3,0
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Bayern München,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,4,8,37,2,18,5,1,14,5,8,63,6,11,4,0
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Hamburger SV,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,22,4,10,76,10,10,2,0,5,0,4,24,3,16,4,1
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Schalke 04,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,4,50,6,14,2,0,12,3,6,50,4,16,3,0
+2016-10-15,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Ingolstadt,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,10,60,5,27,3,0,9,1,8,40,3,24,3,0
+2016-10-16,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Darmstadt 98,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,7,49,7,20,3,0,12,4,6,51,7,19,1,0
+2016-10-16,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,RB Leipzig,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,5,55,7,21,2,0,13,6,5,45,4,18,1,0
+2016-10-21,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Eintracht Frankfurt,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,3,0,2,41,0,16,2,1,13,4,6,59,2,9,4,0
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Augsburg,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,7,53,0,7,1,0,14,6,5,47,1,10,0,0
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Hoffenheim,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,1,3,46,5,6,0,1,14,8,4,54,3,17,1,0
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Borussia M'gladbach,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,17,5,9,63,8,4,0,0,3,0,3,37,1,11,1,0
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Wolfsburg,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,4,28,1,17,0,0,9,1,7,72,4,15,2,1
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Köln,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,7,6,48,4,8,2,0,10,2,6,52,5,16,1,0
+2016-10-22,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Borussia Dortmund,D,3,3,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,3,26,2,19,0,0,24,10,10,74,8,13,1,0
+2016-10-23,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Mainz 05,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,51,3,16,2,0,11,4,4,49,3,16,3,0
+2016-10-23,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Werder Bremen,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,6,12,60,6,18,4,0,7,3,1,40,5,10,3,0
+2016-10-28,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Eintracht Frankfurt,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,3,63,3,19,1,0,6,1,3,37,6,15,2,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Freiburg,A,1,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,4,8,56,4,25,1,0,14,5,6,44,4,23,3,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,RB Leipzig,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,4,0,4,33,2,12,4,0,11,4,3,67,6,16,2,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Bayern München,A,1,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,7,3,3,25,4,14,2,0,16,8,6,75,10,6,0,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Schalke 04,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,1,7,65,1,14,4,0,8,2,3,35,4,21,4,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Bayer Leverkusen,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,2,3,47,1,15,1,0,18,6,8,53,4,17,3,0
+2016-10-29,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Ingolstadt,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,8,9,54,5,14,1,0,5,2,1,46,0,9,2,1
+2016-10-30,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Hamburger SV,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,6,6,62,7,16,3,0,9,2,3,38,4,17,1,1
+2016-10-30,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Hertha BSC,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,7,10,55,7,10,0,0,5,2,3,45,3,20,4,0
+2016-11-04,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Borussia M'gladbach,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,5,50,4,14,2,0,11,2,7,50,1,16,4,1
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Augsburg,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,7,48,3,15,2,1,13,5,7,52,6,14,1,0
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Borussia Dortmund,A,2,5,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,14,6,7,42,5,13,2,0,10,6,4,58,3,15,0,0
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Hoffenheim,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,21,5,12,66,8,7,0,0,5,3,1,34,1,25,2,0
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Wolfsburg,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,2,7,60,6,10,2,1,14,5,5,40,9,19,2,0
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Darmstadt 98,H,3,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,4,70,6,10,0,0,6,3,2,30,5,10,1,0
+2016-11-05,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Köln,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,1,3,48,4,20,3,0,6,1,4,52,5,10,3,0
+2016-11-06,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Werder Bremen,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,24,6,13,52,3,13,2,0,8,5,3,48,6,14,3,0
+2016-11-06,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Mainz 05,H,3,1,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,5,49,3,13,0,0,11,3,4,51,6,12,3,0
+2016-11-18,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,RB Leipzig,A,2,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,4,57,6,13,1,0,11,4,3,43,9,15,3,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Freiburg,H,4,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,4,35,3,21,4,0,24,11,6,65,5,21,3,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Ingolstadt,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,4,7,42,8,19,1,0,15,7,5,58,11,15,4,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Köln,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,8,8,63,7,7,1,0,11,4,5,37,3,22,5,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Bayern München,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,5,33,3,14,3,0,18,3,8,67,9,14,2,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Schalke 04,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,0,5,43,3,17,2,0,19,4,13,57,5,16,2,0
+2016-11-19,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Hertha BSC,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,4,40,4,14,3,0,10,4,4,60,3,16,1,0
+2016-11-20,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Hamburger SV,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,5,10,60,8,12,1,0,14,4,8,40,6,25,2,0
+2016-11-20,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Eintracht Frankfurt,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,5,43,3,23,1,0,18,9,6,57,6,18,2,0
+2016-11-25,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,RB Leipzig,A,1,4,A,1,3,N/A,N/A,N/A,N/A,N/A,N/A,9,3,3,52,4,10,2,0,16,7,5,48,5,16,3,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Wolfsburg,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,5,11,39,4,12,2,0,10,3,6,61,5,19,1,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Bayer Leverkusen,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,8,4,56,6,8,0,0,13,4,4,44,3,11,0,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Augsburg,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,5,7,63,3,13,2,0,13,2,7,37,5,15,3,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Hoffenheim,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,8,5,44,2,8,0,0,15,4,5,56,6,17,2,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Werder Bremen,D,2,2,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,17,7,6,50,5,17,2,0,12,4,7,50,3,12,3,0
+2016-11-26,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Borussia Dortmund,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,4,31,4,18,4,0,12,5,5,69,5,13,3,0
+2016-11-27,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Darmstadt 98,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,20,7,9,66,5,8,0,0,9,2,3,34,6,13,2,0
+2016-11-27,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Mainz 05,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,16,5,7,64,5,12,3,1,9,4,4,36,3,23,2,1
+2016-12-02,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Bayern München,A,1,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,9,3,4,27,1,12,3,0,15,6,5,73,5,13,2,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Köln,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,10,6,3,60,3,14,1,0,10,1,8,40,4,11,1,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Borussia M'gladbach,H,4,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,15,7,4,64,9,10,1,0,4,1,1,36,3,9,1,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Ingolstadt,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,6,47,3,18,0,0,15,5,7,53,4,16,3,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Hertha BSC,A,2,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,6,4,1,33,0,21,5,1,18,8,5,67,2,9,2,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Freiburg,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,7,67,4,10,0,0,10,2,5,33,3,10,1,0
+2016-12-03,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Schalke 04,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,5,4,47,8,16,1,0,11,5,5,53,5,20,5,0
+2016-12-04,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Eintracht Frankfurt,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,5,6,40,5,11,3,0,7,4,2,60,2,13,2,0
+2016-12-04,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Hamburger SV,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,7,53,1,16,2,0,21,5,9,47,4,24,4,0
+2016-12-09,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Hoffenheim,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,7,43,11,28,4,1,3,0,2,57,2,17,3,0
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Augsburg,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,5,39,3,16,1,1,11,1,6,61,5,16,5,1
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Darmstadt 98,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,6,63,6,11,3,0,17,4,10,37,5,9,4,0
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,RB Leipzig,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,4,1,1,30,3,19,3,1,13,3,3,70,4,17,4,0
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Borussia Dortmund,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,4,26,1,26,4,1,11,4,5,74,6,18,3,0
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Wolfsburg,H,5,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,19,10,4,68,10,13,1,0,6,3,1,32,2,4,0,0
+2016-12-10,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Werder Bremen,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,4,5,58,5,17,0,0,13,6,4,42,1,14,3,0
+2016-12-11,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Bayer Leverkusen,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,0,7,30,4,10,3,1,13,2,6,70,3,15,3,0
+2016-12-11,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Mainz 05,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,3,56,4,13,2,0,12,4,6,44,1,15,2,1
+2016-12-16,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Borussia Dortmund,D,2,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,13,5,4,53,2,22,5,0,14,4,4,47,4,18,3,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Hertha BSC,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,8,6,64,9,10,1,0,3,0,2,36,1,14,3,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Köln,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,3,53,4,17,1,0,14,5,4,47,5,17,4,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Borussia M'gladbach,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,6,41,3,16,0,0,8,3,3,59,0,12,0,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Eintracht Frankfurt,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,9,38,4,17,3,0,7,1,3,62,2,18,4,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Freiburg,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,2,12,65,9,12,1,0,6,2,4,35,1,9,0,0
+2016-12-17,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Hamburger SV,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,19,8,6,55,6,12,2,0,10,3,6,45,6,15,3,0
+2016-12-18,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Ingolstadt,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,60,1,17,3,0,17,7,6,40,4,16,2,0
+2016-12-18,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Bayern München,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,6,20,3,18,1,0,13,2,9,80,1,11,2,0
+2016-12-20,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Schalke 04,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,7,2,44,4,13,2,0,6,3,3,56,5,11,4,0
+2016-12-20,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Wolfsburg,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,4,10,61,5,18,1,0,18,7,5,39,6,18,2,0
+2016-12-20,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Mainz 05,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,4,56,6,14,3,0,11,6,4,44,6,9,0,0
+2016-12-20,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Augsburg,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,23,8,10,74,6,10,1,0,8,3,2,26,2,19,2,0
+2016-12-21,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Werder Bremen,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,3,6,60,5,11,2,0,10,3,5,40,9,19,2,0
+2016-12-21,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Darmstadt 98,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,6,66,6,13,1,0,5,0,3,34,4,15,3,0
+2016-12-21,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Bayer Leverkusen,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,2,2,45,4,7,0,0,17,6,4,55,5,16,0,0
+2016-12-21,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Freiburg,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,17,6,8,54,6,17,4,0,11,5,3,46,3,12,2,0
+2016-12-21,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,RB Leipzig,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,24,11,8,75,9,13,1,0,5,2,1,25,4,13,1,0
+2017-01-20,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Bayern München,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,3,3,25,1,8,2,0,13,5,6,75,11,7,2,0
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Eintracht Frankfurt,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,8,71,3,8,1,0,4,3,1,29,3,15,2,1
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Hamburger SV,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,5,73,5,15,2,0,11,1,3,27,3,23,3,1
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Ingolstadt,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,5,51,7,11,1,0,14,3,6,49,3,16,0,0
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Hoffenheim,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,3,48,4,18,3,0,13,3,3,52,4,14,4,0
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Borussia M'gladbach,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,2,34,4,12,1,0,14,4,7,66,6,16,1,0
+2017-01-21,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Borussia Dortmund,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,5,3,41,3,16,3,1,22,8,5,59,5,12,1,0
+2017-01-22,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Hertha BSC,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,16,9,4,54,7,14,0,0,7,3,4,46,3,15,2,0
+2017-01-22,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Köln,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,5,43,5,12,1,0,9,3,5,57,5,10,1,0
+2017-01-27,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Eintracht Frankfurt,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,2,7,51,3,18,2,0,8,1,5,49,2,17,1,0
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Hoffenheim,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,5,5,61,7,17,3,0,5,2,3,39,4,16,3,1
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Borussia M'gladbach,A,2,3,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,7,59,9,12,0,0,12,7,3,41,5,8,0,0
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Köln,A,1,6,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,43,3,24,2,0,15,8,5,57,4,20,4,0
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Augsburg,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,61,5,13,2,0,12,5,5,39,6,17,2,0
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Bayern München,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,11,4,6,36,2,17,4,0,13,4,3,64,7,16,1,0
+2017-01-28,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Hamburger SV,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,7,4,45,1,13,0,0,11,3,6,55,6,18,2,0
+2017-01-29,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Borussia Dortmund,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,1,4,38,2,13,2,0,13,4,4,62,4,13,1,0
+2017-01-29,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Hertha BSC,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,3,38,6,11,0,0,11,2,4,62,4,18,2,0
+2017-02-03,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Bayer Leverkusen,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,5,39,4,13,0,0,5,0,4,61,3,23,3,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Ingolstadt,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,52,1,15,2,0,13,4,5,48,3,20,2,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,RB Leipzig,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,5,55,5,15,1,0,2,1,1,45,2,16,3,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Mainz 05,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,7,4,57,3,14,2,0,13,2,6,43,6,13,2,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Wolfsburg,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,2,5,46,6,14,4,0,12,2,5,54,6,21,3,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Freiburg,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,5,47,3,9,1,0,14,4,3,53,8,10,1,0
+2017-02-04,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Schalke 04,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,7,60,8,14,1,0,7,3,4,40,3,15,1,0
+2017-02-05,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Werder Bremen,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,7,5,40,2,13,3,0,19,4,10,60,4,12,2,0
+2017-02-05,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Darmstadt 98,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,5,70,8,7,2,0,4,0,3,30,2,16,4,0
+2017-02-10,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Augsburg,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,3,47,6,10,1,0,10,6,3,53,2,15,3,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Hamburger SV,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,15,0,9,67,3,10,2,0,11,5,5,33,6,17,2,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Eintracht Frankfurt,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,6,49,8,10,2,0,9,3,4,51,6,10,1,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Hertha BSC,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,10,56,2,20,1,0,5,2,2,44,2,17,2,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Bayern München,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,0,7,29,2,15,2,0,17,5,9,71,4,14,1,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Borussia M'gladbach,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,6,3,59,9,16,2,0,12,3,4,41,3,17,2,0
+2017-02-11,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Borussia Dortmund,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,7,8,35,0,10,2,0,14,4,6,65,12,20,2,0
+2017-02-12,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Köln,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,4,58,7,17,1,0,11,4,6,42,1,15,1,0
+2017-02-12,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Hoffenheim,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,7,4,37,4,16,3,0,14,7,5,63,5,18,2,0
+2017-02-17,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Bayer Leverkusen,A,1,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,12,4,6,51,2,12,3,0,20,10,5,49,4,14,1,0
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Ingolstadt,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,6,50,4,16,4,1,14,11,2,50,5,12,0,1
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Freiburg,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,4,0,48,7,15,3,0,12,3,4,52,5,9,2,0
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Werder Bremen,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,14,5,4,62,7,14,3,0,8,4,3,38,6,10,4,0
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Wolfsburg,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,24,10,9,61,9,17,2,0,6,3,3,39,2,15,1,0
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Darmstadt 98,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,5,58,4,12,3,0,7,4,3,42,2,19,4,0
+2017-02-18,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Bayern München,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,4,29,3,19,1,0,16,6,2,71,4,10,3,0
+2017-02-19,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Schalke 04,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,4,4,49,5,12,2,0,12,4,7,51,0,14,3,0
+2017-02-19,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,RB Leipzig,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,3,7,58,8,18,4,0,9,5,3,42,3,17,3,0
+2017-02-24,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Werder Bremen,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,27,6,17,71,13,13,1,0,7,3,4,29,1,15,3,0
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Mainz 05,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,12,3,8,63,9,20,1,0,11,5,3,37,8,17,3,0
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Augsburg,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,2,2,55,1,17,1,0,18,3,7,45,1,16,0,0
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Köln,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,52,3,15,1,0,5,1,4,48,0,10,4,0
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Hamburger SV,H,8,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,18,12,4,71,4,16,0,0,5,1,2,29,4,11,1,0
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Eintracht Frankfurt,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,4,2,57,3,11,2,0,8,2,1,43,6,16,2,1
+2017-02-25,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Borussia Dortmund,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,7,3,3,36,5,8,1,0,26,10,9,64,3,10,0,0
+2017-02-26,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Hoffenheim,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,2,40,6,20,0,0,14,4,9,60,3,13,2,0
+2017-02-26,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Borussia M'gladbach,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,4,52,6,11,2,0,10,4,4,48,4,14,0,0
+2017-03-03,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,RB Leipzig,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,33,1,15,4,0,12,5,5,67,6,15,2,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Wolfsburg,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,5,37,4,15,0,0,7,5,1,63,6,12,0,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Schalke 04,H,4,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,19,7,10,39,3,6,0,0,7,2,5,61,2,16,4,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Bayern München,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,2,3,24,2,11,0,0,20,8,6,76,9,9,2,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Bayer Leverkusen,H,6,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,20,12,4,53,7,8,0,0,12,3,3,47,3,20,6,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Darmstadt 98,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,41,2,10,1,0,15,3,7,59,7,17,1,0
+2017-03-04,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Ingolstadt,H,5,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,12,3,59,3,19,2,0,8,4,3,41,6,21,2,0
+2017-03-05,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Freiburg,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,3,7,46,12,13,2,0,10,3,4,54,1,14,1,0
+2017-03-05,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Hertha BSC,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,3,41,5,14,1,0,8,1,3,59,2,11,2,0
+2017-03-10,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Werder Bremen,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,2,52,4,12,2,1,11,3,4,48,3,12,2,0
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Mainz 05,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,4,42,5,16,5,1,13,6,6,58,11,17,4,1
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Köln,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,26,9,10,57,11,13,4,0,7,2,2,43,0,24,3,0
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Borussia Dortmund,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,5,32,4,7,2,0,18,2,9,68,8,15,4,0
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Wolfsburg,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,4,57,7,16,3,0,15,5,9,43,3,17,4,0
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Eintracht Frankfurt,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,7,8,71,3,11,2,0,10,4,6,29,2,8,3,0
+2017-03-11,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Hoffenheim,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,4,2,40,6,12,2,0,23,7,10,60,6,11,2,0
+2017-03-12,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Borussia M'gladbach,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,6,5,47,8,8,1,0,7,3,3,53,4,18,2,0
+2017-03-12,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Augsburg,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,25,7,8,66,7,20,3,0,9,3,4,34,4,10,0,0
+2017-03-17,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Ingolstadt,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,5,54,4,12,1,0,14,2,8,46,2,23,3,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Freiburg,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,3,9,50,3,16,2,0,7,3,3,50,1,21,2,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Darmstadt 98,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,3,11,57,6,15,2,0,6,1,2,43,4,13,3,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Bayer Leverkusen,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,6,64,2,12,1,0,16,7,5,36,7,14,1,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Hamburger SV,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,1,5,51,4,19,1,0,5,0,4,49,7,24,1,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,RB Leipzig,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,0,43,4,11,2,0,7,2,5,57,5,18,1,0
+2017-03-18,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Hertha BSC,H,4,2,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,7,6,1,29,2,12,2,0,8,6,2,71,9,12,3,0
+2017-03-19,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Schalke 04,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,5,9,51,10,10,2,0,9,5,4,49,4,15,4,0
+2017-03-19,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Bayern München,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,1,6,31,5,5,0,0,18,6,9,69,4,11,2,0
+2017-03-31,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Hoffenheim,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,36,0,18,4,1,28,8,14,64,8,13,1,0
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Köln,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,4,7,52,5,19,2,0,7,1,5,48,1,13,3,0
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Werder Bremen,A,2,5,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,4,7,66,5,9,2,0,11,7,3,34,5,14,1,0
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Borussia M'gladbach,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,5,62,10,13,4,0,6,1,3,38,1,12,4,1
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Borussia Dortmund,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,2,43,9,13,1,0,7,2,3,57,4,17,2,0
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Augsburg,H,6,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,21,8,7,74,5,6,0,0,6,2,3,26,1,9,2,0
+2017-04-01,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Darmstadt 98,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,25,10,8,59,10,12,1,0,11,1,8,41,4,15,4,1
+2017-04-02,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Wolfsburg,D,3,3,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,1,43,2,18,1,0,18,9,7,57,10,14,2,0
+2017-04-02,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Mainz 05,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,4,43,4,25,4,0,10,1,6,57,4,26,3,0
+2017-04-04,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Bayern München,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,5,36,7,17,0,0,21,6,8,64,9,12,1,0
+2017-04-04,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Schalke 04,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,2,40,4,9,0,0,14,3,7,60,3,19,2,0
+2017-04-04,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Eintracht Frankfurt,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,1,3,35,0,11,0,0,11,2,6,65,5,20,2,0
+2017-04-04,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Hamburger SV,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,10,3,61,6,6,1,0,16,6,9,39,4,12,3,0
+2017-04-05,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Ingolstadt,A,2,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,5,6,55,3,16,3,0,13,6,6,45,5,13,2,0
+2017-04-05,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Hertha BSC,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,7,10,59,8,12,1,0,12,2,7,41,4,12,1,0
+2017-04-05,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Freiburg,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,4,11,65,6,12,0,0,16,5,7,35,3,16,1,0
+2017-04-05,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Bayer Leverkusen,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,2,10,40,3,11,0,0,14,7,3,60,8,13,2,0
+2017-04-05,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,RB Leipzig,A,2,3,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,3,10,43,8,16,6,1,15,7,6,57,3,20,4,0
+2017-04-07,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Werder Bremen,D,2,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,16,7,8,61,4,19,2,0,8,4,1,39,1,8,2,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Mainz 05,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,3,41,1,12,0,0,10,3,5,59,6,14,3,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Borussia M'gladbach,A,2,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,2,6,25,5,17,2,0,16,7,6,75,6,10,2,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Bayer Leverkusen,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,6,54,8,13,2,1,14,3,8,46,2,12,1,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Wolfsburg,H,4,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,1,55,5,17,1,0,18,1,9,45,1,10,2,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Borussia Dortmund,H,4,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,18,6,9,70,6,14,2,0,9,3,5,30,3,10,3,0
+2017-04-08,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Hoffenheim,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,5,4,40,8,22,4,0,12,4,6,60,4,22,4,0
+2017-04-09,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Darmstadt 98,H,3,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,23,10,5,60,5,12,1,1,10,5,3,40,2,11,2,1
+2017-04-09,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Augsburg,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,18,8,6,54,7,17,1,0,5,0,3,46,0,20,2,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Eintracht Frankfurt,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,15,7,5,65,4,12,0,0,9,2,6,35,1,23,0,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Ingolstadt,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,6,3,56,2,14,2,0,6,3,2,44,4,17,3,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Köln,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,7,6,1,35,2,19,4,2,12,0,10,65,8,17,3,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Bayern München,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,6,27,1,9,3,1,21,6,11,73,4,12,0,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Freiburg,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,4,55,6,19,1,0,11,2,5,45,0,13,2,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Borussia M'gladbach,H,5,3,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,16,9,5,49,5,6,2,0,10,4,3,51,1,20,4,0
+2017-04-15,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Hertha BSC,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,3,11,51,7,10,1,0,6,2,2,49,3,18,3,0
+2017-04-16,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Schalke 04,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,31,2,24,5,0,26,8,13,69,9,14,2,1
+2017-04-16,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Hamburger SV,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,5,6,53,4,13,3,0,6,4,1,47,3,15,1,0
+2017-04-21,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Hoffenheim,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,5,36,6,9,2,0,11,6,3,64,4,11,0,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Werder Bremen,A,2,4,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,5,8,47,9,16,3,0,9,5,4,53,2,11,2,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Borussia Dortmund,A,2,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,7,3,3,44,2,8,2,0,12,6,4,56,4,13,3,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Darmstadt 98,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,4,55,9,14,3,0,9,4,4,45,6,18,2,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Mainz 05,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,19,6,6,75,14,5,1,0,10,5,2,25,2,6,1,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Wolfsburg,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,4,50,5,10,3,0,10,2,3,50,2,18,5,0
+2017-04-22,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Augsburg,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,7,7,73,4,14,2,0,10,4,3,27,2,8,1,0
+2017-04-23,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,RB Leipzig,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,1,8,48,5,18,3,0,9,1,6,52,5,21,2,0
+2017-04-23,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Bayer Leverkusen,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,4,42,5,7,2,0,11,4,7,58,5,13,2,0
+2017-04-28,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Schalke 04,A,1,4,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,13,4,6,46,2,15,3,0,12,8,1,54,3,10,0,0
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Bayern München,A,0,6,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,7,3,3,39,4,12,2,1,17,9,6,61,4,10,0,0
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Borussia M'gladbach,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,8,6,53,8,9,1,0,13,5,5,47,3,15,1,0
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Köln,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,23,4,13,71,9,8,2,0,5,0,2,29,0,13,2,0
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Ingolstadt,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,10,68,5,14,3,0,6,0,4,32,3,16,6,1
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Hertha BSC,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,41,2,9,1,0,10,2,7,59,2,17,1,0
+2017-04-29,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Freiburg,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,9,41,7,16,2,0,9,4,4,59,6,15,0,0
+2017-04-30,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Hamburger SV,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,17,9,4,56,4,9,1,0,9,4,3,44,4,16,4,0
+2017-04-30,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Eintracht Frankfurt,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,0,70,3,22,0,0,4,2,1,30,4,18,3,0
+2017-05-05,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Werder Bremen,H,4,3,H,3,2,N/A,N/A,N/A,N/A,N/A,N/A,16,9,5,36,5,9,0,0,11,4,6,64,1,10,2,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Hoffenheim,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,6,42,6,17,4,0,10,5,4,58,2,11,2,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Augsburg,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,5,5,66,3,8,2,0,11,4,3,34,5,15,2,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,RB Leipzig,A,1,4,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,1,3,47,3,15,3,0,14,8,6,53,8,15,3,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Darmstadt 98,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,8,10,67,13,10,1,0,13,3,7,33,7,7,1,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Bayer Leverkusen,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,8,50,7,13,1,0,12,6,4,50,6,12,3,0
+2017-05-06,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,Wolfsburg,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,51,2,12,1,0,7,3,4,49,4,14,2,0
+2017-05-07,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Mainz 05,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,2,1,48,5,16,2,0,13,6,3,52,3,17,1,0
+2017-05-07,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Schalke 04,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,7,39,2,14,0,0,14,3,7,61,4,13,2,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Darmstadt 98,Hertha BSC,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,11,2,8,60,4,17,3,0,16,5,10,40,6,14,0,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,RB Leipzig,Bayern München,A,4,5,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,3,39,2,19,1,0,20,9,8,61,6,11,5,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Mainz 05,Eintracht Frankfurt,H,4,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,21,8,4,63,7,16,4,0,6,4,2,37,0,22,4,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Freiburg,Ingolstadt,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,4,2,54,4,18,2,0,23,9,10,46,3,27,3,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Bayer Leverkusen,Köln,D,2,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,27,9,10,65,7,12,0,0,7,4,3,35,3,12,2,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Schalke 04,Hamburger SV,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,1,5,49,5,14,3,0,18,4,9,51,7,15,1,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Wolfsburg,Borussia M'gladbach,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,2,43,3,12,3,0,14,6,4,57,7,12,1,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Augsburg,Borussia Dortmund,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,23,2,17,2,0,15,5,7,77,3,7,1,0
+2017-05-13,Germany,Bundesliga,LEAGUE,2016/2017,Werder Bremen,Hoffenheim,A,3,5,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,16,7,5,49,10,10,1,0,15,8,5,51,4,14,1,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Hertha BSC,Bayer Leverkusen,A,2,6,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,14,5,8,49,3,17,3,0,16,11,3,51,6,13,1,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Ingolstadt,Schalke 04,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,18,8,5,50,6,9,1,0,9,3,3,50,6,11,1,1
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Bayern München,Freiburg,H,4,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,33,11,9,66,15,10,1,0,19,8,5,34,7,10,0,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Köln,Mainz 05,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,10,46,7,14,2,0,5,0,2,54,5,17,1,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Borussia M'gladbach,Darmstadt 98,D,2,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,10,4,62,5,6,1,0,13,4,5,38,3,8,0,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Hamburger SV,Wolfsburg,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,49,2,12,4,0,12,5,3,51,8,18,3,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Hoffenheim,Augsburg,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,9,8,75,5,10,2,0,8,2,3,25,4,13,1,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Borussia Dortmund,Werder Bremen,H,4,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,28,11,12,63,9,15,4,0,11,5,5,37,3,17,3,0
+2017-05-20,Germany,Bundesliga,LEAGUE,2016/2017,Eintracht Frankfurt,RB Leipzig,D,2,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,3,11,42,4,12,1,0,7,5,0,58,3,17,2,0
