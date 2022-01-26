@@ -34,7 +34,7 @@ Feature_COLUMNS = ["HomeTeam","AwayTeam"]
 Label_COLUMNS = ["FTHG","FTAG"]
 CSV_COLUMNS = Feature_COLUMNS + Label_COLUMNS
 Derived_COLUMNS = ["t1goals", "t2goals", "t1goals_where", "t2goals_where"]
-COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG", "HGFTa","AGFTa","Hxsg","Axsg","Hxnsg","Axnsg", "Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe"]
+COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG", "HGFTa","AGFTa","Hxsg","Axsg","Hxnsg","Axnsg", "Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe","H_PT","A_PT"]
 Meta_COLUMNS = ["t1games", "t2games", "t1games_where", "t2games_where"]
 COLS_Extended = COLS + ['HWin', 'AWin', 'HLoss', 'ALoss', 'HDraw', 'ADraw']
 
@@ -56,6 +56,8 @@ def build_features(df_data):
   df_data["DateOrig"] = df_data["Date"]
   df_data["Date"]= [(datetime.strptime(dt, '%d.%m.%Y').toordinal()-734138) for dt in df_data["Date"]]
   df_data.sort_values("Date").reset_index(drop=True)
+  df_data.replace(-1, np.nan, inplace=True)
+  df_data.replace("-1", np.nan, inplace=True)
 
   # use FTHG / FTAG as xHG/xAG where expected goals are not available
   df_data.loc[pd.isna(df_data.xHG), "xHG"]=df_data.loc[pd.isna(df_data.xHG), "FTHG"]
@@ -69,6 +71,14 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.Time), "Time"]="15:30"
   df_data["DateOrig"] = pd.to_datetime(df_data['DateOrig'] + ' ' + df_data['Time'])
   df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-14.5
+  df_data.loc[pd.isna(df_data.H_PT), "H_PT"] = 50
+  df_data.loc[pd.isna(df_data.A_PT), "A_PT"] = 50
+  df_data.H_PT /= 100 # percentage to 0..1
+  df_data.A_PT /= 100 # percentage to 0..1
+  def to_logit(p):
+    return np.log(p / (1 - p))
+  df_data.H_PT = to_logit(df_data.H_PT)
+  df_data.A_PT = to_logit(df_data.A_PT)
 
   #fill NA with mean() of each column in boston dataset
   #print(df_data.isna().any())
@@ -439,7 +449,7 @@ def build_features(df_data):
   label_column_names.remove("T1_xnsg")
   label_column_names.remove("T2_xnsg")
 
-  label_column_names = label_column_names+["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg", "T1_xG", "T2_xG"]
+  label_column_names = label_column_names+["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg", "T1_xG", "T2_xG", "T1__PT", "T2__PT"]
   labels_df =  features[label_column_names].copy()
   #label_df.describe()
   features_df = features[feature_column_names].copy()

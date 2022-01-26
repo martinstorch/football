@@ -1,4 +1,4 @@
-setwd("~/LearningR/Bundesliga/Analysis")
+#setwd("~/LearningR/Bundesliga/Analysis")
 setwd("c:/users/marti")
 
 library(metR)
@@ -19,7 +19,14 @@ library(tidyr)
 library(TTR)
 
 newdatafile<-"D:/gitrepository/Football/football/TF/pistor_data.csv"
+newdatafile<-"c:/git/football/TF/user_tipps.csv"
+newdatafile1<-"c:/git/football/TF/user_tipps1.csv"
+newdatafile2<-"c:/git/football/TF/user_tipps2.csv"
+
 data<-read.csv(newdatafile, sep = ",", encoding = "utf-8")
+data1<-read.csv(newdatafile1, sep = ",", encoding = "utf-8")
+data2<-read.csv(newdatafile2, sep = ",", encoding = "utf-8")
+
 
 data$DateTo<-dmy(data$DateTo)
 summary(data)
@@ -107,15 +114,15 @@ ggplot(data)+geom_mosaic(aes(x=product(psPoints, myPoints), fill=factor(myPoints
 
 
 
-rankingdatafile<-"D:/gitrepository/Football/football/TF/pistor_ranking_data_final.csv"
+rankingdatafile<-"c:/git/football/TF/pistor_ranking_data_final.csv"
 rankdata<-read.csv(rankingdatafile, sep = ",", encoding = "utf-8")
 summary(rankdata)
 hist(rankdata$Points, breaks=50)
 qqnorm(rankdata$Points)
 plot(rankdata$Points)
 plot(rankdata$Points[1:10000])
-abline(h=275)
-abline(v=3819)
+abline(h=208)
+abline(v=48838)
 
 rankdata  %>% filter(substr(Name,1,3)=="TCS")
 rankdata  %>% filter(Points==275)
@@ -125,8 +132,11 @@ rankdata  %>% filter(Userid==218206)
 plot(rankdata$Points[1:1000])
 plot(rankdata$Points[1:100])
 
-usertippsdatafile<-"D:/gitrepository/Football/football/TF/user_tipps.csv"
+usertippsdatafile<-"c:/git/football/TF/user_tipps.csv"
 userdata<-read.csv(usertippsdatafile, sep = ",", encoding = "utf-8")
+data1<-read.csv(newdatafile1, sep = ",", encoding = "utf-8")
+data2<-read.csv(newdatafile2, sep = ",", encoding = "utf-8")
+userdata <- bind_rows(userdata, data1, data2)
 userdata<-unique(userdata)
 #summary(userdata)
 
@@ -165,7 +175,19 @@ tgf<-all_user_data%>%
             gdiff=mean(uPoints>1, na.rm=T),
             full=mean(uPoints>2, na.rm=T)) 
 tgf %>% filter(Rank > 1000)
-tgf %>% filter(Userid==218206)
+tgf %>% filter(Userid==218206) # ich
+tgf %>% filter(Userid==375031) # Uli-He
+tgf %>% filter(Userid==339368) # Udo-H
+tgf %>% filter(Rank == 1)
+#rankdata %>% filter(Name=="Uli-He")
+rankdata %>% filter(Name=="Udo-H")
+
+summary((all_user_data%>%filter(Userid==10))$FTR) / sum(89+72+115)
+all_user_data%>%filter(Userid==10)%>%dplyr::select(FTR, uFTR)%>%table()
+all_user_data%>%filter(Userid==218206)%>%dplyr::select(FTR, uFTR)%>%table()
+all_user_data%>%filter(Userid==375031)%>%dplyr::select(FTR, uFTR)%>%table()
+all_user_data%>%filter(Userid==339368)%>%dplyr::select(FTR, uFTR)%>%table()
+
 
 ggplot(tgf, aes(x=tendency, y=gdiff, z=full, col=full))+geom_point()+scale_color_continuous(high = "red", low="green")+
   geom_point(data=tgf %>% filter(Userid==218206), aes(x=tendency, y=gdiff, col=full), size=5, alpha=0.3)
@@ -196,11 +218,16 @@ gridExtra::grid.arrange(
 with(all_user_data0, table(uBet))
 with(all_user_data0, table(uBet, uPoints))
 with(all_user_data6%>%filter(Userid==10), table(FTG))
+with(all_user_data0%>%filter(Userid==10)%>%droplevels(), table(uBet, uPoints))
+with(all_user_data0%>%filter(Userid==218206)%>%droplevels(), table(uBet, uPoints))
+with(all_user_data0%>%filter(Userid==375031)%>%droplevels(), table(uBet, uPoints))
+with(all_user_data0%>%filter(Userid==339368)%>%droplevels(), table(uBet, uPoints))
 with(all_user_data, table(FTG, uPoints))
 
 tbids<-with(all_user_data0, table(uBet))
 str(tbids)
-tbids<-as.data.frame(tbids)
+tbids<-as.data.frame(tbids)# %>% arrange(Freq)
+#tbids$percent <- tbids$Freq / sum(tbids$Freq)
 tFTG<-with(all_user_data0, table(FTG))
 str(tFTG)
 tFTG<-as.data.frame(tFTG)

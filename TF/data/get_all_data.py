@@ -258,12 +258,12 @@ def download_data(model_dir, season, skip_download):
     return data
 
 
-def download_betonjamesdata(model_dir, season, skip_download):
+def download_betonjamesdata(model_dir, season, skip_download, prefix="DE", league="germany-bundesliga"):
     """Maybe downloads training data and returns train and test file names."""
-    file_name = dir_path + "/boj_DE_" + season + ".csv"
+    file_name = dir_path + "/boj_" + prefix + "_" + season + ".csv"
     print(file_name)
     if (not skip_download):
-        url = "https://www.betonjames.com/wp-content/uploads/boj-free-data-downloads/germany-bundesliga-20"+season[:2]+"-20"+season[2:] + ".csv"
+        url = "https://www.betonjames.com/wp-content/uploads/boj-free-data-downloads/"+ league + "-20"+season[:2]+"-20"+season[2:] + ".csv"
         print("Downloading %s" % url)
         request.urlretrieve(
             url,
@@ -277,7 +277,6 @@ def download_betonjamesdata(model_dir, season, skip_download):
         skiprows=0)
     data["Season"] = season
     return data
-
 
 def getFiveThirtyEightData(skip_download):
     url = "https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv"
@@ -333,6 +332,8 @@ for s in all_seasons[1:]:
   boj_data.append(sdata)
 boj_data = pd.concat(boj_data, ignore_index=True)
 boj_data = boj_data[['Season' ,'Predict',"DATE","HOME_TEAM","AWAY_TEAM","FTHG","FTAG","FTR","HTHG","HTAG","HTR","H_ST","H_SOG","H_SFG","H_PT","H_COR","H_FL","H_YC","H_RC","A_ST","A_SOG","A_SFG","A_PT","A_COR","A_FL","A_YC","A_RC"]]
+boj_data.H_PT.replace('SNV', -1, inplace=True)
+boj_data.A_PT.replace('SNV', -1, inplace=True)
 print(boj_data.HOME_TEAM.unique())
 
 all_data = []
@@ -424,6 +425,14 @@ full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi
 new_data = quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]
 new_data = new_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 full_data = pd.concat([full_data, new_data])
-
+full_data.info()
+full_data.fillna(-1, inplace=True)
+full_data = full_data.astype({'FTHG':int, 'FTAG':int,
+                              'HTHG':int, 'HTAG':int,
+                        'H_PT':int, 'A_PT':int,
+                       'HS':int, 'AS':int, 'HST':int, 'AST':int,
+                       'HF':int, 'AF':int, 'HC':int, 'AC':int,
+                       'HY':int, 'AY':int, 'HR':int, 'AR':int
+                              })
 full_data.to_csv(dir_path+"/full_data.csv", index=False)
 full_data.info()
