@@ -1,0 +1,218 @@
+DATE,COUNTRY,LEAGUE,TYPE,SEASON,HOME_TEAM,AWAY_TEAM,FTR,FTHG,FTAG,HTR,HTHG,HTAG,ETR,ETHG,ETAG,PENR,PENHG,PENAG,H_ST,H_SOG,H_SFG,H_PT,H_COR,H_FL,H_YC,H_RC,A_ST,A_SOG,A_SFG,A_PT,A_COR,A_FL,A_YC,A_RC
+2016-06-28,Europe,Champions League,CUP,2016/2017,Flora,Lincoln Red Imps,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-06-28,Europe,Champions League,CUP,2016/2017,FC Santa Coloma,Alashkert,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-06-28,Europe,Champions League,CUP,2016/2017,Valletta,B36,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-06-28,Europe,Champions League,CUP,2016/2017,The New Saints,Tre Penne,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-05,Europe,Champions League,CUP,2016/2017,B36,Valletta,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-05,Europe,Champions League,CUP,2016/2017,Tre Penne,The New Saints,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-05,Europe,Champions League,CUP,2016/2017,Alashkert,FC Santa Coloma,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-06,Europe,Champions League,CUP,2016/2017,Lincoln Red Imps,Flora,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,BATE,SJK,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Salzburg,Liepāja,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,The New Saints,APOEL,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Vardar,Dinamo Zagreb,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Lincoln Red Imps,Celtic,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Zrinjski,Legia Warszawa,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Hapoel Be'er Sheva,Sheriff,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Qarabağ,F91 Dudelange,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Valletta,Crvena Zvezda,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-12,Europe,Champions League,CUP,2016/2017,Dinamo Tbilisi,Alashkert,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Rosenborg,Norrköping,H,3,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Crusaders,København,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Partizani Tirana,Ferencváros,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Olimpija,Trenčín,A,3,4,A,2,4,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Žalgiris,Astana,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Ludogorets,Mladost,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-13,Europe,Champions League,CUP,2016/2017,Dundalk,FH,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Alashkert,Dinamo Tbilisi,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Mladost,Ludogorets,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,SJK,BATE,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Sheriff,Hapoel Be'er Sheva,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Crvena Zvezda,Valletta,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,København,Crusaders,H,6,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,APOEL,The New Saints,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Liepāja,Salzburg,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-19,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Zrinjski,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Norrköping,Rosenborg,H,3,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Vardar,H,3,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Astana,Žalgiris,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Trenčín,Olimpija,A,2,3,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Ferencváros,Partizani Tirana,D,1,1,D,1,1,D,0,0,A,1,3,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,Celtic,Lincoln Red Imps,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,F91 Dudelange,Qarabağ,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-20,Europe,Champions League,CUP,2016/2017,FH,Dundalk,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2016-07-26,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Dinamo Tbilisi,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,100,0,SNV,1,0,0,0,0,SNV,0,SNV,0,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Partizani Tirana,Salzburg,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,0,SNV,1,1,1,1,0,SNV,0,SNV,2,1
+2016-07-26,Europe,Champions League,CUP,2016/2017,Viktoria Plzeň,Qarabağ,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,0,SNV,0,1,0,0,0,SNV,0,SNV,1,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Ludogorets,Crvena Zvezda,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,67,0,SNV,2,0,2,2,0,33,0,SNV,3,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Ajax,PAOK,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,5,0,72,5,16,1,0,6,3,0,28,2,6,2,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,BATE,Dundalk,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,100,0,SNV,1,0,0,0,0,SNV,0,SNV,1,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Sparta Praha,FCSB,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,100,0,SNV,4,0,1,1,0,SNV,0,SNV,5,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Rostov,Anderlecht,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,SNV,0,SNV,1,0,2,2,0,100,0,SNV,3,0
+2016-07-26,Europe,Champions League,CUP,2016/2017,Shakhtar Donetsk,Young Boys,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,100,0,SNV,0,0,0,0,0,SNV,0,SNV,2,1
+2016-07-27,Europe,Champions League,CUP,2016/2017,Astana,Celtic,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,50,0,SNV,2,0,1,1,0,50,0,SNV,2,0
+2016-07-27,Europe,Champions League,CUP,2016/2017,Rosenborg,APOEL,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,67,0,SNV,1,0,1,1,0,33,0,SNV,2,0
+2016-07-27,Europe,Champions League,CUP,2016/2017,Fenerbahçe,Monaco,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,100,0,SNV,2,0,1,1,0,SNV,0,SNV,1,0
+2016-07-27,Europe,Champions League,CUP,2016/2017,Trenčín,Legia Warszawa,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,0,SNV,2,0,1,1,0,100,0,SNV,1,0
+2016-07-27,Europe,Champions League,CUP,2016/2017,Olympiakos Piraeus,Hapoel Be'er Sheva,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,0,0,0,SNV,0,SNV,4,0
+2016-07-27,Europe,Champions League,CUP,2016/2017,Astra,København,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,50,0,SNV,3,0,1,1,0,50,0,SNV,2,0
+2016-08-02,Europe,Champions League,CUP,2016/2017,Qarabağ,Viktoria Plzeň,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,4,3,1,51,0,15,3,0,6,3,3,49,1,11,3,0
+2016-08-02,Europe,Champions League,CUP,2016/2017,APOEL,Rosenborg,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,60,3,14,4,0,8,2,6,40,5,13,4,0
+2016-08-02,Europe,Champions League,CUP,2016/2017,Dundalk,BATE,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,6,2,52,2,7,1,0,10,2,8,48,3,17,2,0
+2016-08-02,Europe,Champions League,CUP,2016/2017,Crvena Zvezda,Ludogorets,A,2,4,A,1,2,A,0,2,N/A,N/A,N/A,12,7,5,48,6,20,4,1,15,8,7,52,11,17,5,1
+2016-08-02,Europe,Champions League,CUP,2016/2017,Dinamo Tbilisi,Dinamo Zagreb,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,1,11,55,8,12,6,0,7,3,4,45,2,24,4,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Trenčín,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,10,54,11,8,1,0,10,3,7,46,5,12,2,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Hapoel Be'er Sheva,Olympiakos Piraeus,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,55,4,12,1,0,4,1,3,45,6,19,5,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Salzburg,Partizani Tirana,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,7,3,55,5,13,1,0,6,3,3,45,5,9,1,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Anderlecht,Rostov,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,8,57,9,9,1,0,6,4,2,43,3,12,4,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,København,Astra,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,55,5,20,0,0,6,4,2,45,3,10,1,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Celtic,Astana,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,5,SNV,2,0,0,0,0,SNV,2,SNV,7,2
+2016-08-03,Europe,Champions League,CUP,2016/2017,Monaco,Fenerbahçe,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,52,4,19,2,0,7,4,3,48,4,11,1,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,PAOK,Ajax,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,4,6,35,4,15,2,0,4,2,2,65,1,19,3,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,Young Boys,Shakhtar Donetsk,H,2,0,D,0,0,D,0,0,H,4,2,8,4,4,41,4,27,5,0,10,3,7,59,9,13,3,0
+2016-08-03,Europe,Champions League,CUP,2016/2017,FCSB,Sparta Praha,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,4,16,57,8,7,0,0,10,3,7,43,3,19,2,1
+2016-08-16,Europe,Champions League,CUP,2016/2017,Ajax,Rostov,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,18,11,7,72,9,11,2,0,3,2,1,28,2,9,6,0
+2016-08-16,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Salzburg,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,10,59,6,9,1,0,12,4,8,41,7,18,2,0
+2016-08-16,Europe,Champions League,CUP,2016/2017,Young Boys,Borussia M'gladbach,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,45,1,11,1,0,3,3,0,55,3,10,2,0
+2016-08-16,Europe,Champions League,CUP,2016/2017,FCSB,Manchester City,A,0,5,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,6,2,4,36,3,11,3,0,19,12,7,64,4,15,2,0
+2016-08-16,Europe,Champions League,CUP,2016/2017,København,APOEL,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,8,11,58,7,13,1,0,5,3,2,42,1,14,2,0
+2016-08-17,Europe,Champions League,CUP,2016/2017,Ludogorets,Viktoria Plzeň,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,56,6,18,2,0,6,3,3,44,6,17,2,0
+2016-08-17,Europe,Champions League,CUP,2016/2017,Dundalk,Legia Warszawa,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,50,2,10,2,0,9,6,3,50,4,20,2,0
+2016-08-17,Europe,Champions League,CUP,2016/2017,Villarreal,Monaco,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,59,4,8,1,0,5,3,2,41,4,13,5,1
+2016-08-17,Europe,Champions League,CUP,2016/2017,Celtic,Hapoel Be'er Sheva,H,5,2,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,15,10,5,57,7,12,4,0,4,4,0,43,0,7,3,0
+2016-08-17,Europe,Champions League,CUP,2016/2017,Porto,Roma,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,21,8,13,55,8,13,2,0,10,7,3,45,3,14,5,1
+2016-08-23,Europe,Champions League,CUP,2016/2017,Monaco,Villarreal,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,3,5,43,2,13,1,0,5,1,4,57,4,14,1,0
+2016-08-23,Europe,Champions League,CUP,2016/2017,Viktoria Plzeň,Ludogorets,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,54,5,26,3,0,5,2,3,46,4,19,2,0
+2016-08-23,Europe,Champions League,CUP,2016/2017,Hapoel Be'er Sheva,Celtic,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,62,7,7,1,0,6,3,3,38,2,12,4,0
+2016-08-23,Europe,Champions League,CUP,2016/2017,Roma,Porto,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,45,11,13,1,2,10,7,3,55,2,16,4,0
+2016-08-23,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Dundalk,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,5,3,56,7,16,3,1,4,3,1,44,3,6,1,0
+2016-08-24,Europe,Champions League,CUP,2016/2017,Manchester City,FCSB,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,75,4,17,0,0,5,3,2,25,4,7,0,0
+2016-08-24,Europe,Champions League,CUP,2016/2017,APOEL,København,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,52,3,11,2,0,8,5,3,48,6,12,4,0
+2016-08-24,Europe,Champions League,CUP,2016/2017,Borussia M'gladbach,Young Boys,H,6,1,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,16,12,4,58,2,10,0,0,4,1,3,42,1,13,3,0
+2016-08-24,Europe,Champions League,CUP,2016/2017,Rostov,Ajax,H,4,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,6,2,59,3,10,3,1,6,2,4,41,3,11,1,0
+2016-08-24,Europe,Champions League,CUP,2016/2017,Salzburg,Dinamo Zagreb,A,1,2,H,1,0,A,0,1,N/A,N/A,N/A,20,6,14,47,6,15,3,0,11,8,3,53,5,14,3,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,Basel,Ludogorets,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,3,5,56,1,26,1,0,4,2,1,44,0,17,2,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,PSV,Atlético Madrid,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,6,45,2,6,2,0,16,3,10,55,4,10,2,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,Paris Saint Germain,Arsenal,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,3,52,11,10,3,1,10,3,4,48,7,12,3,1
+2016-09-13,Europe,Champions League,CUP,2016/2017,Dynamo Kyiv,Napoli,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,9,2,5,50,8,13,3,1,14,3,4,50,6,17,1,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,Barcelona,Celtic,H,7,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,10,3,72,9,8,2,0,3,2,0,28,2,3,1,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,Bayern München,Rostov,H,5,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,18,9,6,77,8,13,0,0,5,2,2,23,2,12,0,0
+2016-09-13,Europe,Champions League,CUP,2016/2017,Benfica,Beşiktaş,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,5,47,6,17,2,0,10,5,3,53,5,11,2,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Manchester City,Borussia M'gladbach,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,23,11,8,56,6,8,1,0,3,1,0,44,6,14,1,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Bayer Leverkusen,CSKA Moskva,D,2,2,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,16,8,5,65,4,5,2,0,8,4,3,35,5,11,0,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Porto,København,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,4,56,6,5,1,0,6,2,3,44,3,11,2,1
+2016-09-14,Europe,Champions League,CUP,2016/2017,Tottenham Hotspur,Monaco,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,15,6,2,63,11,11,1,0,7,2,4,37,0,4,2,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Olympique Lyonnais,Dinamo Zagreb,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,9,11,56,7,9,1,0,13,2,7,44,6,7,3,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Borussia Dortmund,A,0,6,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,10,3,4,32,8,12,3,0,31,15,8,68,7,9,1,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Juventus,Sevilla,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,11,56,4,16,0,0,3,1,2,44,2,22,3,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Club Brugge,Leicester City,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,11,2,6,62,5,7,4,0,13,7,5,38,4,9,2,0
+2016-09-14,Europe,Champions League,CUP,2016/2017,Real Madrid,Sporting CP,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,9,59,5,9,1,0,7,4,2,41,2,14,3,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,CSKA Moskva,Tottenham Hotspur,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,4,33,4,5,1,0,22,2,10,67,8,6,1,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Borussia Dortmund,Real Madrid,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,20,10,5,60,6,16,4,0,13,4,7,40,6,10,1,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,København,Club Brugge,H,4,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,11,2,61,7,14,1,0,6,2,3,39,1,14,3,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Sporting CP,Legia Warszawa,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,5,7,57,8,10,0,0,5,0,3,43,3,16,3,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Monaco,Bayer Leverkusen,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,1,3,52,6,12,1,0,9,3,4,48,7,15,2,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Leicester City,Porto,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,0,39,2,24,3,0,12,3,8,61,6,16,3,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Juventus,A,0,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,4,0,4,28,0,10,0,0,17,7,6,72,6,13,0,0
+2016-09-27,Europe,Champions League,CUP,2016/2017,Sevilla,Olympique Lyonnais,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,7,60,3,12,2,0,15,4,7,40,6,24,3,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Rostov,PSV,D,2,2,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,8,3,1,55,4,15,2,0,10,4,3,45,3,12,2,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Borussia M'gladbach,Barcelona,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,5,39,2,8,0,0,11,8,3,61,5,10,3,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Ludogorets,Paris Saint Germain,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,3,35,0,9,3,0,17,7,8,65,4,14,2,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Atlético Madrid,Bayern München,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,5,6,32,4,13,1,0,15,4,7,68,6,17,4,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Celtic,Manchester City,D,3,3,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,9,3,3,38,4,8,0,0,24,9,10,62,9,8,0,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Beşiktaş,Dynamo Kyiv,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,3,51,10,18,2,0,12,5,7,49,4,19,3,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Arsenal,Basel,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,19,7,7,65,8,4,0,0,6,2,3,35,7,12,2,0
+2016-09-28,Europe,Champions League,CUP,2016/2017,Napoli,Benfica,H,4,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,4,56,6,7,1,0,7,3,2,44,0,19,4,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Club Brugge,Porto,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,5,1,42,3,14,2,0,20,8,6,58,8,9,1,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Bayer Leverkusen,Tottenham Hotspur,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,6,7,43,5,15,2,0,6,1,3,57,5,20,1,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Sporting CP,Borussia Dortmund,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,43,2,10,4,0,10,3,5,57,4,12,3,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Real Madrid,Legia Warszawa,H,5,1,H,3,1,N/A,N/A,N/A,N/A,N/A,N/A,32,11,11,61,9,10,1,0,13,5,8,39,3,8,2,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,CSKA Moskva,Monaco,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,40,2,14,1,0,15,6,3,60,8,14,2,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Sevilla,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,0,4,22,3,15,2,0,13,5,5,78,5,13,2,0
+2016-10-18,Europe,Champions League,CUP,2016/2017,Olympique Lyonnais,Juventus,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,5,43,10,15,5,0,14,4,5,57,4,7,3,1
+2016-10-18,Europe,Champions League,CUP,2016/2017,Leicester City,København,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,4,41,3,8,1,0,9,4,2,59,7,9,1,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Paris Saint Germain,Basel,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,5,64,3,14,1,0,10,1,7,36,5,18,2,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Arsenal,Ludogorets,H,6,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,19,12,2,43,6,12,0,0,10,2,7,57,1,5,0,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Dynamo Kyiv,Benfica,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,5,8,53,9,14,1,0,12,5,4,47,1,15,1,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Barcelona,Manchester City,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,3,52,3,15,2,1,8,4,3,48,4,18,3,1
+2016-10-19,Europe,Champions League,CUP,2016/2017,Bayern München,PSV,H,4,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,26,13,9,66,6,7,1,0,8,5,2,34,0,5,0,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Napoli,Beşiktaş,A,2,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,17,8,8,62,17,11,1,0,9,3,4,38,1,16,3,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Celtic,Borussia M'gladbach,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,1,6,54,4,9,1,0,13,6,5,46,5,7,1,0
+2016-10-19,Europe,Champions League,CUP,2016/2017,Rostov,Atlético Madrid,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,31,0,11,1,0,14,6,6,69,5,6,2,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Ludogorets,Arsenal,A,2,3,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,7,4,1,42,4,10,1,0,12,4,5,58,5,23,3,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,PSV,Bayern München,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,2,3,27,0,10,0,0,25,10,15,73,7,8,1,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Manchester City,Barcelona,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,4,6,34,5,17,2,0,8,2,3,66,7,16,3,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Benfica,Dynamo Kyiv,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,10,51,5,15,1,0,9,2,5,49,6,15,6,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Beşiktaş,Napoli,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,3,44,3,8,2,0,14,5,6,56,8,20,1,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Borussia M'gladbach,Celtic,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,6,12,48,9,10,2,1,10,2,5,52,1,11,1,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Atlético Madrid,Rostov,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,31,8,10,68,11,8,3,0,6,3,3,32,1,11,4,0
+2016-11-01,Europe,Champions League,CUP,2016/2017,Basel,Paris Saint Germain,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,2,5,34,3,14,3,1,19,8,9,66,10,8,2,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Borussia Dortmund,Sporting CP,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,53,3,6,1,0,11,2,7,47,2,18,3,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Real Madrid,D,3,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,41,2,8,0,0,27,11,10,59,7,15,0,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,København,Leicester City,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,2,10,55,4,3,0,0,11,1,5,45,4,17,4,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Juventus,Olympique Lyonnais,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,6,56,2,14,4,0,12,3,6,44,4,20,2,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Sevilla,Dinamo Zagreb,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,31,12,10,73,10,10,0,0,3,1,1,27,0,12,4,1
+2016-11-02,Europe,Champions League,CUP,2016/2017,Porto,Club Brugge,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,5,7,48,10,16,2,0,11,3,3,52,4,17,4,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Monaco,CSKA Moskva,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,9,61,6,8,1,0,6,3,2,39,6,13,1,0
+2016-11-02,Europe,Champions League,CUP,2016/2017,Tottenham Hotspur,Bayer Leverkusen,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,7,58,4,13,0,0,11,2,2,42,5,11,0,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Monaco,Tottenham Hotspur,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,11,5,37,5,11,2,0,6,2,3,63,7,14,3,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Borussia Dortmund,Legia Warszawa,H,8,4,H,5,2,N/A,N/A,N/A,N/A,N/A,N/A,16,9,4,70,1,11,1,0,11,7,3,30,1,11,2,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Dinamo Zagreb,Olympique Lyonnais,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,32,1,9,3,0,18,8,5,68,5,16,1,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,København,Porto,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,2,50,3,16,3,0,16,4,8,50,5,13,3,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,CSKA Moskva,Bayer Leverkusen,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,5,5,58,5,14,2,0,10,5,3,42,4,12,3,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Sevilla,Juventus,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,1,4,42,5,13,4,1,11,4,4,58,5,18,4,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Leicester City,Club Brugge,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,8,2,53,11,6,1,0,8,3,4,47,7,8,0,0
+2016-11-22,Europe,Champions League,CUP,2016/2017,Sporting CP,Real Madrid,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,4,40,2,16,3,1,10,2,5,60,8,9,2,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Ludogorets,Basel,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,4,0,2,51,3,11,3,0,10,5,3,49,5,30,4,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Beşiktaş,Benfica,D,3,3,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,10,5,3,57,5,11,2,0,15,4,10,43,2,13,2,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Borussia M'gladbach,Manchester City,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,5,3,30,2,14,5,1,11,5,4,70,9,10,2,1
+2016-11-23,Europe,Champions League,CUP,2016/2017,Arsenal,Paris Saint Germain,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,1,3,46,3,9,2,0,14,1,9,54,6,9,2,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Celtic,Barcelona,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,3,1,36,1,13,3,0,10,4,5,64,5,12,4,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Napoli,Dynamo Kyiv,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,5,8,51,17,18,1,0,6,0,5,49,2,15,1,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Atlético Madrid,PSV,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,4,58,9,6,0,0,4,2,1,42,2,8,0,0
+2016-11-23,Europe,Champions League,CUP,2016/2017,Rostov,Bayern München,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,5,0,23,3,9,2,0,21,9,5,77,7,8,1,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Bayern München,Atlético Madrid,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,5,71,6,11,0,0,5,3,2,29,1,9,1,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Paris Saint Germain,Ludogorets,D,2,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,25,4,10,64,19,10,1,0,6,2,3,36,3,18,0,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Basel,Arsenal,A,1,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,15,5,7,40,7,9,1,0,12,7,2,60,2,13,1,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Dynamo Kyiv,Beşiktaş,H,6,0,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,16,12,3,52,1,11,1,0,6,0,2,48,3,9,4,2
+2016-12-06,Europe,Champions League,CUP,2016/2017,Barcelona,Borussia M'gladbach,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,8,4,72,5,7,0,0,1,0,0,28,2,5,1,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Manchester City,Celtic,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,3,57,8,6,1,0,16,6,7,43,6,16,2,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,PSV,Rostov,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,5,8,68,6,12,2,0,6,3,3,32,1,8,1,0
+2016-12-06,Europe,Champions League,CUP,2016/2017,Benfica,Napoli,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,7,46,7,15,1,0,14,6,4,54,2,8,1,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Bayer Leverkusen,Monaco,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,5,48,7,18,1,0,11,0,7,52,5,11,3,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Real Madrid,Borussia Dortmund,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,9,5,46,6,9,2,0,12,7,3,54,5,15,1,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Juventus,Dinamo Zagreb,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,8,6,63,7,9,2,0,3,2,0,37,3,12,1,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Legia Warszawa,Sporting CP,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,36,2,14,5,0,18,5,8,64,7,14,3,1
+2016-12-07,Europe,Champions League,CUP,2016/2017,Olympique Lyonnais,Sevilla,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,24,5,13,58,8,10,2,0,2,0,2,42,3,12,3,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Tottenham Hotspur,CSKA Moskva,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,25,11,12,72,11,7,0,0,6,3,3,28,1,15,2,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Porto,Leicester City,H,5,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,6,66,4,8,0,0,6,0,4,34,1,11,1,0
+2016-12-07,Europe,Champions League,CUP,2016/2017,Club Brugge,København,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,8,4,1,48,6,15,1,0,8,5,3,52,4,12,2,0
+2017-02-14,Europe,Champions League,CUP,2016/2017,Benfica,Borussia Dortmund,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,1,1,30,3,15,1,0,14,5,7,70,10,10,3,0
+2017-02-14,Europe,Champions League,CUP,2016/2017,Paris Saint Germain,Barcelona,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,10,3,43,2,14,1,0,7,1,5,57,4,12,3,0
+2017-02-15,Europe,Champions League,CUP,2016/2017,Bayern München,Arsenal,H,5,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,24,12,7,74,9,12,2,0,7,5,0,26,2,11,3,0
+2017-02-15,Europe,Champions League,CUP,2016/2017,Real Madrid,Napoli,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,20,6,11,49,5,9,2,0,8,2,4,51,1,12,2,0
+2017-02-21,Europe,Champions League,CUP,2016/2017,Manchester City,Monaco,H,5,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,10,6,2,67,5,12,4,0,15,6,7,33,6,15,6,0
+2017-02-21,Europe,Champions League,CUP,2016/2017,Bayer Leverkusen,Atlético Madrid,A,2,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,14,4,3,62,6,14,4,0,11,7,3,38,4,9,3,0
+2017-02-22,Europe,Champions League,CUP,2016/2017,Porto,Juventus,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,3,0,3,23,1,12,5,1,19,4,12,77,8,13,1,0
+2017-02-22,Europe,Champions League,CUP,2016/2017,Sevilla,Leicester City,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,7,11,72,8,6,2,0,7,2,2,28,1,9,0,0
+2017-03-07,Europe,Champions League,CUP,2016/2017,Arsenal,Bayern München,A,1,5,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,7,43,5,13,4,1,16,7,7,57,8,10,2,0
+2017-03-07,Europe,Champions League,CUP,2016/2017,Napoli,Real Madrid,A,1,3,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,9,54,9,17,2,0,13,6,5,46,4,8,0,0
+2017-03-08,Europe,Champions League,CUP,2016/2017,Borussia Dortmund,Benfica,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,7,54,5,13,3,0,6,2,1,46,5,17,1,0
+2017-03-08,Europe,Champions League,CUP,2016/2017,Barcelona,Paris Saint Germain,H,6,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,20,9,7,70,6,16,5,0,8,3,4,30,4,25,5,0
+2017-03-14,Europe,Champions League,CUP,2016/2017,Leicester City,Sevilla,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,4,29,2,10,4,0,11,3,6,71,10,10,3,1
+2017-03-14,Europe,Champions League,CUP,2016/2017,Juventus,Porto,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,8,66,4,13,1,0,9,2,4,34,1,11,2,1
+2017-03-15,Europe,Champions League,CUP,2016/2017,Atlético Madrid,Bayer Leverkusen,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,5,43,7,6,2,0,18,6,8,57,4,8,2,0
+2017-03-15,Europe,Champions League,CUP,2016/2017,Monaco,Manchester City,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,1,40,3,12,3,0,6,3,2,60,6,14,3,0
+2017-04-11,Europe,Champions League,CUP,2016/2017,Juventus,Barcelona,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,14,8,4,32,5,21,4,0,16,4,9,68,8,18,3,0
+2017-04-12,Europe,Champions League,CUP,2016/2017,Borussia Dortmund,Monaco,A,2,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,16,4,8,68,7,9,2,0,7,2,4,32,1,9,5,0
+2017-04-12,Europe,Champions League,CUP,2016/2017,Bayern München,Real Madrid,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,5,48,8,11,4,1,23,12,7,52,4,7,2,0
+2017-04-12,Europe,Champions League,CUP,2016/2017,Atlético Madrid,Leicester City,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,8,67,8,10,0,0,5,0,3,33,1,16,3,0
+2017-04-18,Europe,Champions League,CUP,2016/2017,Leicester City,Atlético Madrid,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,5,6,56,6,9,0,0,5,3,2,44,1,7,0,0
+2017-04-18,Europe,Champions League,CUP,2016/2017,Real Madrid,Bayern München,H,4,2,D,0,0,H,3,0,N/A,N/A,N/A,30,11,13,48,7,6,1,0,20,2,10,52,10,22,5,1
+2017-04-19,Europe,Champions League,CUP,2016/2017,Barcelona,Juventus,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,1,13,64,13,10,2,0,12,4,6,36,4,19,2,0
+2017-04-19,Europe,Champions League,CUP,2016/2017,Monaco,Borussia Dortmund,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,8,7,30,5,15,0,0,11,7,3,70,3,8,0,0
+2017-05-02,Europe,Champions League,CUP,2016/2017,Real Madrid,Atlético Madrid,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,8,61,9,10,1,0,4,1,3,39,3,15,3,0
+2017-05-03,Europe,Champions League,CUP,2016/2017,Monaco,Juventus,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,5,4,50,7,11,1,0,10,4,3,50,3,13,3,0
+2017-05-09,Europe,Champions League,CUP,2016/2017,Juventus,Monaco,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,5,51,6,11,2,0,11,2,5,49,8,21,2,0
+2017-05-10,Europe,Champions League,CUP,2016/2017,Atlético Madrid,Real Madrid,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,17,7,8,36,7,23,4,0,20,6,7,64,8,7,2,0
+2017-06-03,Europe,Champions League,CUP,2016/2017,Juventus,Real Madrid,A,1,4,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,4,1,43,1,23,5,1,18,5,6,57,1,18,4,0

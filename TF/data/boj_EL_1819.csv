@@ -1,0 +1,520 @@
+DATE,COUNTRY,LEAGUE,TYPE,SEASON,HOME_TEAM,AWAY_TEAM,FTR,FTHG,FTAG,HTR,HTHG,HTAG,ETR,ETHG,ETAG,PENR,PENHG,PENAG,H_ST,H_SOG,H_SFG,H_PT,H_COR,H_FL,H_YC,H_RC,A_ST,A_SOG,A_SFG,A_PT,A_COR,A_FL,A_YC,A_RC
+2018-06-26,Europe,Europa League,CUP,2018/2019,,,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-06-28,Europe,Europa League,CUP,2018/2019,B36,,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,18,9,9,67,5,SNV,3,0,4,1,3,33,1,SNV,4,0
+2018-06-28,Europe,Europa League,CUP,2018/2019,Birkirkara,KÍ,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-06-28,Europe,Europa League,CUP,2018/2019,Europa FC,,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,60,4,SNV,1,0,7,3,4,40,5,SNV,0,0
+2018-06-28,Europe,Europa League,CUP,2018/2019,,Folgore,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,SNV,8,SNV,3,0,1,1,0,SNV,4,SNV,2,0
+2018-06-28,Europe,Europa League,CUP,2018/2019,Tre Fiori,Bala Town,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,26,0,SNV,3,1,9,3,6,74,7,SNV,3,0
+2018-06-28,Europe,Europa League,CUP,2018/2019,Cefn Druids,,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,7,SNV,4,SNV,1,0,10,4,6,SNV,3,SNV,4,0
+2018-07-05,Europe,Europa League,CUP,2018/2019,,,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-05,Europe,Europa League,CUP,2018/2019,,Europa FC,H,5,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,10,7,3,SNV,3,SNV,1,0,10,1,9,SNV,3,SNV,4,0
+2018-07-05,Europe,Europa League,CUP,2018/2019,Bala Town,Tre Fiori,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,1,12,SNV,8,SNV,4,0,4,1,3,SNV,0,SNV,1,0
+2018-07-05,Europe,Europa League,CUP,2018/2019,,B36,D,1,1,A,0,1,D,0,0,A,2,4,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-05,Europe,Europa League,CUP,2018/2019,Folgore,,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-05,Europe,Europa League,CUP,2018/2019,KÍ,Birkirkara,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-05,Europe,Europa League,CUP,2018/2019,,Cefn Druids,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,63,7,SNV,3,0,8,2,6,37,5,SNV,6,0
+2018-07-10,Europe,Europa League,CUP,2018/2019,Samtredia,Tobol,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,1,4,47,3,SNV,0,0,15,3,12,53,4,SNV,2,0
+2018-07-11,Europe,Europa League,CUP,2018/2019,KÍ,Žalgiris,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-11,Europe,Europa League,CUP,2018/2019,Fola Esch,,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,50,6,SNV,1,0,4,0,4,50,6,SNV,2,0
+2018-07-11,Europe,Europa League,CUP,2018/2019,Urartu,Sarajevo,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,49,5,SNV,2,0,7,5,2,51,4,SNV,1,0
+2018-07-11,Europe,Europa League,CUP,2018/2019,Glenavon,Molde,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,6,0,32,1,SNV,3,0,9,5,4,68,8,SNV,2,0
+2018-07-11,Europe,Europa League,CUP,2018/2019,,,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,2,4,SNV,2,SNV,2,0,18,2,16,SNV,5,SNV,4,0
+2018-07-11,Europe,Europa League,CUP,2018/2019,Rabotnicki,Honvéd,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,8,45,1,SNV,2,0,8,3,5,55,5,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Rudar,Partizan,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,1,0,1,SNV,2,18,2,0,6,4,2,SNV,2,18,0,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Domžale,D,2,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,43,5,SNV,2,0,9,5,4,57,4,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Tre Fiori,H,7,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,29,15,14,69,5,SNV,1,0,5,2,3,31,1,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,FH,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,8,0,8,56,4,SNV,1,0,4,3,1,44,3,SNV,0,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,53,8,SNV,2,0,13,2,11,47,2,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Ilves,Slavia Sofia,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,2,11,SNV,7,SNV,1,0,10,5,5,SNV,3,SNV,3,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Cliftonville,Nordsjælland,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,0,SNV,0,0,0,0,0,SNV,0,SNV,0,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Zeljeznicar,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,41,1,SNV,1,0,11,5,6,59,10,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Viitorul,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,4,1,3,36,4,SNV,2,0,11,5,6,64,12,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Budućnost,Trenčín,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,SNV,5,SNV,4,0,15,4,11,SNV,7,SNV,3,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,38,0,SNV,1,0,11,4,7,62,4,SNV,3,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Stjarnan,Nõmme Kalju,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,6,9,SNV,5,17,1,0,10,2,6,SNV,0,18,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Anorthosis,,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,5,8,66,4,14,1,0,4,2,2,34,5,12,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Qabala,Progrès Niedercorn,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-12,Europe,Europa League,CUP,2018/2019,Milsami,Slovan Bratislava,A,2,4,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,5,4,1,45,6,SNV,3,0,19,11,8,55,4,SNV,4,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Hibernian,,H,6,1,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,26,12,14,60,8,SNV,2,0,5,3,2,40,2,SNV,1,1
+2018-07-12,Europe,Europa League,CUP,2018/2019,KuPS,København,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,5,10,45,7,6,1,0,6,3,2,55,3,9,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,CSKA Sofia,Riga,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,8,59,5,SNV,2,0,1,0,1,41,2,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Rangers,,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,10,66,15,17,2,0,6,0,5,34,3,5,4,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,ÍBV,Sarpsborg 08,A,0,4,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,3,1,2,43,3,17,4,0,14,5,9,57,9,4,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Keşlə FK,H,4,1,H,3,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,41,2,SNV,2,0,9,4,5,59,7,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Ventspils,,H,5,0,H,5,0,N/A,N/A,N/A,N/A,N/A,N/A,8,6,2,39,2,SNV,1,0,11,2,9,61,6,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Lech Poznań,,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,7,64,8,SNV,2,0,16,7,9,36,3,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Shamrock Rovers,AIK,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,3,3,0,56,2,SNV,1,0,7,5,2,44,5,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Pyunik,Vardar,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,3,1,2,36,3,SNV,3,0,4,1,3,64,3,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Liepāja,Häcken,A,0,3,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-12,Europe,Europa League,CUP,2018/2019,Ferencváros,Maccabi Tel Aviv,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,44,5,SNV,2,0,12,5,7,56,6,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Neftçi,,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-12,Europe,Europa League,CUP,2018/2019,Levadia,Dundalk,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,7,54,10,SNV,3,0,9,4,5,46,6,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,DAC,Dinamo Tbilisi,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,3,6,67,10,SNV,1,0,6,4,2,33,1,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,3,10,72,5,SNV,0,0,2,1,1,28,4,SNV,3,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,9,45,6,SNV,1,0,9,3,6,55,6,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,5,59,6,SNV,2,0,3,1,2,41,4,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Derry City,,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,3,0,3,41,1,SNV,3,1,16,7,9,59,6,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,2,10,49,5,SNV,0,0,13,4,9,51,2,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,Beitar Jerusalem,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,0,6,47,4,SNV,2,0,2,0,2,53,3,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Connah's Quay,,A,1,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,4,3,1,SNV,1,SNV,5,0,9,5,4,SNV,1,SNV,2,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,Partizani Tirana,Maribor,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,6,SNV,6,SNV,1,0,14,4,10,SNV,3,SNV,1,0
+2018-07-12,Europe,Europa League,CUP,2018/2019,,,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-12,Europe,Europa League,CUP,2018/2019,B36,Mladost,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,1,5,50,0,18,3,0,13,4,9,50,7,15,1,0
+2018-07-17,Europe,Europa League,CUP,2018/2019,Honvéd,Rabotnicki,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,59,2,18,3,0,2,1,1,41,0,10,3,1
+2018-07-17,Europe,Europa League,CUP,2018/2019,,,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,20,10,10,59,12,15,2,1,6,2,4,41,2,14,3,0
+2018-07-17,Europe,Europa League,CUP,2018/2019,,Rangers,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,44,10,SNV,5,0,8,2,6,56,6,SNV,1,0
+2018-07-18,Europe,Europa League,CUP,2018/2019,Zeljeznicar,,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-19,Europe,Europa League,CUP,2018/2019,Žalgiris,KÍ,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,57,5,11,0,0,6,3,3,43,2,13,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Riga,CSKA Sofia,H,1,0,H,1,0,D,0,0,A,3,5,7,4,3,41,4,SNV,3,1,8,4,4,59,3,SNV,3,1
+2018-07-19,Europe,Europa League,CUP,2018/2019,Sarajevo,Urartu,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,56,7,SNV,1,0,3,1,2,44,1,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Tobol,Samtredia,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,2,4,59,8,SNV,2,0,6,1,5,41,4,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Keşlə FK,,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,5,15,61,6,SNV,2,0,6,4,2,39,2,SNV,4,1
+2018-07-19,Europe,Europa League,CUP,2018/2019,Dinamo Tbilisi,DAC,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,48,8,SNV,2,0,15,6,9,52,8,SNV,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Beitar Jerusalem,,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,1,6,56,6,SNV,3,0,11,5,6,44,6,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Fola Esch,D,0,0,D,0,0,D,0,0,A,4,5,15,3,12,56,6,SNV,4,0,10,5,5,44,10,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Derry City,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,2,2,0,58,6,SNV,0,0,3,3,0,42,4,SNV,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,3,9,SNV,7,21,3,0,17,2,10,SNV,2,20,5,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Ventspils,D,3,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,17,7,10,SNV,7,SNV,4,0,8,4,4,SNV,1,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,AIK,Shamrock Rovers,D,1,1,A,0,1,H,1,0,N/A,N/A,N/A,13,3,10,SNV,1,SNV,2,0,7,3,4,SNV,2,SNV,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Mladost,B36,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,8,SNV,5,12,1,0,5,3,2,SNV,1,14,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,FH,,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,7,SNV,4,SNV,1,0,5,1,4,SNV,5,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Viitorul,,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,7,9,65,8,SNV,4,0,4,1,3,35,3,SNV,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Anorthosis,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,3,2,1,SNV,3,SNV,3,0,3,1,2,SNV,9,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Nordsjælland,Cliftonville,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,65,6,SNV,2,0,5,2,3,35,3,SNV,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Häcken,Liepāja,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,4,2,2,SNV,8,13,1,0,6,3,3,SNV,3,8,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,H,7,1,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,26,16,10,59,6,SNV,0,0,9,3,6,41,3,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Neftçi,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,53,2,SNV,2,0,7,2,5,47,1,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Molde,Glenavon,H,5,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,0,1,0,69,0,SNV,0,0,0,0,0,31,0,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Maribor,Partizani Tirana,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,8,51,0,SNV,0,0,9,6,3,49,7,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,19,8,11,59,6,SNV,1,0,6,4,2,41,1,SNV,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Connah's Quay,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,6,3,65,4,13,2,0,6,4,1,35,2,12,4,1
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Hibernian,A,4,6,D,3,3,N/A,N/A,N/A,N/A,N/A,N/A,9,5,4,SNV,6,SNV,1,0,18,8,10,SNV,8,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,12,10,76,7,SNV,1,0,5,1,4,24,0,SNV,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Maccabi Tel Aviv,Ferencváros,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,62,4,SNV,1,0,6,0,6,38,4,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Domžale,,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,64,12,7,1,0,5,2,3,36,4,12,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Progrès Niedercorn,Qabala,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,8,45,4,18,4,0,8,4,4,55,3,22,5,1
+2018-07-19,Europe,Europa League,CUP,2018/2019,Trenčín,Budućnost,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,64,4,SNV,2,0,7,3,4,36,3,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Slovan Bratislava,Milsami,H,5,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,15,9,6,65,4,SNV,0,0,5,2,3,35,4,SNV,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,ÍBV,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,3,1,66,0,SNV,0,0,0,1,0,34,0,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Nõmme Kalju,Stjarnan,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,22,6,16,55,7,SNV,0,0,8,3,5,45,5,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Dundalk,Levadia,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,6,5,1,52,3,SNV,2,0,10,4,6,48,1,SNV,5,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Vardar,Pyunik,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,8,11,65,8,SNV,1,0,14,5,9,35,2,SNV,3,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,2,9,50,3,SNV,1,0,16,4,12,50,5,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,9,11,58,6,SNV,2,0,4,2,2,42,1,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,,Lech Poznań,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,36,5,SNV,3,0,7,4,3,64,6,SNV,1,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Partizan,Rudar,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,9,64,4,SNV,2,0,3,2,1,36,3,SNV,2,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Tre Fiori,,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,2,3,33,3,SNV,4,0,17,5,12,67,6,SNV,0,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,Slavia Sofia,Ilves,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,60,8,SNV,1,0,9,2,7,40,5,SNV,4,0
+2018-07-19,Europe,Europa League,CUP,2018/2019,København,KuPS,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Trenčín,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,4,1,3,47,4,16,3,0,15,4,11,53,9,17,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Genk,Fola Esch,H,5,0,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,20,11,9,64,4,SNV,0,0,6,1,5,36,4,SNV,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Spartaks Jūrmala,La Fiorita,H,6,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,11,8,3,65,6,SNV,2,0,2,2,0,35,7,SNV,5,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Zeljeznicar,,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,42,3,SNV,0,0,12,5,7,58,8,SNV,0,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Jagiellonia Białystok,Rio Ave,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,39,2,17,2,0,11,4,7,61,10,7,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Tobol,Pyunik,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,3,2,1,SNV,3,SNV,0,0,2,1,1,SNV,3,SNV,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,APOEL,Flora,H,5,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,27,17,10,63,7,SNV,0,0,9,5,4,37,2,SNV,0,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Stjarnan,København,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,36,3,16,0,0,9,3,6,64,9,14,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,AZ Alkmaar,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,5,30,1,10,3,0,13,4,8,70,9,9,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Rangers,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,4,11,58,12,SNV,4,0,2,2,0,42,3,SNV,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Olimpija,Crusaders,H,5,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,9,7,72,7,SNV,1,0,5,2,3,28,1,SNV,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Slovan Bratislava,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,32,3,10,0,0,14,4,6,68,8,5,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Lech Poznań,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,1,4,45,4,SNV,1,0,6,2,4,55,10,SNV,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Nordsjælland,AIK,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,42,5,SNV,1,0,6,3,3,58,4,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Ufa,Domžale,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,1,5,56,5,20,3,0,9,2,7,44,3,8,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,FCSB,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,3,5,40,2,16,3,0,16,7,9,60,5,8,5,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,F91 Dudelange,Drita,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,63,13,14,3,0,12,4,8,37,6,12,4,1
+2018-07-26,Europe,Europa League,CUP,2018/2019,Viitorul,Vitesse,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,8,45,5,11,1,1,13,7,6,55,3,15,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Djurgården,Mariupol,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,61,10,15,3,0,5,1,4,39,5,13,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Partizan,,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,4,12,68,10,12,3,0,6,2,3,32,2,20,4,1
+2018-07-26,Europe,Europa League,CUP,2018/2019,Hajduk Split,Slavia Sofia,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,10,4,72,8,16,3,0,3,2,1,28,4,14,4,1
+2018-07-26,Europe,Europa League,CUP,2018/2019,Torpedo Kutaisi,Víkingur,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,24,12,12,77,17,SNV,2,0,9,4,5,23,3,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Sparta Praha,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,5,3,31,6,SNV,3,0,12,3,9,69,15,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,RB Leipzig,Häcken,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,55,11,21,4,1,1,0,1,45,1,19,5,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Dundalk,AEK Larnaca,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,6,48,2,SNV,4,0,11,4,7,52,1,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Molde,,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,21,9,12,58,9,SNV,0,0,11,3,8,42,0,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Hapoel Haifa,FH,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,8,61,4,SNV,3,0,5,4,1,39,5,SNV,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,CSKA Sofia,Admira,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,57,5,7,1,0,7,2,5,43,3,14,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,The New Saints,Lincoln Red Imps,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,7,6,SNV,5,11,0,0,5,4,1,SNV,1,14,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Maccabi Tel Aviv,,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,7,8,62,4,16,2,1,4,1,3,38,2,13,0,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Atalanta,Sarajevo,D,2,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,70,9,10,1,0,5,2,3,30,1,12,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Sutjeska,Alashkert,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,2,7,61,3,SNV,2,0,8,4,4,39,2,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,St. Gallen,Sarpsborg 08,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,53,2,10,0,1,12,6,6,47,3,13,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,,Maribor,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,2,10,56,3,SNV,2,0,9,1,8,44,4,SNV,4,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Hibernian,,H,3,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,17,7,10,56,10,SNV,4,0,8,6,2,44,3,SNV,1,1
+2018-07-26,Europe,Europa League,CUP,2018/2019,B36,Beşiktaş,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,4,2,2,25,3,SNV,1,0,14,5,9,75,8,SNV,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Zrinjski,Valletta,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,7,9,60,5,SNV,3,0,7,5,2,40,6,SNV,4,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Žalgiris,,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,3,14,51,2,SNV,1,0,12,4,8,49,5,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,FC Santa Coloma,Valur,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,46,6,SNV,4,0,11,6,5,54,6,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,LASK Linz,Lillestrøm,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,53,4,14,1,0,5,2,3,47,5,14,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Dinamo Brest,,H,4,3,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,5,48,5,SNV,3,0,6,5,1,52,1,SNV,1,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Aberdeen,Burnley,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,38,1,SNV,1,0,8,2,6,62,5,SNV,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Honvéd,Progrès Niedercorn,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,7,63,8,SNV,2,0,5,3,2,37,2,SNV,3,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,DAC,,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,51,4,27,2,1,10,5,5,49,0,18,2,0
+2018-07-26,Europe,Europa League,CUP,2018/2019,Sevilla,,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,22,13,9,64,8,13,1,0,3,2,1,36,1,10,0,1
+2018-07-26,Europe,Europa League,CUP,2018/2019,Ventspils,Bordeaux,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,1,0,1,42,5,SNV,2,0,4,1,3,58,4,SNV,2,0
+2018-07-31,Europe,Europa League,CUP,2018/2019,Pyunik,Tobol,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,7,48,3,13,3,1,10,0,7,52,6,14,3,0
+2018-08-01,Europe,Europa League,CUP,2018/2019,Fola Esch,Genk,A,1,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,41,4,SNV,1,0,10,6,4,59,2,SNV,0,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Slavia Sofia,Hajduk Split,A,2,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,47,1,SNV,4,0,8,4,4,53,4,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Flora,APOEL,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,4,45,2,SNV,0,0,13,5,8,55,5,SNV,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Žalgiris,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,58,4,SNV,1,0,10,3,7,42,1,SNV,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Burnley,Aberdeen,H,3,1,D,1,1,H,2,0,N/A,N/A,N/A,9,6,3,59,7,13,2,0,6,2,4,41,11,16,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Progrès Niedercorn,Honvéd,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,46,1,16,2,0,6,1,5,54,4,16,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,AIK,Nordsjælland,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,61,7,10,2,0,8,3,5,39,8,17,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Maccabi Tel Aviv,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,52,6,SNV,2,0,7,4,3,48,3,SNV,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Crusaders,Olimpija,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,32,3,SNV,3,0,6,2,4,68,7,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Häcken,RB Leipzig,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,42,3,13,0,0,10,4,6,58,7,10,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Trenčín,,H,4,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,20,11,9,58,6,SNV,1,0,4,1,3,42,3,SNV,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Molde,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,45,3,SNV,1,0,14,4,10,55,3,SNV,0,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Dundalk,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,13,9,4,51,6,SNV,4,0,6,1,5,49,2,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,DAC,H,4,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,10,4,49,3,SNV,3,0,8,4,4,51,3,SNV,5,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Vitesse,Viitorul,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,10,55,6,15,2,0,13,8,5,45,3,11,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Alashkert,Sutjeska,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,7,55,4,SNV,3,0,10,5,5,45,6,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,AZ Alkmaar,,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,7,7,69,10,10,3,0,5,3,2,31,2,18,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Partizan,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,8,2,4,44,4,20,0,0,28,7,14,56,10,20,3,1
+2018-08-02,Europe,Europa League,CUP,2018/2019,Beşiktaş,B36,H,6,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,26,13,13,75,11,SNV,0,0,1,1,0,25,2,SNV,0,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,St. Gallen,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,5,2,3,40,8,18,2,0,7,3,4,60,6,21,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Bordeaux,Ventspils,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,61,5,12,1,0,8,1,7,39,3,12,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Mariupol,Djurgården,H,2,1,D,0,0,H,1,0,N/A,N/A,N/A,13,10,3,42,2,21,2,0,16,8,8,58,5,25,6,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,La Fiorita,Spartaks Jūrmala,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,6,4,2,43,3,14,2,1,14,8,6,57,6,24,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Valletta,Zrinjski,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,7,7,SNV,4,SNV,3,0,16,8,8,SNV,5,SNV,2,1
+2018-08-02,Europe,Europa League,CUP,2018/2019,Rio Ave,Jagiellonia Białystok,D,4,4,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,13,8,5,58,11,11,1,0,10,6,4,42,9,21,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Drita,F91 Dudelange,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,51,5,SNV,2,1,1,1,0,49,11,SNV,4,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Sarajevo,Atalanta,A,0,8,A,0,5,N/A,N/A,N/A,N/A,N/A,N/A,6,2,4,31,1,SNV,2,0,12,9,3,69,11,SNV,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Hibernian,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,9,5,59,11,10,5,1,7,7,0,41,7,19,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,FH,Hapoel Haifa,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,7,1,42,4,SNV,3,0,6,2,4,58,5,SNV,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,København,Stjarnan,H,5,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,14,8,6,60,6,SNV,2,0,10,7,3,40,3,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Maribor,,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,13,58,13,SNV,1,0,9,3,6,42,2,SNV,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Domžale,Ufa,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,5,3,57,10,8,2,0,9,1,8,43,4,10,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Sevilla,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,41,3,10,1,0,13,7,6,59,10,7,0,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Dinamo Brest,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,7,54,2,SNV,5,0,7,1,6,46,2,SNV,5,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,,Zeljeznicar,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,16,12,4,62,15,SNV,2,0,8,4,4,38,6,SNV,4,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Valur,FC Santa Coloma,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,7,41,3,19,4,0,5,3,2,59,3,15,6,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Slovan Bratislava,,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,9,5,63,8,15,3,0,6,3,3,37,1,12,4,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Lillestrøm,LASK Linz,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,8,12,48,4,SNV,0,0,16,5,11,52,0,SNV,1,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Sparta Praha,,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,28,11,14,65,15,14,5,0,5,2,2,35,1,18,3,1
+2018-08-02,Europe,Europa League,CUP,2018/2019,Lincoln Red Imps,The New Saints,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,60,5,SNV,0,0,4,3,1,40,3,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Admira,CSKA Sofia,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,7,5,47,5,16,3,0,10,6,4,53,5,10,0,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Víkingur,Torpedo Kutaisi,A,0,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,3,10,38,5,SNV,5,0,15,7,8,62,2,SNV,2,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Rangers,,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,10,5,51,6,SNV,3,0,9,5,4,49,3,SNV,4,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,FCSB,,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,7,5,64,6,SNV,2,0,6,3,3,36,1,SNV,3,0
+2018-08-02,Europe,Europa League,CUP,2018/2019,Lech Poznań,,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,12,7,61,7,13,3,0,5,3,2,39,5,31,6,3
+2018-08-07,Europe,Europa League,CUP,2018/2019,Pyunik,Maccabi Tel Aviv,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,32,5,SNV,1,0,14,6,8,68,4,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Sevilla,Žalgiris,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,10,9,64,13,10,0,0,7,3,4,36,0,8,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Hibernian,Molde,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,46,4,SNV,1,0,9,1,8,54,5,SNV,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Hapoel Haifa,Atalanta,A,1,4,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,8,5,3,34,5,SNV,0,0,17,9,8,66,8,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Nordsjælland,Partizan,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,6,3,55,4,13,3,0,9,6,3,45,6,13,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Ufa,Progrès Niedercorn,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,8,8,57,5,SNV,1,0,15,7,8,43,4,SNV,4,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Beşiktaş,LASK Linz,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,68,10,SNV,0,0,0,0,0,32,5,SNV,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,,Brøndby,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,46,8,SNV,3,0,8,4,4,54,6,SNV,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,İstanbul Başakşehir,Burnley,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,1,18,67,10,SNV,1,0,2,0,2,33,1,SNV,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Torpedo Kutaisi,Kukësi,H,5,2,H,4,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,49,1,SNV,2,0,12,6,6,51,6,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,,Zenit,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,37,2,SNV,2,0,6,1,5,63,8,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Jagiellonia Białystok,Gent,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,47,8,15,3,0,11,3,8,53,3,10,1,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Mariupol,Bordeaux,A,1,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,10,4,6,51,5,SNV,2,0,18,10,8,49,6,SNV,0,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,,Dinamo Brest,H,4,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,11,8,66,8,14,1,0,5,2,3,34,1,25,5,1
+2018-08-09,Europe,Europa League,CUP,2018/2019,Slovan Bratislava,Rapid Vienna,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,8,3,5,52,9,11,4,0,10,3,7,48,8,11,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,13,8,5,60,9,SNV,2,0,3,2,1,40,3,SNV,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,Rijeka,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,9,50,5,SNV,3,0,14,7,7,50,6,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Sturm Graz,AEK Larnaca,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,4,60,9,17,1,1,11,6,5,40,5,13,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,,,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,9,4,53,4,17,2,1,10,3,7,47,3,9,1,1
+2018-08-09,Europe,Europa League,CUP,2018/2019,Rangers,Maribor,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,11,4,58,7,SNV,2,0,13,6,7,42,4,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Olimpija,HJK,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,5,8,60,2,11,1,1,10,3,6,40,4,10,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Ludogorets,Zrinjski,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,8,64,11,9,1,0,5,3,2,36,2,18,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Hapoel Be'er Sheva,APOEL,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,19,7,12,64,13,SNV,4,0,7,5,2,36,2,SNV,5,1
+2018-08-09,Europe,Europa League,CUP,2018/2019,CSKA Sofia,København,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,28,2,19,3,1,9,3,6,72,10,8,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Sheriff,Valur,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,64,8,SNV,0,0,3,1,2,36,2,SNV,4,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Genk,Lech Poznań,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,62,7,SNV,0,0,5,1,4,38,3,SNV,4,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,RB Leipzig,,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,11,8,67,16,10,1,0,1,1,0,33,1,7,1,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,The New Saints,Midtjylland,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,0,0,0,SNV,3,SNV,1,0,2,2,0,SNV,4,SNV,0,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Alashkert,CFR Cluj,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,22,7,15,51,6,SNV,5,0,13,4,9,49,3,SNV,0,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Zorya,Sporting Braga,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,45,3,SNV,2,0,11,3,8,55,11,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Spartaks Jūrmala,Sūduva,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,54,4,SNV,2,0,7,3,4,46,0,SNV,1,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Hajduk Split,FCSB,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,4,11,50,3,SNV,3,0,4,1,3,50,2,SNV,5,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Legia Warszawa,F91 Dudelange,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,7,7,44,4,13,1,1,25,3,16,56,5,19,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Vitesse,Basel,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,4,58,7,SNV,3,0,12,4,8,42,1,SNV,2,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Cork City,Rosenborg,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,55,11,16,3,0,12,6,6,45,1,21,3,0
+2018-08-09,Europe,Europa League,CUP,2018/2019,Trenčín,Feyenoord,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,16,9,7,40,3,SNV,3,0,7,4,3,60,2,SNV,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Molde,Hibernian,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,10,52,6,SNV,1,0,10,2,8,48,7,SNV,3,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Dinamo Brest,,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,7,53,7,SNV,1,0,4,3,1,47,6,SNV,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,LASK Linz,Beşiktaş,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,7,44,1,7,3,0,5,1,4,56,1,12,2,1
+2018-08-16,Europe,Europa League,CUP,2018/2019,Progrès Niedercorn,Ufa,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,8,5,45,6,SNV,1,0,10,7,3,55,8,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Burnley,İstanbul Başakşehir,H,1,0,D,0,0,H,1,0,N/A,N/A,N/A,10,4,6,37,6,SNV,3,0,19,8,11,63,12,SNV,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Sūduva,Spartaks Jūrmala,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,5,51,1,SNV,3,0,10,3,7,49,6,SNV,5,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Midtjylland,The New Saints,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,60,6,19,1,0,7,3,4,40,1,9,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,,Olympiakos Piraeus,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,2,10,39,3,11,1,0,14,7,7,61,6,9,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Sporting Braga,Zorya,D,2,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,3,5,64,5,12,4,0,5,3,2,36,3,18,7,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,København,CSKA Sofia,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,61,4,16,1,0,8,3,5,39,6,18,3,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Gent,Jagiellonia Białystok,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,8,5,51,6,SNV,4,0,7,2,5,49,8,SNV,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Žalgiris,Sevilla,A,0,5,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,11,5,6,43,3,SNV,0,0,19,9,10,57,9,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Atalanta,Hapoel Haifa,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,53,6,9,0,0,8,4,4,47,6,16,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Zenit,,H,8,1,H,1,0,H,4,1,N/A,N/A,N/A,27,13,14,60,8,19,2,1,4,2,2,40,0,21,3,1
+2018-08-16,Europe,Europa League,CUP,2018/2019,Zrinjski,Ludogorets,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,50,4,SNV,2,0,7,2,5,50,2,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,F91 Dudelange,Legia Warszawa,D,2,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,45,1,11,3,0,15,5,10,55,6,16,1,1
+2018-08-16,Europe,Europa League,CUP,2018/2019,Rosenborg,Cork City,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,56,3,16,2,0,9,5,4,44,6,8,0,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Maribor,Rangers,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,55,11,14,1,0,8,2,6,45,2,13,5,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Maccabi Tel Aviv,Pyunik,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,21,9,12,72,10,SNV,1,0,3,1,2,28,3,SNV,4,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Bordeaux,Mariupol,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,7,54,3,14,1,0,7,3,4,46,6,12,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,,RB Leipzig,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2018-08-16,Europe,Europa League,CUP,2018/2019,CFR Cluj,Alashkert,H,5,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,8,6,2,41,2,SNV,0,0,14,4,10,59,4,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,APOEL,Hapoel Be'er Sheva,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,58,5,SNV,2,0,9,6,3,42,3,SNV,9,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Kukësi,Torpedo Kutaisi,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,7,10,65,6,SNV,3,0,5,1,4,35,4,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,FCSB,Hajduk Split,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,54,1,SNV,4,0,5,3,2,46,3,SNV,6,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,HJK,Olimpija,A,1,4,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,45,5,10,3,0,13,7,6,55,4,11,0,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Feyenoord,Trenčín,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,25,7,18,67,16,SNV,2,0,5,3,2,33,3,SNV,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Partizan,Nordsjælland,H,3,2,H,3,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,44,4,SNV,4,0,6,3,3,56,6,SNV,2,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Sturm Graz,H,5,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,9,3,45,1,13,1,0,9,6,3,55,3,12,3,1
+2018-08-16,Europe,Europa League,CUP,2018/2019,Valur,Sheriff,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,49,5,SNV,2,0,7,1,6,51,2,SNV,5,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,,,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,43,4,11,2,2,7,4,3,57,5,12,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Rijeka,Sarpsborg 08,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,49,6,SNV,1,0,6,1,5,51,3,SNV,3,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Basel,Vitesse,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,7,57,11,18,2,0,7,1,6,43,2,13,0,1
+2018-08-16,Europe,Europa League,CUP,2018/2019,Lech Poznań,Genk,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,45,5,13,1,0,16,9,7,55,4,5,1,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Rapid Vienna,Slovan Bratislava,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,9,5,51,6,24,4,0,7,4,3,49,3,3,4,0
+2018-08-16,Europe,Europa League,CUP,2018/2019,Brøndby,,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,3,2,44,4,18,3,1,7,3,4,56,8,7,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,APOEL,Astana,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,8,60,6,SNV,1,0,7,3,4,40,5,SNV,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,,Sevilla,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,3,9,45,4,SNV,1,0,11,4,7,55,9,SNV,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Rapid Vienna,FCSB,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,53,5,17,2,1,10,7,3,47,8,11,2,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Partizan,Beşiktaş,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,40,3,19,4,0,7,3,4,60,5,19,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Olimpija,Spartak Trnava,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,17,5,12,59,6,13,3,0,5,3,2,41,3,19,3,1
+2018-08-23,Europe,Europa League,CUP,2018/2019,F91 Dudelange,CFR Cluj,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,55,7,SNV,1,0,8,3,5,45,8,SNV,4,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Rangers,Ufa,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,8,6,65,6,SNV,2,0,4,2,2,35,1,SNV,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Trenčín,AEK Larnaca,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,6,51,7,SNV,4,0,15,6,9,49,5,SNV,1,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Zorya,RB Leipzig,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,4,37,1,11,1,1,32,6,18,63,9,11,2,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Sūduva,Celtic,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,4,3,1,42,2,9,0,0,12,5,7,58,5,12,1,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,Maccabi Tel Aviv,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,42,3,SNV,2,0,11,3,8,58,3,SNV,2,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Basel,,H,3,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,7,6,65,7,12,2,0,4,2,2,35,2,9,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Zenit,Molde,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,8,55,6,10,2,0,8,4,4,45,1,16,2,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,Burnley,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,11,6,5,57,7,15,2,0,3,1,2,43,2,14,3,1
+2018-08-23,Europe,Europa League,CUP,2018/2019,Atalanta,København,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,11,8,63,7,10,1,0,2,1,1,37,2,20,4,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Gent,Bordeaux,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,9,55,8,15,0,0,3,1,2,45,2,13,1,1
+2018-08-23,Europe,Europa League,CUP,2018/2019,Torpedo Kutaisi,Ludogorets,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,6,3,3,61,3,SNV,2,0,16,7,9,39,8,SNV,3,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Sheriff,Qarabağ,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,2,1,1,36,2,SNV,1,0,5,0,5,64,3,SNV,2,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Genk,Brøndby,H,5,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,10,7,3,62,4,7,2,0,10,5,5,38,3,21,1,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Malmö FF,Midtjylland,D,2,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,53,6,7,3,0,6,3,3,47,6,18,4,0
+2018-08-23,Europe,Europa League,CUP,2018/2019,Rosenborg,Skendija 79,H,3,1,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,7,55,2,19,1,0,13,4,9,45,4,9,2,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Sevilla,,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,9,4,56,8,14,1,0,11,3,8,44,3,10,0,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Qarabağ,Sheriff,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,61,8,SNV,2,0,5,3,2,39,2,SNV,6,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Trenčín,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,9,6,3,44,2,SNV,3,0,11,5,6,56,6,SNV,4,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Astana,APOEL,H,1,0,H,1,0,D,0,0,H,2,1,7,4,3,44,3,SNV,5,0,7,3,4,56,4,SNV,2,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Molde,Zenit,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,21,8,13,58,9,SNV,2,0,4,3,1,42,0,SNV,0,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Bordeaux,Gent,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,7,3,44,1,17,3,0,8,2,6,56,9,12,1,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Beşiktaş,Partizan,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,3,3,0,56,11,SNV,0,0,0,0,0,44,3,SNV,3,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Ludogorets,Torpedo Kutaisi,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,14,10,4,52,7,15,2,0,4,4,0,48,6,16,4,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Burnley,Olympiakos Piraeus,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,61,8,13,4,0,8,4,4,39,3,14,3,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,,Basel,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,2,3,48,2,SNV,4,0,6,3,3,52,5,SNV,2,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,CFR Cluj,F91 Dudelange,A,2,3,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,13,57,13,SNV,3,0,8,5,3,43,4,SNV,0,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,København,Atalanta,D,0,0,D,0,0,D,0,0,H,4,3,9,3,6,48,2,SNV,3,0,11,1,10,52,4,SNV,2,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,RB Leipzig,Zorya,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,5,9,67,7,7,0,0,4,4,0,33,5,9,3,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Ufa,Rangers,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,19,3,16,61,9,13,3,0,5,2,3,39,4,13,2,2
+2018-08-30,Europe,Europa League,CUP,2018/2019,FCSB,Rapid Vienna,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,7,51,6,15,3,1,11,5,6,49,3,22,3,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Skendija 79,Rosenborg,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,11,9,59,4,SNV,3,0,12,6,6,41,3,SNV,1,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Midtjylland,Malmö FF,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,45,1,SNV,3,0,8,4,4,55,2,SNV,4,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Celtic,Sūduva,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,13,9,67,6,SNV,0,0,5,2,3,33,0,SNV,0,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Maccabi Tel Aviv,Sarpsborg 08,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,7,3,54,7,15,2,0,5,3,2,46,2,16,4,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Brøndby,Genk,A,2,4,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,20,7,13,49,5,SNV,0,0,12,8,4,51,5,SNV,2,0
+2018-08-30,Europe,Europa League,CUP,2018/2019,Spartak Trnava,Olimpija,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,1,4,45,2,17,4,0,11,5,6,55,11,11,4,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Rapid Vienna,Spartak Moskva,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,4,49,2,19,1,0,8,3,3,51,5,5,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Sevilla,Standard Liège,H,5,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,19,12,5,55,6,9,3,0,8,2,4,45,4,13,3,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Genk,Malmö FF,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,24,6,6,59,5,10,0,0,2,0,1,41,0,12,4,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,København,Zenit,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,4,5,52,5,15,3,0,8,2,6,48,2,11,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Ludogorets,Bayer Leverkusen,A,2,3,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,8,2,4,43,3,7,3,0,15,5,5,57,7,14,4,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,F91 Dudelange,Milan,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,4,1,3,42,3,20,2,0,18,5,7,58,10,13,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,PAOK,Chelsea,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,3,1,2,31,4,6,3,0,22,5,13,69,11,13,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Olympique Marseille,Eintracht Frankfurt,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,6,65,11,8,0,0,9,4,4,35,3,10,2,1
+2018-09-20,Europe,Europa League,CUP,2018/2019,Beşiktaş,Sarpsborg 08,H,3,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,4,65,11,7,2,0,16,5,8,35,2,15,1,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Rennes,,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,6,6,60,5,11,1,0,9,1,6,40,3,11,3,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Celtic,Rosenborg,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,7,4,64,8,9,0,0,4,0,3,36,1,10,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Arsenal,Vorskla,H,4,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,7,68,7,12,0,0,7,3,3,32,1,8,1,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Dynamo Kyiv,Astana,D,2,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,7,3,51,3,10,2,0,12,4,4,49,6,14,0,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Villarreal,Rangers,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,4,10,58,9,9,1,0,5,3,2,42,7,11,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Lazio,,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,6,50,2,12,3,0,17,4,7,50,5,9,1,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Slavia Praha,Bordeaux,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,6,8,51,10,11,1,0,7,1,6,49,1,9,3,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Spartak Trnava,Anderlecht,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,1,2,34,3,19,5,0,8,0,7,66,2,12,0,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Zürich,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,1,8,55,3,13,1,0,12,6,4,45,3,17,4,1
+2018-09-20,Europe,Europa League,CUP,2018/2019,Sporting CP,Qarabağ,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,5,55,9,11,0,0,5,2,3,45,2,18,1,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,RB Leipzig,Salzburg,A,2,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,12,4,4,55,3,17,1,0,9,4,5,45,0,16,3,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,MOL Vidi,BATE,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,2,6,57,6,11,2,0,11,6,4,43,3,14,4,1
+2018-09-20,Europe,Europa League,CUP,2018/2019,Dinamo Zagreb,Fenerbahçe,H,4,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,22,7,9,36,7,11,4,0,11,3,7,64,4,11,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,,Krasnodar,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,5,10,41,6,10,1,0,13,2,8,59,6,13,2,0
+2018-09-20,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,Real Betis,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,2,26,1,16,3,1,14,4,5,74,6,9,2,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Milan,Olympiakos Piraeus,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,19,6,8,51,7,10,1,0,11,3,7,49,2,11,0,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Vorskla,Sporting CP,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,4,1,3,40,0,14,1,0,18,7,8,60,9,18,1,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Lazio,H,4,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,13,7,2,46,5,13,4,0,8,5,1,54,4,9,3,2
+2018-10-04,Europe,Europa League,CUP,2018/2019,Spartak Moskva,Villarreal,D,3,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,4,10,51,4,13,3,0,15,7,5,49,1,10,2,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Astana,Rennes,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,3,40,4,11,4,0,15,3,9,60,1,6,2,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Bordeaux,København,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,19,5,8,53,7,13,3,0,8,5,1,47,6,16,5,1
+2018-10-04,Europe,Europa League,CUP,2018/2019,Anderlecht,Dinamo Zagreb,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,2,5,60,8,13,2,1,15,10,2,40,6,24,5,1
+2018-10-04,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,Genk,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,17,8,5,30,4,16,1,0,11,2,6,70,1,10,1,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Bayer Leverkusen,AEK Larnaca,H,4,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,22,9,7,54,7,17,5,0,10,5,4,46,3,15,4,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,,Dynamo Kyiv,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,15,5,9,46,3,11,2,0,6,5,1,54,3,16,3,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Salzburg,Celtic,H,3,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,25,6,11,64,7,12,1,0,4,2,1,36,2,11,3,1
+2018-10-04,Europe,Europa League,CUP,2018/2019,Rangers,Rapid Vienna,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,5,3,54,4,10,1,0,3,1,1,46,4,12,5,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Krasnodar,Sevilla,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,18,4,11,49,3,11,0,0,14,3,9,51,2,6,0,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Zenit,Slavia Praha,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,2,2,46,2,7,1,0,27,12,10,54,13,14,2,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Real Betis,F91 Dudelange,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,26,6,14,65,5,15,1,0,6,5,0,35,3,11,3,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Malmö FF,Beşiktaş,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,5,2,2,44,1,17,2,0,8,4,2,56,3,16,3,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Standard Liège,,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,9,2,5,54,4,9,1,0,12,4,6,46,5,10,4,1
+2018-10-04,Europe,Europa League,CUP,2018/2019,Rosenborg,RB Leipzig,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,4,1,35,2,14,1,0,24,12,4,65,8,5,0,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,,Olympique Marseille,D,2,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,3,50,4,12,2,0,6,3,2,50,5,20,3,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Fenerbahçe,Spartak Trnava,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,5,8,61,6,22,3,0,11,0,8,39,4,14,1,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Zürich,Ludogorets,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,2,5,48,4,23,2,0,8,3,4,52,2,19,4,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Chelsea,MOL Vidi,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,28,5,12,76,18,9,1,0,7,3,3,24,3,15,3,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,Qarabağ,Arsenal,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,6,47,6,9,1,0,14,4,6,53,4,9,1,0
+2018-10-04,Europe,Europa League,CUP,2018/2019,BATE,PAOK,A,1,4,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,11,3,6,33,5,11,1,0,13,5,5,67,3,1,0,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Salzburg,Rosenborg,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,30,10,10,61,5,15,1,0,7,2,4,39,2,16,2,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Villarreal,Rapid Vienna,H,5,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,4,49,7,12,4,1,8,3,5,51,1,14,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Milan,Real Betis,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,6,49,7,12,2,1,9,3,6,51,0,11,3,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Spartak Trnava,Dinamo Zagreb,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,3,42,2,14,2,0,15,7,5,58,7,9,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,,Astana,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,3,5,55,4,10,2,0,11,3,6,45,5,13,4,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Beşiktaş,Genk,A,2,4,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,6,5,54,4,21,5,0,16,7,8,46,3,18,3,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Zenit,Bordeaux,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,3,6,54,5,13,4,0,16,4,8,46,4,15,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,RB Leipzig,Celtic,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,19,3,12,51,5,13,2,0,7,1,5,49,2,12,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,København,Slavia Praha,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,0,5,55,1,7,2,0,8,3,5,45,4,21,3,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Qarabağ,Vorskla,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,1,7,66,7,6,1,0,3,1,2,34,0,13,4,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Chelsea,BATE,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,23,10,5,69,7,6,0,0,5,2,1,31,1,10,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Anderlecht,Fenerbahçe,D,2,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,18,6,8,57,4,14,4,0,14,6,7,43,3,20,7,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,Malmö FF,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,3,45,11,14,1,0,4,3,1,55,1,10,2,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,25,8,13,52,10,15,1,0,7,2,4,48,1,12,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Olympique Marseille,Lazio,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,4,9,67,8,9,3,0,9,4,2,33,2,14,3,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Zürich,Bayer Leverkusen,H,3,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,5,40,4,14,2,0,13,5,6,60,7,7,2,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Sevilla,,H,6,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,14,7,6,55,4,12,0,0,9,2,7,45,0,16,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,PAOK,MOL Vidi,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,3,6,73,3,15,0,0,5,3,2,27,1,25,5,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Ludogorets,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,16,6,9,52,5,18,1,0,13,2,3,48,4,21,3,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Standard Liège,Krasnodar,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,4,43,2,7,1,0,20,8,7,57,6,10,1,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Rennes,Dynamo Kyiv,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,24,6,12,52,12,13,2,0,8,2,4,48,1,11,6,1
+2018-10-25,Europe,Europa League,CUP,2018/2019,Rangers,Spartak Moskva,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,3,4,58,10,19,2,0,4,1,1,42,4,12,2,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,F91 Dudelange,Olympiakos Piraeus,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,1,4,47,5,12,1,0,25,11,9,53,6,12,2,0
+2018-10-25,Europe,Europa League,CUP,2018/2019,Sporting CP,Arsenal,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,0,7,33,11,13,4,0,14,7,1,67,11,12,2,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Krasnodar,Standard Liège,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,6,4,65,6,18,5,0,12,3,6,35,8,8,1,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Ludogorets,AEK Larnaca,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,4,9,57,6,16,4,0,10,4,5,43,3,15,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Fenerbahçe,Anderlecht,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,6,7,38,5,17,1,0,15,0,8,62,6,12,2,1
+2018-11-08,Europe,Europa League,CUP,2018/2019,Real Betis,Milan,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,7,64,2,19,2,0,10,4,4,36,3,12,4,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Spartak Moskva,Rangers,H,4,3,A,2,3,N/A,N/A,N/A,N/A,N/A,N/A,19,7,10,57,9,16,5,0,7,3,2,43,6,17,2,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,,Eintracht Frankfurt,A,2,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,13,6,2,60,5,10,0,0,9,3,3,40,4,19,5,1
+2018-11-08,Europe,Europa League,CUP,2018/2019,,Sevilla,A,2,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,7,3,4,37,5,11,2,0,18,8,4,63,13,15,4,1
+2018-11-08,Europe,Europa League,CUP,2018/2019,Bordeaux,Zenit,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,24,5,13,57,4,14,2,0,8,2,5,43,4,16,4,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Lazio,Olympique Marseille,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,6,1,41,3,8,2,0,15,5,5,59,6,12,5,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Vorskla,Qarabağ,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,2,6,57,5,12,4,0,5,2,3,43,3,12,2,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,BATE,Chelsea,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,1,7,26,3,14,0,0,17,4,6,74,6,5,0,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Rosenborg,Salzburg,A,2,5,A,0,4,N/A,N/A,N/A,N/A,N/A,N/A,10,5,1,41,5,6,0,0,21,9,5,59,6,10,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Dinamo Zagreb,Spartak Trnava,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,14,7,5,56,4,13,0,0,8,1,6,44,3,17,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Dynamo Kyiv,Rennes,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,7,7,54,3,11,0,0,12,5,4,46,6,18,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Bayer Leverkusen,Zürich,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,5,7,65,7,16,3,0,5,1,4,35,4,14,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Celtic,RB Leipzig,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,3,46,4,16,2,0,17,5,6,54,9,15,4,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,MOL Vidi,PAOK,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,2,3,26,3,16,3,0,9,0,6,74,3,17,3,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Genk,Beşiktaş,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,5,7,61,6,13,1,0,5,2,3,39,1,15,2,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Slavia Praha,København,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,8,54,5,15,2,0,1,0,1,46,0,12,1,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Malmö FF,Sarpsborg 08,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,8,68,0,14,2,0,8,2,3,32,1,19,5,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Astana,,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,5,4,58,5,22,2,0,15,2,9,42,3,6,1,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Arsenal,Sporting CP,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,2,10,70,7,7,2,0,5,0,2,30,1,13,3,1
+2018-11-08,Europe,Europa League,CUP,2018/2019,Rapid Vienna,Villarreal,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,4,43,5,11,3,0,14,4,5,57,5,14,4,0
+2018-11-08,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,F91 Dudelange,H,5,1,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,24,14,4,55,11,11,1,0,5,3,0,45,2,10,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Astana,Dynamo Kyiv,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,23,3,18,53,0,16,2,0,6,2,3,47,2,16,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Bordeaux,Slavia Praha,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,8,7,47,3,12,1,0,11,2,8,53,5,22,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Spartak Moskva,Rapid Vienna,A,1,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,4,50,3,11,1,0,14,6,7,50,4,26,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Chelsea,PAOK,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,28,10,14,62,12,9,1,0,8,0,3,38,2,10,2,1
+2018-11-29,Europe,Europa League,CUP,2018/2019,Malmö FF,Genk,D,2,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,4,3,40,3,11,3,0,12,8,3,60,1,7,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Vorskla,Arsenal,A,0,3,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,12,2,7,43,2,13,3,0,13,9,3,57,11,12,1,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Anderlecht,Spartak Trnava,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,2,10,68,8,15,2,0,7,2,3,32,2,13,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,,Lazio,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,2,38,1,14,3,0,9,0,6,62,3,11,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Bayer Leverkusen,Ludogorets,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,4,12,61,6,12,2,0,7,2,5,39,2,15,1,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Zenit,København,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,39,5,10,2,0,11,3,5,61,3,14,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Rangers,Villarreal,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,3,34,4,15,4,1,16,5,6,66,7,14,2,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Krasnodar,,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,7,1,66,7,18,2,0,4,2,2,34,4,9,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Qarabağ,Sporting CP,A,1,6,A,1,3,N/A,N/A,N/A,N/A,N/A,N/A,4,2,1,43,1,12,6,0,11,7,2,57,3,12,1,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Olympique Marseille,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,10,46,6,17,2,0,11,4,5,54,4,8,1,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,,Rennes,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,22,5,12,59,7,7,2,0,6,3,3,41,2,17,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Rosenborg,Celtic,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,0,3,37,2,11,2,0,16,6,5,63,4,9,0,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Sarpsborg 08,Beşiktaş,A,2,3,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,18,6,10,34,4,14,0,0,20,10,6,66,11,11,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Fenerbahçe,Dinamo Zagreb,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,2,8,67,7,10,4,0,10,4,3,33,1,21,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Salzburg,RB Leipzig,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,6,7,54,6,14,2,0,12,2,5,46,3,15,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Zürich,AEK Larnaca,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,5,6,51,4,16,3,0,7,3,3,49,2,13,5,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Milan,F91 Dudelange,H,5,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,16,9,2,59,4,5,2,0,9,2,4,41,6,13,3,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Standard Liège,Sevilla,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,7,30,2,22,4,0,10,0,7,70,3,15,5,1
+2018-11-29,Europe,Europa League,CUP,2018/2019,BATE,MOL Vidi,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,2,7,47,5,17,3,0,8,1,2,53,4,12,1,0
+2018-11-29,Europe,Europa League,CUP,2018/2019,Real Betis,Olympiakos Piraeus,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,8,4,60,4,12,5,0,10,2,5,40,4,13,5,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,AEK Larnaca,Bayer Leverkusen,A,1,5,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,9,4,4,40,4,12,2,0,12,10,2,60,2,18,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Slavia Praha,Zenit,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,5,45,11,15,2,0,5,0,1,55,2,10,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Lazio,Eintracht Frankfurt,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,5,3,50,5,12,3,0,15,3,2,50,8,12,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Celtic,Salzburg,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,5,48,4,4,1,0,18,6,5,52,11,11,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Dynamo Kyiv,,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,5,7,66,6,13,2,0,8,5,2,34,5,10,3,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,PAOK,BATE,A,1,3,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,29,5,14,68,10,7,2,0,10,3,5,32,2,13,3,1
+2018-12-13,Europe,Europa League,CUP,2018/2019,Arsenal,Qarabağ,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,4,4,66,10,11,0,0,1,0,1,34,4,10,1,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Villarreal,Spartak Moskva,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,8,47,6,16,2,1,12,4,7,53,6,10,4,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,København,Bordeaux,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,5,61,8,15,2,0,5,2,1,39,4,16,1,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Olympique Marseille,,A,1,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,15,4,7,43,5,15,5,2,11,3,5,57,2,12,1,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,MOL Vidi,Chelsea,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,3,2,24,3,15,4,0,18,5,7,76,11,14,1,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,,Standard Liège,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,2,8,49,6,9,3,0,14,1,9,51,6,17,3,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Rennes,Astana,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,22,7,8,62,6,10,0,0,7,2,4,38,6,18,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,Milan,H,3,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,9,6,51,8,15,4,0,18,8,5,49,9,16,4,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Ludogorets,Zürich,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,6,10,55,10,16,2,0,4,2,3,45,3,18,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Spartak Trnava,Fenerbahçe,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,3,5,42,1,23,2,0,6,1,3,58,1,16,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Dinamo Zagreb,Anderlecht,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,4,38,4,10,2,0,9,2,4,62,4,11,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,RB Leipzig,Rosenborg,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,24,9,7,59,8,11,1,0,7,2,4,41,3,13,3,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,F91 Dudelange,Real Betis,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,1,0,1,23,0,8,2,0,14,4,6,77,11,3,0,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Rapid Vienna,Rangers,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,4,3,49,5,14,3,0,7,1,4,51,3,14,2,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Sevilla,Krasnodar,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,7,4,58,7,12,2,0,6,3,2,42,2,13,2,1
+2018-12-13,Europe,Europa League,CUP,2018/2019,Sporting CP,Vorskla,H,3,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,19,9,9,62,7,10,1,0,8,1,6,38,2,9,0,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Genk,Sarpsborg 08,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,7,5,57,7,7,1,0,8,2,2,43,7,6,0,0
+2018-12-13,Europe,Europa League,CUP,2018/2019,Beşiktaş,Malmö FF,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,2,7,56,1,7,1,1,11,3,6,44,5,9,0,0
+2019-02-12,Europe,Europa League,CUP,2018/2019,Fenerbahçe,Zenit,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,7,6,55,7,12,2,0,7,2,4,45,5,18,3,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Shakhtar Donetsk,Eintracht Frankfurt,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,5,4,0,40,1,8,3,1,21,5,13,60,12,12,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Malmö FF,Chelsea,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,2,6,26,8,20,0,0,11,4,4,74,6,9,0,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Rennes,Real Betis,D,3,3,H,3,1,N/A,N/A,N/A,N/A,N/A,N/A,6,5,1,25,3,11,3,0,15,9,4,75,9,9,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Celtic,Valencia,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,2,2,63,2,12,2,0,8,5,2,37,7,5,1,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Slavia Praha,Genk,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,18,5,10,44,3,14,3,0,6,3,3,56,4,10,3,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Galatasaray,Benfica,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,3,6,66,6,15,3,0,14,6,5,34,4,11,3,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Sporting CP,Villarreal,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,3,6,53,7,16,6,1,5,2,3,47,2,14,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Olympiakos Piraeus,Dynamo Kyiv,D,2,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,3,40,0,12,2,0,8,4,2,60,2,12,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Krasnodar,Bayer Leverkusen,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,4,29,1,8,2,0,16,3,7,71,8,9,0,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,BATE,Arsenal,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,1,23,3,10,3,0,16,3,7,77,12,8,1,1
+2019-02-14,Europe,Europa League,CUP,2018/2019,Rapid Vienna,Inter,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,4,2,0,37,3,13,4,0,13,3,7,63,3,10,4,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Lazio,Sevilla,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,7,1,5,45,2,20,3,0,14,2,7,55,5,16,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Club Brugge,Salzburg,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,5,4,54,6,11,3,0,12,5,3,46,8,13,4,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Viktoria Plzeň,Dinamo Zagreb,H,2,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,3,5,54,8,19,3,0,12,3,6,46,3,11,2,0
+2019-02-14,Europe,Europa League,CUP,2018/2019,Zürich,Napoli,A,1,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,14,3,9,35,3,17,3,0,19,10,6,65,9,8,3,0
+2019-02-20,Europe,Europa League,CUP,2018/2019,Sevilla,Lazio,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,4,48,6,9,2,1,13,3,8,52,6,15,3,1
+2019-02-21,Europe,Europa League,CUP,2018/2019,Valencia,Celtic,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,5,54,7,10,1,0,13,2,5,46,2,12,4,1
+2019-02-21,Europe,Europa League,CUP,2018/2019,Inter,Rapid Vienna,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,13,6,6,62,3,17,2,0,10,1,4,38,6,9,1,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Real Betis,Rennes,A,1,3,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,16,7,6,58,5,11,3,0,14,7,2,42,5,12,3,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Salzburg,Club Brugge,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,4,40,3,16,2,0,13,3,9,60,5,17,4,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Chelsea,Malmö FF,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,2,72,2,13,1,0,5,0,3,28,1,12,5,1
+2019-02-21,Europe,Europa League,CUP,2018/2019,Dynamo Kyiv,Olympiakos Piraeus,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,3,45,5,17,3,0,9,5,3,55,5,16,4,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Arsenal,BATE,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,22,8,13,68,11,8,0,0,4,2,2,32,0,12,0,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Dinamo Zagreb,Viktoria Plzeň,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,8,3,37,3,16,4,0,8,2,4,63,3,19,4,1
+2019-02-21,Europe,Europa League,CUP,2018/2019,Villarreal,Sporting CP,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,9,8,59,6,13,1,0,6,2,2,41,0,9,4,1
+2019-02-21,Europe,Europa League,CUP,2018/2019,Bayer Leverkusen,Krasnodar,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,20,6,8,65,11,7,1,0,10,3,4,35,2,12,3,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Benfica,Galatasaray,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,3,12,48,11,17,1,0,6,1,4,52,3,10,2,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Genk,Slavia Praha,A,1,4,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,2,5,56,2,7,1,0,18,8,8,44,2,28,5,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Napoli,Zürich,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,7,64,5,8,1,0,11,1,7,36,4,20,0,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Zenit,Fenerbahçe,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,12,7,1,39,8,18,3,0,13,3,3,61,3,15,5,0
+2019-02-21,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Shakhtar Donetsk,H,4,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,6,35,1,22,3,0,10,4,3,65,2,12,2,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Sevilla,Slavia Praha,D,2,2,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,15,8,6,56,5,6,1,0,6,3,3,44,2,22,3,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Dinamo Zagreb,Benfica,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,6,34,7,17,3,0,6,2,2,66,4,15,0,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Inter,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,17,6,9,50,4,14,3,0,11,4,7,50,2,11,3,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Napoli,Salzburg,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,4,9,53,10,8,3,0,20,6,7,47,8,16,1,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Zenit,Villarreal,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,7,4,2,39,6,13,2,0,13,8,3,61,2,9,2,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Rennes,Arsenal,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,19,8,8,51,3,15,2,0,12,4,3,49,3,17,3,1
+2019-03-07,Europe,Europa League,CUP,2018/2019,Chelsea,Dynamo Kyiv,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,8,3,60,5,14,0,0,4,0,3,40,2,15,2,0
+2019-03-07,Europe,Europa League,CUP,2018/2019,Valencia,Krasnodar,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,5,48,1,13,2,0,11,2,6,52,4,17,4,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Inter,Eintracht Frankfurt,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,6,54,7,15,3,0,18,8,6,46,5,18,3,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Slavia Praha,Sevilla,H,4,3,D,1,1,H,2,1,N/A,N/A,N/A,13,6,4,42,5,27,4,0,14,5,5,58,8,9,1,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Benfica,Dinamo Zagreb,H,3,0,D,0,0,H,2,0,N/A,N/A,N/A,25,11,8,68,8,13,4,0,7,3,4,32,4,22,5,1
+2019-03-14,Europe,Europa League,CUP,2018/2019,Salzburg,Napoli,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,21,5,11,57,11,10,2,0,8,4,3,43,5,6,1,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Krasnodar,Valencia,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,6,58,7,16,2,0,12,4,6,42,2,12,4,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Villarreal,Zenit,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,7,42,4,20,2,0,13,3,7,58,9,13,1,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Dynamo Kyiv,Chelsea,A,0,5,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,6,2,2,37,3,13,1,0,14,8,5,63,7,8,1,0
+2019-03-14,Europe,Europa League,CUP,2018/2019,Arsenal,Rennes,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,12,4,7,54,1,14,4,0,11,2,2,46,6,15,4,0
+2019-04-11,Europe,Europa League,CUP,2018/2019,Arsenal,Napoli,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,7,6,42,8,16,0,0,9,2,7,58,9,6,1,0
+2019-04-11,Europe,Europa League,CUP,2018/2019,Benfica,Eintracht Frankfurt,H,4,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,6,61,3,15,1,0,14,4,7,39,7,12,3,1
+2019-04-11,Europe,Europa League,CUP,2018/2019,Slavia Praha,Chelsea,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,5,42,7,16,1,0,8,2,6,58,4,9,0,0
+2019-04-11,Europe,Europa League,CUP,2018/2019,Villarreal,Valencia,A,1,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,16,6,7,58,3,18,3,0,10,4,4,42,1,11,1,0
+2019-04-18,Europe,Europa League,CUP,2018/2019,Napoli,Arsenal,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,20,2,13,69,9,6,2,0,7,4,1,31,5,15,1,0
+2019-04-18,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Benfica,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,4,8,48,5,12,3,0,7,2,4,52,2,8,1,0
+2019-04-18,Europe,Europa League,CUP,2018/2019,Chelsea,Slavia Praha,H,4,3,H,4,1,N/A,N/A,N/A,N/A,N/A,N/A,9,4,2,55,3,9,4,0,11,4,5,45,4,19,2,0
+2019-04-18,Europe,Europa League,CUP,2018/2019,Valencia,Villarreal,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,3,39,5,13,1,0,20,5,4,61,6,15,4,0
+2019-05-02,Europe,Europa League,CUP,2018/2019,Eintracht Frankfurt,Chelsea,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,6,2,3,32,4,16,2,0,16,5,6,68,11,9,1,0
+2019-05-02,Europe,Europa League,CUP,2018/2019,Arsenal,Valencia,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,4,58,6,17,0,0,10,3,4,42,4,10,2,0
+2019-05-09,Europe,Europa League,CUP,2018/2019,Chelsea,Eintracht Frankfurt,D,1,1,H,1,0,D,0,0,H,4,3,16,7,6,60,10,19,3,0,14,6,3,40,9,25,4,0
+2019-05-09,Europe,Europa League,CUP,2018/2019,Valencia,Arsenal,A,2,4,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,18,3,11,55,4,11,3,0,9,5,3,45,3,7,2,0
+2019-05-29,Europe,Europa League,CUP,2018/2019,Chelsea,Arsenal,H,4,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,8,1,50,7,14,2,0,16,2,9,50,5,11,0,0

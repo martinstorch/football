@@ -34,7 +34,7 @@ Feature_COLUMNS = ["HomeTeam","AwayTeam"]
 Label_COLUMNS = ["FTHG","FTAG"]
 CSV_COLUMNS = Feature_COLUMNS + Label_COLUMNS
 Derived_COLUMNS = ["t1goals", "t2goals", "t1goals_where", "t2goals_where"]
-COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG", "HGFTa","AGFTa","Hxsg","Axsg","Hxnsg","Axnsg", "Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe","H_PT","A_PT"]
+COLS = ["HGFT","AGFT","HGHT","AGHT","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR", "HxG", "AxG","H_PT","A_PT", "HGFTa","AGFTa","Hxsg","Axsg","Hxnsg","Axnsg", "Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe"]
 Meta_COLUMNS = ["t1games", "t2games", "t1games_where", "t2games_where"]
 COLS_Extended = COLS + ['HWin', 'AWin', 'HLoss', 'ALoss', 'HDraw', 'ADraw']
 
@@ -442,6 +442,8 @@ def build_features(df_data):
   # make sure that xG labels are the last ones in the list, so that tensorflow can apply MSE loss instead of Poisson deviance loss
   label_column_names.remove("T1_xG")
   label_column_names.remove("T2_xG")
+  label_column_names.remove("T1__PT")
+  label_column_names.remove("T2__PT")
   label_column_names.remove("T1_GFTa")
   label_column_names.remove("T2_GFTa")
   label_column_names.remove("T1_xsg")

@@ -1,0 +1,216 @@
+DATE,COUNTRY,LEAGUE,TYPE,SEASON,HOME_TEAM,AWAY_TEAM,FTR,FTHG,FTAG,HTR,HTHG,HTAG,ETR,ETHG,ETAG,PENR,PENHG,PENAG,H_ST,H_SOG,H_SFG,H_PT,H_COR,H_FL,H_YC,H_RC,A_ST,A_SOG,A_SFG,A_PT,A_COR,A_FL,A_YC,A_RC
+2014-07-01,Europe,Champions League,CUP,2014/2015,La Fiorita,Levadia,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-01,Europe,Champions League,CUP,2014/2015,FC Santa Coloma,Urartu,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-02,Europe,Champions League,CUP,2014/2015,Lincoln Red Imps,HB,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-08,Europe,Champions League,CUP,2014/2015,HB,Lincoln Red Imps,H,5,2,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-08,Europe,Champions League,CUP,2014/2015,Levadia,La Fiorita,H,7,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-08,Europe,Champions League,CUP,2014/2015,Urartu,FC Santa Coloma,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Slovan Bratislava,The New Saints,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Cliftonville,Debrecen,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Partizan,HB,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,FC Santa Coloma,Maccabi Tel Aviv,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Zrinjski,Maribor,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,BATE,Skënderbeu Korçë,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Rabotnicki,HJK,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Dinamo Zagreb,Žalgiris,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Sheriff,Sutjeska,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Sparta Praha,Levadia,H,7,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,KR,Celtic,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-15,Europe,Champions League,CUP,2014/2015,Valletta,Qarabağ,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-16,Europe,Champions League,CUP,2014/2015,Ludogorets,F91 Dudelange,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-16,Europe,Champions League,CUP,2014/2015,Strømsgodset,FCSB,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-16,Europe,Champions League,CUP,2014/2015,Malmö FF,Ventspils,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-16,Europe,Champions League,CUP,2014/2015,Dinamo Tbilisi,Aktobe,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-16,Europe,Champions League,CUP,2014/2015,Legia Warszawa,St Patrick's,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,HB,Partizan,A,1,3,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Skënderbeu Korçë,BATE,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,F91 Dudelange,Ludogorets,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Qarabağ,Valletta,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Maccabi Tel Aviv,FC Santa Coloma,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Žalgiris,Dinamo Zagreb,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Celtic,KR,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Sutjeska,Sheriff,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Debrecen,Cliftonville,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,Levadia,Sparta Praha,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-22,Europe,Champions League,CUP,2014/2015,The New Saints,Slovan Bratislava,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,HJK,Rabotnicki,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,Aktobe,Dinamo Tbilisi,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,Maribor,Zrinjski,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,St Patrick's,Legia Warszawa,A,0,5,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,FCSB,Strømsgodset,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-23,Europe,Champions League,CUP,2014/2015,Ventspils,Malmö FF,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-29,Europe,Champions League,CUP,2014/2015,Slovan Bratislava,Sheriff,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-29,Europe,Champions League,CUP,2014/2015,Debrecen,BATE,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-29,Europe,Champions League,CUP,2014/2015,Sparta Praha,Malmö FF,H,4,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Qarabağ,Salzburg,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Ludogorets,Partizan,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Standard Liège,Panathinaikos,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Maribor,Maccabi Tel Aviv,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Dnipro Dnipropetrovsk,København,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Legia Warszawa,Celtic,H,4,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,AEL,Zenit,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Aktobe,FCSB,D,2,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,HJK,APOEL,D,2,2,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Feyenoord,Beşiktaş,A,1,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,AaB,Dinamo Zagreb,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-07-30,Europe,Champions League,CUP,2014/2015,Grasshopper,Lille,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-05,Europe,Champions League,CUP,2014/2015,Lille,Grasshopper,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-05,Europe,Champions League,CUP,2014/2015,Panathinaikos,Standard Liège,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-05,Europe,Champions League,CUP,2014/2015,BATE,Debrecen,H,3,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-05,Europe,Champions League,CUP,2014/2015,Maccabi Tel Aviv,Maribor,D,2,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Salzburg,Qarabağ,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,FCSB,Aktobe,H,2,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Malmö FF,Sparta Praha,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Celtic,Legia Warszawa,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,7,0,48,5,10,2,0,7,6,0,52,3,13,1,0
+2014-08-06,Europe,Champions League,CUP,2014/2015,Sheriff,Slovan Bratislava,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Dinamo Zagreb,AaB,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Partizan,Ludogorets,D,2,2,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,København,Dnipro Dnipropetrovsk,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,APOEL,HJK,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Beşiktaş,Feyenoord,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-06,Europe,Champions League,CUP,2014/2015,Zenit,AEL,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-19,Europe,Champions League,CUP,2014/2015,Napoli,Athletic Club,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-19,Europe,Champions League,CUP,2014/2015,Salzburg,Malmö FF,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-19,Europe,Champions League,CUP,2014/2015,FCSB,Ludogorets,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-19,Europe,Champions League,CUP,2014/2015,København,Bayer Leverkusen,A,2,3,A,2,3,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-19,Europe,Champions League,CUP,2014/2015,Beşiktaş,Arsenal,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,4,0,53,2,12,2,0,8,5,0,47,6,13,3,1
+2014-08-20,Europe,Champions League,CUP,2014/2015,Slovan Bratislava,BATE,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-20,Europe,Champions League,CUP,2014/2015,Standard Liège,Zenit,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-20,Europe,Champions League,CUP,2014/2015,AaB,APOEL,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-20,Europe,Champions League,CUP,2014/2015,Lille,Porto,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-20,Europe,Champions League,CUP,2014/2015,Maribor,Celtic,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,13,8,0,47,7,8,1,0,10,5,0,53,8,8,2,0
+2014-08-26,Europe,Champions League,CUP,2014/2015,Porto,Lille,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-26,Europe,Champions League,CUP,2014/2015,Celtic,Maribor,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,0,50,4,12,3,0,10,7,0,50,4,13,4,0
+2014-08-26,Europe,Champions League,CUP,2014/2015,Zenit,Standard Liège,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-26,Europe,Champions League,CUP,2014/2015,APOEL,AaB,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-26,Europe,Champions League,CUP,2014/2015,BATE,Slovan Bratislava,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-27,Europe,Champions League,CUP,2014/2015,Ludogorets,FCSB,H,1,0,D,0,0,H,1,0,H,6,5,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-27,Europe,Champions League,CUP,2014/2015,Arsenal,Beşiktaş,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,0,57,4,14,3,1,3,1,0,43,0,12,6,0
+2014-08-27,Europe,Champions League,CUP,2014/2015,Malmö FF,Salzburg,H,3,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-27,Europe,Champions League,CUP,2014/2015,Bayer Leverkusen,København,H,4,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-08-27,Europe,Champions League,CUP,2014/2015,Athletic Club,Napoli,H,3,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV,SNV
+2014-09-16,Europe,Champions League,CUP,2014/2015,Benfica,Zenit,A,0,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,17,5,0,42,8,12,1,1,17,6,0,58,7,16,1,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Juventus,Malmö FF,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,22,8,0,70,7,9,0,0,4,1,0,30,5,15,3,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Galatasaray,Anderlecht,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,16,3,0,56,7,14,2,0,12,4,0,44,2,19,4,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Olympiakos Piraeus,Atlético Madrid,H,3,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,0,41,1,12,2,0,18,5,0,59,8,15,4,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Borussia Dortmund,Arsenal,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,7,0,44,7,10,1,0,5,1,0,56,1,16,2,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Liverpool,Ludogorets,H,2,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,23,7,0,64,3,22,0,0,11,2,0,36,3,16,4,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Real Madrid,Basel,H,5,1,H,4,1,N/A,N/A,N/A,N/A,N/A,N/A,22,9,0,54,7,8,1,0,16,5,0,46,2,8,3,0
+2014-09-16,Europe,Champions League,CUP,2014/2015,Monaco,Bayer Leverkusen,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,4,1,0,48,3,16,2,0,13,2,0,52,3,19,2,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Roma,CSKA Moskva,H,5,1,H,4,0,N/A,N/A,N/A,N/A,N/A,N/A,14,8,0,68,4,9,1,0,18,5,0,32,6,5,0,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Chelsea,Schalke 04,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,18,7,0,51,7,16,2,0,13,5,0,49,1,11,3,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Barcelona,APOEL,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,18,7,0,71,8,15,0,0,4,1,0,29,4,12,2,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Porto,BATE,H,6,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,20,12,0,66,9,11,0,0,6,2,0,34,2,15,2,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Maribor,Sporting CP,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,6,0,38,4,12,2,0,27,8,0,62,8,15,1,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Athletic Club,Shakhtar Donetsk,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,0,46,4,12,3,0,7,2,0,54,6,14,3,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Bayern München,Manchester City,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,21,8,0,57,6,8,0,0,7,2,0,43,4,16,4,0
+2014-09-17,Europe,Champions League,CUP,2014/2015,Ajax,Paris Saint Germain,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,2,0,51,2,14,4,0,15,6,0,49,6,9,1,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,Shakhtar Donetsk,Porto,D,2,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,6,3,0,32,6,13,5,0,20,10,0,68,6,9,2,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,Sporting CP,Chelsea,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,3,0,46,2,14,4,0,15,7,0,54,12,13,4,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,APOEL,Ajax,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,9,2,0,34,5,15,2,0,11,6,0,66,2,18,4,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,CSKA Moskva,Bayern München,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,11,3,0,23,2,5,1,0,21,8,0,77,12,8,2,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,Paris Saint Germain,Barcelona,H,3,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,0,38,4,8,3,0,15,2,0,62,8,9,1,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,Manchester City,Roma,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,2,0,61,7,13,1,0,9,4,0,39,2,16,2,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,BATE,Athletic Club,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,22,7,0,43,8,15,1,0,12,2,0,57,4,15,3,0
+2014-09-30,Europe,Champions League,CUP,2014/2015,Schalke 04,Maribor,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,23,4,0,63,6,13,1,0,13,4,0,37,2,13,4,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Bayer Leverkusen,Benfica,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,22,10,0,43,4,18,2,0,6,1,0,57,4,11,5,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Basel,Liverpool,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,5,0,55,8,9,1,0,15,5,0,45,4,10,3,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Arsenal,Galatasaray,H,4,1,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,0,51,4,13,1,1,18,7,0,49,7,10,2,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Anderlecht,Borussia Dortmund,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,1,0,47,6,7,1,0,18,9,0,53,6,6,0,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Atlético Madrid,Juventus,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,0,36,4,21,2,0,5,0,0,64,2,28,6,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Malmö FF,Olympiakos Piraeus,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,7,0,35,2,14,1,0,14,7,0,65,7,9,3,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Ludogorets,Real Madrid,A,1,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,4,0,39,8,11,5,0,18,8,0,61,7,10,1,0
+2014-10-01,Europe,Champions League,CUP,2014/2015,Zenit,Monaco,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,0,54,5,15,0,0,9,2,0,46,5,19,3,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,APOEL,Paris Saint Germain,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,2,0,37,4,7,0,0,11,3,0,63,6,9,0,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,Porto,Athletic Club,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,4,0,55,3,16,2,0,10,4,0,45,1,8,4,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,Schalke 04,Sporting CP,H,4,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,0,66,7,11,0,0,11,4,0,34,3,19,2,1
+2014-10-21,Europe,Champions League,CUP,2014/2015,Barcelona,Ajax,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,6,0,62,3,11,1,0,9,1,0,38,3,17,3,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,BATE,Shakhtar Donetsk,A,0,7,A,0,6,N/A,N/A,N/A,N/A,N/A,N/A,17,4,0,40,7,11,2,0,18,13,0,60,6,9,1,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,Roma,Bayern München,A,1,7,A,0,5,N/A,N/A,N/A,N/A,N/A,N/A,12,5,0,35,2,13,3,0,22,11,0,65,6,6,1,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,Chelsea,Maribor,H,6,0,H,3,0,N/A,N/A,N/A,N/A,N/A,N/A,17,10,0,58,6,11,0,0,9,3,0,42,3,10,0,0
+2014-10-21,Europe,Champions League,CUP,2014/2015,CSKA Moskva,Manchester City,D,2,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,14,3,0,45,2,7,0,0,13,4,0,55,4,11,1,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Ludogorets,Basel,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,21,8,0,67,8,15,3,0,8,3,0,33,3,18,5,1
+2014-10-22,Europe,Champions League,CUP,2014/2015,Liverpool,Real Madrid,A,0,3,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,12,2,0,46,9,6,0,0,14,7,0,54,5,4,1,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Atlético Madrid,Malmö FF,H,5,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,28,10,0,57,11,10,1,0,9,3,0,43,2,15,2,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Olympiakos Piraeus,Juventus,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,4,0,40,2,17,2,0,18,5,0,60,7,14,3,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Monaco,Benfica,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,2,0,51,6,17,3,0,13,4,0,49,4,20,3,1
+2014-10-22,Europe,Champions League,CUP,2014/2015,Bayer Leverkusen,Zenit,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,6,0,49,6,19,0,1,5,1,0,51,2,17,5,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Galatasaray,Borussia Dortmund,A,0,4,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,10,1,0,54,7,3,2,0,15,10,0,46,5,11,0,0
+2014-10-22,Europe,Champions League,CUP,2014/2015,Anderlecht,Arsenal,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,0,36,6,15,1,0,13,4,0,64,3,12,2,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Zenit,Bayer Leverkusen,A,1,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,0,57,5,16,4,0,14,4,0,43,4,19,2,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Basel,Ludogorets,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,18,7,0,53,6,9,1,0,5,2,0,47,2,10,1,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Borussia Dortmund,Galatasaray,H,4,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,0,54,9,11,0,0,5,2,0,46,6,8,3,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Juventus,Olympiakos Piraeus,H,3,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,17,6,0,61,4,9,1,0,11,5,0,39,5,19,1,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Real Madrid,Liverpool,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,27,9,0,60,7,8,3,0,4,1,0,40,1,12,2,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Arsenal,Anderlecht,D,3,3,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,18,6,0,65,8,10,1,0,11,5,0,35,7,14,3,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Malmö FF,Atlético Madrid,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,17,5,0,56,0,16,3,0,9,3,0,44,5,16,5,0
+2014-11-04,Europe,Champions League,CUP,2014/2015,Benfica,Monaco,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,3,0,56,6,15,2,0,15,5,0,44,7,16,5,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Ajax,Barcelona,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,7,1,0,38,1,14,2,1,14,8,0,62,4,6,3,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Bayern München,Roma,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,7,0,71,7,11,1,0,6,2,0,29,3,10,0,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Athletic Club,Porto,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,7,0,0,51,8,23,1,0,14,4,0,49,2,21,1,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Sporting CP,Schalke 04,H,4,2,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,8,0,51,6,16,3,0,9,2,0,49,6,11,2,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Maribor,Chelsea,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,0,36,2,11,3,0,24,10,0,64,6,7,1,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Manchester City,CSKA Moskva,A,1,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,15,6,0,63,6,13,2,2,7,3,0,37,1,10,3,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Paris Saint Germain,APOEL,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,5,0,70,6,10,0,0,3,1,0,30,3,8,0,0
+2014-11-05,Europe,Champions League,CUP,2014/2015,Shakhtar Donetsk,BATE,H,5,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,9,0,70,7,7,1,0,3,1,0,30,6,13,0,1
+2014-11-25,Europe,Champions League,CUP,2014/2015,Paris Saint Germain,Ajax,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,10,4,0,45,4,15,1,0,9,1,0,55,3,14,1,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,Schalke 04,Chelsea,A,0,5,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,8,3,0,44,4,9,1,0,13,8,0,56,6,10,0,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,Sporting CP,Maribor,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,23,9,0,53,5,18,1,0,4,1,0,47,3,16,3,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,BATE,Porto,A,0,3,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,0,0,31,0,18,3,0,9,4,0,69,2,14,1,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,Manchester City,Bayern München,H,3,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,10,5,0,44,6,14,3,0,7,4,0,56,0,15,1,1
+2014-11-25,Europe,Champions League,CUP,2014/2015,Shakhtar Donetsk,Athletic Club,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,11,3,0,56,4,15,4,0,14,5,0,44,3,21,4,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,CSKA Moskva,Roma,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,15,4,0,44,6,16,3,0,7,3,0,56,2,5,0,0
+2014-11-25,Europe,Champions League,CUP,2014/2015,APOEL,Barcelona,A,0,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,3,1,0,23,0,16,1,1,21,7,0,77,7,5,1,1
+2014-11-26,Europe,Champions League,CUP,2014/2015,Basel,Real Madrid,A,0,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,18,4,0,47,6,12,3,0,8,4,0,53,6,11,2,0
+2014-11-26,Europe,Champions League,CUP,2014/2015,Bayer Leverkusen,Monaco,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,4,0,65,7,18,1,0,4,1,0,35,2,17,1,0
+2014-11-26,Europe,Champions League,CUP,2014/2015,Malmö FF,Juventus,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,0,40,3,20,3,1,19,10,0,60,2,10,2,0
+2014-11-26,Europe,Champions League,CUP,2014/2015,Ludogorets,Liverpool,D,2,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,18,4,0,55,11,8,0,0,8,4,0,45,2,21,0,0
+2014-11-26,Europe,Champions League,CUP,2014/2015,Anderlecht,Galatasaray,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,18,9,0,47,4,20,1,0,10,3,0,53,2,20,4,1
+2014-11-26,Europe,Champions League,CUP,2014/2015,Atlético Madrid,Olympiakos Piraeus,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,17,6,0,58,7,12,2,0,4,1,0,42,3,16,2,0
+2014-11-26,Europe,Champions League,CUP,2014/2015,Zenit,Benfica,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,2,0,48,5,18,3,0,5,1,0,52,6,18,2,1
+2014-11-26,Europe,Champions League,CUP,2014/2015,Arsenal,Borussia Dortmund,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,9,3,0,45,6,14,1,0,9,4,0,55,3,8,2,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Galatasaray,Arsenal,A,1,4,A,0,3,N/A,N/A,N/A,N/A,N/A,N/A,32,7,0,53,5,10,3,0,13,6,0,47,4,15,3,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Juventus,Atlético Madrid,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,5,0,71,6,14,1,0,6,3,0,29,3,15,2,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Olympiakos Piraeus,Malmö FF,H,4,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,22,12,0,53,7,10,0,0,11,2,0,47,4,17,3,1
+2014-12-09,Europe,Champions League,CUP,2014/2015,Borussia Dortmund,Anderlecht,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,19,9,0,63,4,10,0,0,8,3,0,37,3,7,0,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Liverpool,Basel,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,5,0,61,4,12,3,1,17,4,0,39,4,16,1,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Monaco,Zenit,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,3,0,40,4,9,2,0,4,1,0,60,3,18,2,0
+2014-12-09,Europe,Champions League,CUP,2014/2015,Real Madrid,Ludogorets,H,4,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,34,12,0,62,17,8,1,0,9,4,0,38,3,8,0,1
+2014-12-09,Europe,Champions League,CUP,2014/2015,Benfica,Bayer Leverkusen,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,3,0,48,7,11,1,0,11,3,0,52,3,14,1,1
+2014-12-10,Europe,Champions League,CUP,2014/2015,Porto,Shakhtar Donetsk,D,1,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,14,4,0,65,6,13,2,0,6,3,0,35,7,15,2,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Roma,Manchester City,A,0,2,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,9,0,57,7,11,1,0,9,4,0,43,4,17,2,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Maribor,Schalke 04,A,0,1,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,5,0,49,3,6,0,0,18,4,0,51,5,13,0,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Chelsea,Sporting CP,H,3,1,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,16,5,0,55,4,10,1,0,13,4,0,45,5,14,4,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Ajax,APOEL,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,8,0,70,6,9,0,0,5,0,0,30,3,8,2,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Athletic Club,BATE,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,29,7,0,64,5,6,2,0,1,0,0,36,4,11,1,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Bayern München,CSKA Moskva,H,3,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,26,10,0,72,8,5,1,0,7,1,0,28,5,8,3,0
+2014-12-10,Europe,Champions League,CUP,2014/2015,Barcelona,Paris Saint Germain,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,11,5,0,60,3,12,0,0,10,4,0,40,3,12,1,0
+2015-02-17,Europe,Champions League,CUP,2014/2015,Shakhtar Donetsk,Bayern München,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,2,1,0,36,6,14,3,0,15,2,0,64,1,20,4,1
+2015-02-17,Europe,Champions League,CUP,2014/2015,Paris Saint Germain,Chelsea,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,26,14,0,54,11,19,2,0,2,1,0,46,3,19,2,0
+2015-02-18,Europe,Champions League,CUP,2014/2015,Schalke 04,Real Madrid,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,3,0,39,2,15,3,0,11,4,0,61,2,9,1,0
+2015-02-18,Europe,Champions League,CUP,2014/2015,Basel,Porto,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,1,1,0,36,11,20,5,0,26,14,0,64,3,13,4,0
+2015-02-24,Europe,Champions League,CUP,2014/2015,Manchester City,Barcelona,A,1,2,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,24,12,0,37,4,13,2,1,27,11,0,63,13,12,3,0
+2015-02-24,Europe,Champions League,CUP,2014/2015,Juventus,Borussia Dortmund,H,2,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,19,6,0,46,4,8,2,0,20,6,0,54,16,9,0,0
+2015-02-25,Europe,Champions League,CUP,2014/2015,Bayer Leverkusen,Atlético Madrid,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,21,5,0,65,12,25,5,0,19,5,0,35,1,11,4,1
+2015-02-25,Europe,Champions League,CUP,2014/2015,Arsenal,Monaco,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,26,7,0,57,1,12,3,0,17,10,0,43,9,10,2,0
+2015-03-10,Europe,Champions League,CUP,2014/2015,Real Madrid,Schalke 04,A,3,4,D,2,2,N/A,N/A,N/A,N/A,N/A,N/A,14,9,0,48,5,4,2,0,20,10,0,52,7,7,1,0
+2015-03-10,Europe,Champions League,CUP,2014/2015,Porto,Basel,H,4,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,10,0,51,3,4,1,0,10,4,0,49,4,19,4,1
+2015-03-11,Europe,Champions League,CUP,2014/2015,Chelsea,Paris Saint Germain,D,2,2,D,0,0,D,2,2,N/A,N/A,N/A,23,9,0,49,1,24,3,0,19,8,0,51,29,15,4,1
+2015-03-11,Europe,Champions League,CUP,2014/2015,Bayern München,Shakhtar Donetsk,H,7,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,42,23,0,73,5,13,2,0,6,1,0,27,19,5,1,1
+2015-03-17,Europe,Champions League,CUP,2014/2015,Atlético Madrid,Bayer Leverkusen,H,1,0,H,1,0,H,1,0,H,3,2,22,8,0,48,6,8,4,0,14,7,0,52,16,23,6,0
+2015-03-17,Europe,Champions League,CUP,2014/2015,Monaco,Arsenal,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,5,1,0,29,7,13,1,0,30,14,0,71,2,10,1,0
+2015-03-18,Europe,Champions League,CUP,2014/2015,Barcelona,Manchester City,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,42,20,0,57,14,6,1,0,25,10,0,43,5,12,5,0
+2015-03-18,Europe,Champions League,CUP,2014/2015,Borussia Dortmund,Juventus,A,0,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,12,4,0,55,12,7,1,0,15,9,0,45,4,8,0,0
+2015-04-14,Europe,Champions League,CUP,2014/2015,Juventus,Monaco,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,13,5,0,64,6,7,0,0,16,4,0,36,7,15,1,0
+2015-04-14,Europe,Champions League,CUP,2014/2015,Atlético Madrid,Real Madrid,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,8,2,0,39,7,19,3,0,17,8,0,61,5,11,2,0
+2015-04-15,Europe,Champions League,CUP,2014/2015,Paris Saint Germain,Barcelona,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,8,4,0,34,4,10,1,0,11,6,0,66,4,12,2,0
+2015-04-15,Europe,Champions League,CUP,2014/2015,Porto,Bayern München,H,3,1,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,6,4,0,32,3,16,3,0,5,3,0,68,6,22,4,0
+2015-04-21,Europe,Champions League,CUP,2014/2015,Barcelona,Paris Saint Germain,H,2,0,H,2,0,N/A,N/A,N/A,N/A,N/A,N/A,11,6,0,57,5,11,0,0,9,2,0,43,1,16,1,0
+2015-04-21,Europe,Champions League,CUP,2014/2015,Bayern München,Porto,H,6,1,H,5,0,N/A,N/A,N/A,N/A,N/A,N/A,21,10,0,55,4,19,1,0,3,1,0,45,1,19,3,1
+2015-04-22,Europe,Champions League,CUP,2014/2015,Monaco,Juventus,D,0,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,12,1,0,56,6,14,2,0,5,1,0,44,4,17,2,0
+2015-04-22,Europe,Champions League,CUP,2014/2015,Real Madrid,Atlético Madrid,H,1,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,23,8,0,63,10,15,2,0,6,2,0,37,4,12,2,1
+2015-05-05,Europe,Champions League,CUP,2014/2015,Juventus,Real Madrid,H,2,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,12,7,0,48,1,21,4,0,13,4,0,52,5,13,3,0
+2015-05-06,Europe,Champions League,CUP,2014/2015,Barcelona,Bayern München,H,3,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,15,8,0,45,2,15,3,0,8,0,0,55,3,14,3,0
+2015-05-12,Europe,Champions League,CUP,2014/2015,Bayern München,Barcelona,H,3,2,A,1,2,N/A,N/A,N/A,N/A,N/A,N/A,19,8,0,54,5,19,5,0,5,4,0,46,1,12,2,0
+2015-05-13,Europe,Champions League,CUP,2014/2015,Real Madrid,Juventus,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,23,5,0,54,8,11,2,0,7,4,0,46,6,7,2,0
+2015-06-06,Europe,Champions League,CUP,2014/2015,Juventus,Barcelona,A,1,3,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,0,38,8,24,2,0,17,8,0,62,6,12,1,0
