@@ -54,8 +54,10 @@ def build_features(df_data):
 
   print(df_data["Date"].tail(18))
   df_data["DateOrig"] = df_data["Date"]
+  df_data["Month"] = [(datetime.strptime(dt, '%d.%m.%Y').strftime("%b")) for dt in df_data["DateOrig"]]
   df_data["Date"]= [(datetime.strptime(dt, '%d.%m.%Y').toordinal()-734138) for dt in df_data["Date"]]
-  df_data.sort_values("Date").reset_index(drop=True)
+  df_data.sort_values("Date", inplace=True)
+  df_data.reset_index(drop=True, inplace=True)
   df_data.replace(-1, np.nan, inplace=True)
   df_data.replace("-1", np.nan, inplace=True)
 
@@ -71,6 +73,16 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.Time), "Time"]="15:30"
   df_data["DateOrig"] = pd.to_datetime(df_data['DateOrig'] + ' ' + df_data['Time'])
   df_data["Time"] = df_data["Time"].str.slice(0,2).astype(float)+1/60*df_data["Time"].str.slice(3,5).astype(float)-14.5
+  print(df_data.LEAGUE.value_counts())
+  df_data.LEAGUE.fillna("BL", inplace=True)
+  print(df_data.LEAGUE.value_counts())
+  df_data["cup"] = df_data.LEAGUE.ne("BL").astype(int)
+  df_data.loc[pd.isna(df_data.HTHG), "HTHG"] = 0
+  df_data.loc[pd.isna(df_data.HTAG), "HTAG"] = 0
+  df_data.loc[pd.isna(df_data.HTR), "HTR"] = 'D'
+  df_data.loc[pd.isna(df_data.BWH), "BWH"] = 1/0.4
+  df_data.loc[pd.isna(df_data.BWD), "BWD"] = 1/0.25
+  df_data.loc[pd.isna(df_data.BWA), "BWA"] = 1/0.35
   df_data.loc[pd.isna(df_data.H_PT), "H_PT"] = 50
   df_data.loc[pd.isna(df_data.A_PT), "A_PT"] = 50
   df_data.H_PT /= 100 # percentage to 0..1
@@ -83,6 +95,17 @@ def build_features(df_data):
   #fill NA with mean() of each column in boston dataset
   #print(df_data.isna().any())
   #df_data = df_data.apply(lambda x: x.fillna(x.mean()),axis=0)
+  impute_cols = ["HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR"]
+  to_be_imputed_rows = pd.isna(df_data.HS)
+  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].index))
+  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].index))
+  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].index))
+  df_data.loc[to_be_imputed_rows, impute_cols] = df_data.loc[~to_be_imputed_rows, impute_cols].sample(len(df_data.loc[to_be_imputed_rows, impute_cols].index))
+
+  df_data["FT_ET_PEN_R"] = df_data.PENR.combine_first(df_data.ETR.combine_first(df_data.FTR))
+  df_data["is_ET"] = (~pd.isna(df_data.ETR)).astype(int)
+  df_data["is_PEN"] = (~pd.isna(df_data.PENR)).astype(int)
+
   df_data.fillna(value=0, inplace=True)
 
   df_data.rename(columns={
@@ -99,10 +122,16 @@ def build_features(df_data):
   df1['OwnGoals'] = df_data["HGFT"]
   df1['HomeTeam'] = df1["Team1"]
   df1['Season'] = df_data["Season"]
+  df1['LEAGUE'] = df_data["LEAGUE"]
+  df1['cup'] = df_data["cup"]
+  df1['FT_ET_PEN_R'] = df_data['FT_ET_PEN_R'].replace({"H":"win", "D":"draw", "A":"loss"})
+  df1['is_ET'] = df_data['is_ET']
+  df1['is_PEN'] = df_data['is_PEN']
   #df1["Train"] = df_data["Train"]
   df1["Date"]= df_data["Date"]
   df1["DateOrig"]= df_data["DateOrig"]
   df1["Dow"]= df_data["Dow"]
+  df1["Month"] = df_data["Month"]
   df1["Time"]= df_data["Time"]
   df1["Predict"]= df_data["Predict"]
 
@@ -124,10 +153,16 @@ def build_features(df_data):
   df2['OwnGoals'] = df_data["AGFT"]
   df2['HomeTeam'] = df1["Team2"]
   df2['Season'] = df_data["Season"]
+  df2['LEAGUE'] = df_data["LEAGUE"]
+  df2['cup'] = df_data["cup"]
+  df2['FT_ET_PEN_R'] = df_data['FT_ET_PEN_R'].replace({"H":"loss", "D":"draw", "A":"win"})
+  df2['is_ET'] = df_data['is_ET']
+  df2['is_PEN'] = df_data['is_PEN']
   #df2["Train"] = df_data["Train"]
   df2["Date"]= df_data["Date"]
   df2["DateOrig"]= df_data["DateOrig"]
   df2["Dow"]= df_data["Dow"]
+  df2["Month"] = df_data["Month"]
   df2["Time"]= df_data["Time"]
   df2["Predict"]= df_data["Predict"]
 
@@ -151,8 +186,8 @@ def build_features(df_data):
     awaycol="A"+colname
     df1["T1_"+colname] = df_data[homecol]
     df1["T2_"+colname] = df_data[awaycol]
-    df2["T1_"+colname] = df_data[awaycol]
     df2["T2_"+colname] = df_data[homecol]
+    df2["T1_"+colname] = df_data[awaycol]
     label_column_names += ["T1_"+colname, "T2_"+colname]
 
   label_column_names = label_column_names[:-6] # cut off ["Hspi","Aspi","Himp","Aimp","HGFTe","AGFTe"] # these are not features, not labels
@@ -169,7 +204,7 @@ def build_features(df_data):
   df1.index=df1.index*2
   df2.index=df1.index+1
   features = pd.concat([df1,df2], ignore_index=False)
-  features = features.sort_index()
+  features.sort_index(inplace=True)
 
   print(features[["BW1", "BW0", "BW2"]])
   #print(features[["B365_1", "B365_0", "B365_2"]])
@@ -260,17 +295,18 @@ def build_features(df_data):
 
   #features["Season"]
   #features["Team1_index"]
-  gt1 = features.groupby(["Season", "Team1_index"])
-  gt2 = features.groupby(["Season", "Team2_index"])
-  gt1w = features.groupby(["Season", "Team1_index","Where"])
-  gt2w = features.groupby(["Season", "Team2_index","Where"])
+  gt1 = features.groupby(["LEAGUE", "Season", "Team1_index"])
+  gt2 = features.groupby(["LEAGUE", "Season", "Team2_index"])
+  gt1w = features.groupby(["LEAGUE", "Season", "Team1_index","Where"])
+  gt2w = features.groupby(["LEAGUE", "Season", "Team2_index","Where"])
   gtt1 = features.groupby(["Team1_index"])
   gtt2 = features.groupby(["Team2_index"])
 
   halftime_ema = "30 days"
   features["t1games"] = gt1.cumcount()
   features["t2games"] = gt2.cumcount()
-  features["roundsleft"] = 34-features["t1games"]
+  total_rounds = features.groupby("LEAGUE").t1games.transform(max)
+  features["roundsleft"] = total_rounds - features["t1games"]
   features["t1goals"] = (gt1["OwnGoals"].cumsum()-features["OwnGoals"])/(features["t1games"]+2)
   features["t2goals"] = (gt2["OpponentGoals"].cumsum()-features["OpponentGoals"])/(features["t2games"]+2)
   features["t12goals"] = features["t1goals"] - features["t2goals"]
@@ -278,8 +314,8 @@ def build_features(df_data):
   features.loc[features["t2games"]==0, "t2goals"] = 1.45
   features["t1points"] = gt1["zGamePoints1"].cumsum()-features["zGamePoints1"]
   features["t2points"] = gt2["zGamePoints2"].cumsum()-features["zGamePoints2"]
-  features["t1rank"] = features.groupby(["Season", "t1games"])["t1points"].rank(ascending=False)
-  features["t2rank"] = features.groupby(["Season", "t2games"])["t2points"].rank(ascending=False)
+  features["t1rank"] = features.groupby(["LEAGUE", "Season", "t1games"])["t1points"].rank(ascending=False)
+  features["t2rank"] = features.groupby(["LEAGUE", "Season", "t2games"])["t2points"].rank(ascending=False)
   features["t1rank6_attention"] = [np.exp(-0.1*np.square(x-6)) for x in features["t1rank"]]
   features["t2rank6_attention"] = [np.exp(-0.1*np.square(x-6)) for x in features["t2rank"]]
   features["t1rank16_attention"] = [np.exp(-0.1*np.square(x-16)) for x in features["t1rank"]]
@@ -294,7 +330,7 @@ def build_features(df_data):
   features["t1games_where"] = gt1w.cumcount()
   features["t2games_where"] = gt2w.cumcount()
 
-  feature_column_names = ["Where", "Predict", "Team1", "Team2", "Team1_index", "Team2_index", "Date", "Time", "t1games",
+  feature_column_names = ["Where", "Predict", "Team1", "Team2", "Season", "DateOrig", "Team1_index", "Team2_index", "Date", "Time", "t1games","t2games",
                           "t1dayssince", "t2dayssince", "t1dayssince_ema", "t2dayssince_ema",
                           "roundsleft", "t1promoted", "t2promoted"]
   feature_column_names += ["t1points", "t2points", "t1rank", "t2rank",
@@ -368,11 +404,9 @@ def build_features(df_data):
 
   #features.columns.values
   # feature scaling
-  features["t1games"] /= 34.0
-  features["t2games"] /= 34.0
-  features["roundsleft"] /= 34.0
-  # build feature such that winter games near mid-season can be distinguished from summer. Likelyhood of draw results increases in mid-season ...
-  features["t1games"] = (features["t1games"]-0.5)**2
+  features["t1games"] /= total_rounds
+  features["t2games"] /= total_rounds
+  features["roundsleft"] /= total_rounds
 
   gt1_total = features.groupby(["Team1_index"])
   gt2_total = features.groupby(["Team2_index"])
@@ -393,18 +427,35 @@ def build_features(df_data):
 #  features["t2dayssince"] = [x.iloc[0] if len(x)==1 else 0.0 for x in features["t2dayssince"]]
 
   t1ds = features["Date"]-features.groupby("Team1_index").Date.shift(1)
+  t1ds *= 1000
+  t1ds = np.maximum(2, np.minimum(t1ds, 30))
   t1ds.fillna(t1ds.mean(), inplace=True)
-  t1ds = np.minimum(t1ds, 0.03)
-  features["t1dayssince"] = t1ds
+  features["t1dayssince"] = 1/t1ds
 
   t2ds = features["Date"]-features.groupby("Team2_index").Date.shift(1)
+  t2ds *= 1000
+  t2ds = np.maximum(2, np.minimum(t2ds, 30))
   t2ds.fillna(t2ds.mean(), inplace=True)
-  t2ds = np.minimum(t2ds, 0.03)
-  features["t2dayssince"] = t2ds
+  features["t2dayssince"] = 1/t2ds
 
   features["t1dayssince_ema"] = gt1.t1dayssince.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
   features["t2dayssince_ema"] = gt2.t2dayssince.apply(lambda x: x.shift(1).ewm(halflife=2).mean())
   features.fillna(0,  inplace=True)
+
+  features["t1_prev_ET"] = features.groupby("Team1_index").is_ET.shift(1)
+  features["t2_prev_ET"] = features.groupby("Team2_index").is_ET.shift(1)
+  features["t1_prev_PEN"] = features.groupby("Team1_index").is_PEN.shift(1)
+  features["t2_prev_PEN"] = features.groupby("Team2_index").is_PEN.shift(1)
+  features.fillna(0,  inplace=True)
+
+  feature_column_names += ["cup", "t1_prev_ET", "t2_prev_ET", "t1_prev_PEN", "t2_prev_PEN"]
+
+  features['t1_prev_FT_ET_PEN_R'] = features.groupby("Team1_index").FT_ET_PEN_R.shift(1)
+  features['t2_prev_FT_ET_PEN_R'] = features.groupby("Team2_index").FT_ET_PEN_R.shift(1)
+  features['t1_prev_FT_ET_PEN_R'].fillna("draw",  inplace=True)
+  features['t2_prev_FT_ET_PEN_R'].fillna("draw",  inplace=True)
+  features['t1_prev_FT_ET_PEN_R'].replace(0, "draw", inplace=True)
+  features['t2_prev_FT_ET_PEN_R'].replace(0, "draw", inplace=True)
 
   t1new = features["Season"]-features.groupby("Team1_index").Season.shift(34)
   t1new.fillna(0, inplace=True)
@@ -421,6 +472,18 @@ def build_features(df_data):
   dow = pd.get_dummies(features["Dow"])
   features = pd.concat([features, dow], axis=1)
   feature_column_names += list(dow.columns)
+
+  month = pd.get_dummies(features["Month"])
+  features = pd.concat([features, month], axis=1)
+  feature_column_names += list(month.columns)
+
+  t1_prev_FT_ET_PEN_R = pd.get_dummies(features["t1_prev_FT_ET_PEN_R"], prefix="t1_prev_FT_ET_PEN_R")
+  features = pd.concat([features, t1_prev_FT_ET_PEN_R], axis=1)
+  feature_column_names += list(t1_prev_FT_ET_PEN_R.columns)
+
+  t2_prev_FT_ET_PEN_R = pd.get_dummies(features["t2_prev_FT_ET_PEN_R"], prefix="t2_prev_FT_ET_PEN_R")
+  features = pd.concat([features, t2_prev_FT_ET_PEN_R], axis=1)
+  feature_column_names += list(t2_prev_FT_ET_PEN_R.columns)
 
   gr_all = features.loc[:, label_column_names + ["Where"]].reset_index().groupby(["Where"])
   rs = gr_all.rolling(11*9).sum() - gr_all.rolling(1*9).sum()
@@ -451,7 +514,7 @@ def build_features(df_data):
   label_column_names.remove("T1_xnsg")
   label_column_names.remove("T2_xnsg")
 
-  label_column_names = label_column_names+["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg", "T1_xG", "T2_xG", "T1__PT", "T2__PT"]
+  label_column_names = label_column_names+["T1_GFTa","T2_GFTa","T1_xsg","T2_xsg","T1_xnsg","T2_xnsg", "T1_xG", "T2_xG", "T1__PT", "T2__PT", "Season"]
   labels_df =  features[label_column_names].copy()
   #label_df.describe()
   features_df = features[feature_column_names].copy()

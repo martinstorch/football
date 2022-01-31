@@ -335,6 +335,50 @@ boj_data = boj_data[['Season' ,'Predict',"DATE","HOME_TEAM","AWAY_TEAM","FTHG","
 boj_data.H_PT.replace('SNV', -1, inplace=True)
 boj_data.A_PT.replace('SNV', -1, inplace=True)
 print(boj_data.HOME_TEAM.unique())
+# standardize team names
+boj_team_mapping= pd.read_csv(dir_path+"/boj_team_mapping.csv", sep='\t')
+boj_data= boj_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
+boj_data["Date"]=pd.to_datetime(boj_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
+boj_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
+print(boj_data[-9:])
+
+cup_data = []
+for s in all_seasons[1:]:
+    sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download, prefix="CL", league="europe-champions-league")
+    sdata["Predict"]=False
+    cup_data.append(sdata)
+    sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download, prefix="EL", league="europe-europa-league")
+    sdata["Predict"] = False
+    cup_data.append(sdata)
+cup_data = pd.concat(cup_data, ignore_index=True)
+cup_data = cup_data[['Season' ,'Predict',"LEAGUE", "DATE","HOME_TEAM","AWAY_TEAM","FTHG","FTAG","FTR","HTHG","HTAG","HTR","ETR", "ETHG", "ETAG", "PENR", "PENHG", "PENAG", "H_ST","H_SOG","H_SFG","H_PT","H_COR","H_FL","H_YC","H_RC","A_ST","A_SOG","A_SFG","A_PT","A_COR","A_FL","A_YC","A_RC"]]
+cup_data.H_PT.replace('SNV', -1, inplace=True)
+cup_data.A_PT.replace('SNV', -1, inplace=True)
+cup_data.replace('N/A', -1, inplace=True)
+cup_data.fillna(-1, inplace=True)
+cup_data = cup_data.astype({'HTHG':int, 'HTAG':int, 'ETHG':int, 'ETAG':int, 'PENHG':int, 'PENAG':int})
+
+# standardize team names
+cup_data= cup_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
+cup_data = cup_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
+cup_data = cup_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
+cup_data = cup_data.loc[~pd.isna(cup_data.HomeTeam) | ~pd.isna(cup_data.AwayTeam)]
+cup_data.HomeTeam.loc[pd.isna(cup_data.HomeTeam)] = cup_data.LEAGUE.loc[pd.isna(cup_data.HomeTeam)]
+cup_data.AwayTeam.loc[pd.isna(cup_data.AwayTeam)] = cup_data.LEAGUE.loc[pd.isna(cup_data.AwayTeam)]
+
+cup_data["Date"]=pd.to_datetime(cup_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
+cup_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
+cup_data.rename(columns ={"H_ST":"HS", "A_ST":"AS", "H_SOG":"HST", "A_SOG":"AST", "H_COR":"HC", "A_COR":"AC",
+                          "H_FL":"HF", "A_FL":"AF", "H_YC":"HY", "A_YC":"AY", "H_RC":"HR", "A_RC":"AR" }, inplace=True)
+cup_data.replace('N/A', -1, inplace=True)
+cup_data.replace('SNV', -1, inplace=True)
+cup_data.fillna(-1, inplace=True)
+#print(cup_data[-36:])
+#print(cup_data.HOME_TEAM.unique())
+#print(cup_data.HomeTeam.unique())
+
 
 all_data = []
 for s in all_seasons:
@@ -350,14 +394,6 @@ print(all_data.iloc[-9:,list(range(22))+[24, 25, 26]])
 #print(set(all_data.columns.values)-set(sdata.columns.values))
 
 # standardize team names
-boj_team_mapping= pd.read_csv(dir_path+"/boj_team_mapping.csv", sep='\t')
-boj_data= boj_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
-boj_data = boj_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
-boj_data = boj_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
-boj_data["Date"]=pd.to_datetime(boj_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
-boj_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
-print(boj_data[-9:])
-# standardize team names
 team_mapping= pd.read_csv(dir_path+"/xg_team_mapping.csv").drop(columns="Unnamed: 0")
 xgdf= pd.read_csv(dir_path+"/xgoals.csv")
 xgdf= xgdf.merge(team_mapping, left_on="HomeTeam", right_on="xgTeam", how="left")
@@ -372,7 +408,7 @@ print(xgdf[-9:])
 # standardize team names
 spi_team_mapping= pd.read_csv(dir_path+"/spi_team_mapping.csv").drop(columns="Unnamed: 0")
 spidf= pd.read_csv(dir_path+"/spi_matches.csv")
-spidf= spidf.loc[spidf.league=="German Bundesliga"].drop(columns=["league_id", "league"])
+spidf= spidf.loc[spidf.league.isin(["German Bundesliga", "UEFA Champions League", "UEFA Europa League", "UEFA Europa Conference League"])].drop(columns=["league_id"]) #
 spidf= spidf.merge(spi_team_mapping, left_on="team1", right_on="spiTeam", how="left")
 spidf = spidf.merge(spi_team_mapping, left_on="team2", right_on="spiTeam", how="left")
 spidf = spidf.drop(columns=["spiTeam_x", "spiTeam_y"]).rename(columns=
@@ -392,6 +428,12 @@ first_new_match=min(spidf.loc[pd.isna(spidf.HG)].index)
 print((spidf.loc[(first_new_match-9):(first_new_match-1), ["HomeTeam", "AwayTeam", "Date", "HG", "AG", "HGFTa", "AGFTa", "Hxsg", "Axsg","Hxnsg", "Axnsg"]]).astype({"HG":int, "AG":int}))
 print()
 print((spidf.loc[first_new_match:first_new_match+8, ["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]]))
+#print((spidf.loc[pd.isna(spidf.HomeTeam) & ~pd.isna(spidf.AwayTeam), ["HomeTeam", "AwayTeam", "Date", "team1", "team2", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]]))
+#print((spidf.loc[pd.isna(spidf.AwayTeam) & ~pd.isna(spidf.HomeTeam), ["HomeTeam", "AwayTeam", "Date", "team1", "team2", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]]))
+spidf.HomeTeam.loc[pd.isna(spidf.HomeTeam) & ~pd.isna(spidf.AwayTeam) & spidf.league.eq("UEFA Champions League")] = 'Champions League'
+spidf.AwayTeam.loc[~pd.isna(spidf.HomeTeam) & pd.isna(spidf.AwayTeam) & spidf.league.eq("UEFA Champions League")] = 'Champions League'
+spidf.HomeTeam.loc[pd.isna(spidf.HomeTeam) & ~pd.isna(spidf.AwayTeam) & spidf.league.eq("UEFA Europa League")] = 'Europa League'
+spidf.AwayTeam.loc[~pd.isna(spidf.HomeTeam) & pd.isna(spidf.AwayTeam) & spidf.league.eq("UEFA Europa League")] = 'Europa League'
 
 team_mapping_bwin= pd.read_csv(dir_path+"/bwin_team_mapping.csv", sep="\t")
 quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
@@ -413,14 +455,17 @@ full_data = all_data[['Date', 'Season', 'Predict', 'HomeTeam', 'AwayTeam',
                       'HY', 'AY', 'HR', 'AR',
                       'BWH', 'BWD', 'BWA',
                       ]].copy()
-full_data["Dow"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x: x.strftime('%A'))
 full_data["Date"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x: x.strftime('%d.%m.%Y'))
 
 full_data = full_data.merge(xgdf[["HomeTeam", "AwayTeam", "Date", "Time", "xHG" , "xAG"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 
 full_data = full_data.merge(boj_data[["HomeTeam", "AwayTeam", "Date", "H_PT" , "A_PT"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
+full_data = pd.concat([full_data, cup_data], ignore_index=True) # add cup data to league play data
 
-full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA", "HGFTa", "AGFTa", "Hxsg", "Axsg", "Hxnsg", "Axnsg"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
+full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA", "HGFTa", "AGFTa", "Hxsg", "Axsg", "Hxnsg", "Axnsg"]],
+                            how="left", on=["HomeTeam", "AwayTeam", "Date"])
+
+full_data["Dow"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x: x.strftime('%A'))
 
 new_data = quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]
 new_data = new_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
@@ -432,7 +477,9 @@ full_data = full_data.astype({'FTHG':int, 'FTAG':int,
                         'H_PT':int, 'A_PT':int,
                        'HS':int, 'AS':int, 'HST':int, 'AST':int,
                        'HF':int, 'AF':int, 'HC':int, 'AC':int,
-                       'HY':int, 'AY':int, 'HR':int, 'AR':int
+                       'HY':int, 'AY':int, 'HR':int, 'AR':int,
+                              'ETHG':int, 'ETAG':int,
+                              'PENHG':int, 'PENAG':int,
                               })
 full_data.to_csv(dir_path+"/full_data.csv", index=False)
 full_data.info()

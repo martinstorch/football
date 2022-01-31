@@ -1365,12 +1365,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=3,
+            default=10,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=3,
+            default=15,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -1414,14 +1414,14 @@
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8_2122_batch_boj",
+            default="vi8_2122_batch_boj2",
             #default="vi8relubatch",
             help="The prefix to be used for model files"
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            #default="best",
-            default="-1",  # slice(-2, None)
+            default="best",
+            #default="-1",  # slice(-2, None)
             #default="20211101_135039",
             #default = "20211108_090047",
             # default="",
@@ -1434,9 +1434,9 @@
             "--action",
             type=str,
             # default="static",
-            default="train",
+            #default="train",
             # default="eval_stop",
-            #default="eval",
+            default="eval",
             # default="predict",
             # default="upgrade",
             # default="train_eval",
