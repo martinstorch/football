@@ -118,7 +118,7 @@ def load_bwin_quotes():
 
   #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
   #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
-  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver96/chromedriver.exe",   chrome_options=chrome_options)
+  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver98/chromedriver.exe",   chrome_options=chrome_options)
   driver.set_page_load_timeout(30000)
   driver.set_script_timeout(30000)
   driver.get(url)
@@ -326,7 +326,7 @@ print(xgdf)
 all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
 boj_data = []
 for s in all_seasons[1:]:
-  sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download)
+  sdata = download_betonjamesdata(dir_path, s, skip_download=True)
   #print(sdata.columns.values)
   sdata["Predict"]=False
   boj_data.append(sdata)
@@ -346,10 +346,10 @@ print(boj_data[-9:])
 
 cup_data = []
 for s in all_seasons[1:]:
-    sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download, prefix="CL", league="europe-champions-league")
+    sdata = download_betonjamesdata(dir_path, s, skip_download=True, prefix="CL", league="europe-champions-league")
     sdata["Predict"]=False
     cup_data.append(sdata)
-    sdata = download_betonjamesdata(dir_path, s, skip_download=skip_download, prefix="EL", league="europe-europa-league")
+    sdata = download_betonjamesdata(dir_path, s, skip_download=True, prefix="EL", league="europe-europa-league")
     sdata["Predict"] = False
     cup_data.append(sdata)
 cup_data = pd.concat(cup_data, ignore_index=True)

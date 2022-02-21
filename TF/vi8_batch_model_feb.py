@@ -1439,7 +1439,7 @@
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8_2122_batch_boj_bwin_offset",
+            default="vi8_2122_batch_feb",
             #default="vi8relubatch",
             help="The prefix to be used for model files"
         )

@@ -83,6 +83,9 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.BWH), "BWH"] = 1/0.4
   df_data.loc[pd.isna(df_data.BWD), "BWD"] = 1/0.25
   df_data.loc[pd.isna(df_data.BWA), "BWA"] = 1/0.35
+  df_data.loc[pd.isna(df_data.ppH), "ppH"] = 0.4
+  df_data.loc[pd.isna(df_data.ppD), "ppD"] = 0.25
+  df_data.loc[pd.isna(df_data.ppA), "ppA"] = 0.35
   df_data.loc[pd.isna(df_data.H_PT), "H_PT"] = 50
   df_data.loc[pd.isna(df_data.A_PT), "A_PT"] = 50
   df_data.H_PT /= 100 # percentage to 0..1
@@ -105,6 +108,13 @@ def build_features(df_data):
   df_data["FT_ET_PEN_R"] = df_data.PENR.combine_first(df_data.ETR.combine_first(df_data.FTR))
   df_data["is_ET"] = (~pd.isna(df_data.ETR)).astype(int)
   df_data["is_PEN"] = (~pd.isna(df_data.PENR)).astype(int)
+
+  df_data.Hspi.fillna(value=df_data.Hspi.mean(), inplace=True)
+  df_data.Aspi.fillna(value=df_data.Aspi.mean(), inplace=True)
+  df_data.Himp.fillna(value=df_data.Himp.mean(), inplace=True)
+  df_data.Aimp.fillna(value=df_data.Aimp.mean(), inplace=True)
+  df_data.HGFTe.fillna(value=df_data.HGFTe.mean(), inplace=True)
+  df_data.AGFTe.fillna(value=df_data.AGFTe.mean(), inplace=True)
 
   df_data.fillna(value=0, inplace=True)
 

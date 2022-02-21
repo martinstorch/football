@@ -179,3 +179,21 @@ DATE,COUNTRY,LEAGUE,TYPE,SEASON,HOME_TEAM,AWAY_TEAM,FTR,FTHG,FTAG,HTR,HTHG,HTAG,
 2022-01-22,Germany,Bundesliga,LEAGUE,2021/2022,SC Freiburg,VfB Stuttgart,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,50,6,12,1,0,6,1,5,50,3,7,1,0
 2022-01-23,Germany,Bundesliga,LEAGUE,2021/2022,Hertha BSC,FC Bayern München,A,1,4,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,5,2,3,30,4,9,1,0,31,19,12,70,9,9,0,0
 2022-01-23,Germany,Bundesliga,LEAGUE,2021/2022,RB Leipzig,VfL Wolfsburg,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,5,5,54,4,17,5,0,9,3,6,46,3,16,1,0
+2022-02-04,Germany,Bundesliga,LEAGUE,2021/2022,Hertha BSC,VfL Bochum 1848,D,1,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,10,52,4,15,3,0,8,2,6,48,7,22,1,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,FC Köln,SC Freiburg,H,1,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,13,3,10,43,8,14,2,0,16,3,13,57,8,15,2,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,FC Bayern München,RB Leipzig,H,3,2,H,2,1,N/A,N/A,N/A,N/A,N/A,N/A,25,8,17,58,2,11,1,0,11,7,4,42,0,12,3,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,FC Augsburg,FC Union Berlin,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,14,9,5,48,4,7,0,0,15,5,10,52,6,16,2,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,DSC Arminia Bielefeld,Borussia Mönchengladbach,D,1,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,10,4,6,39,5,14,3,0,23,5,18,61,11,11,3,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,FSV Mainz 05,TSG Hoffenheim,H,2,0,D,0,0,N/A,N/A,N/A,N/A,N/A,N/A,10,6,4,41,5,12,0,0,16,3,13,59,3,13,2,0
+2022-02-05,Germany,Bundesliga,LEAGUE,2021/2022,VfB Stuttgart,Eintracht Frankfurt,A,2,3,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,15,6,9,53,3,7,0,0,15,6,9,47,14,12,0,0
+2022-02-06,Germany,Bundesliga,LEAGUE,2021/2022,Borussia Dortmund,Bayer 04 Leverkusen,A,2,5,A,1,3,N/A,N/A,N/A,N/A,N/A,N/A,15,7,8,64,7,8,1,0,9,7,2,36,6,10,1,0
+2022-02-06,Germany,Bundesliga,LEAGUE,2021/2022,VfL Wolfsburg,SpVgg Greuther Fürth,H,4,1,D,1,1,N/A,N/A,N/A,N/A,N/A,N/A,14,6,8,57,2,11,1,0,8,4,4,43,3,13,2,0
+2022-02-11,Germany,Bundesliga,LEAGUE,2021/2022,RB Leipzig,FC Köln,H,3,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,6,4,2,50,5,6,1,0,9,2,7,50,6,11,2,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,Bayer 04 Leverkusen,VfB Stuttgart,H,4,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,20,7,13,69,10,10,3,0,6,3,3,31,0,6,2,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,VfL Bochum 1848,FC Bayern München,H,4,2,H,4,1,N/A,N/A,N/A,N/A,N/A,N/A,14,10,4,36,4,13,2,0,22,3,19,64,9,7,1,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,Borussia Mönchengladbach,FC Augsburg,H,3,2,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,3,13,57,3,8,2,0,16,7,9,43,2,12,2,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,SpVgg Greuther Fürth,Hertha BSC,H,2,1,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,16,5,11,41,8,11,2,0,25,4,21,59,8,12,4,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,Eintracht Frankfurt,VfL Wolfsburg,A,0,2,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,1,15,61,10,12,1,0,11,3,8,39,1,9,2,0
+2022-02-12,Germany,Bundesliga,LEAGUE,2021/2022,SC Freiburg,FSV Mainz 05,D,1,1,A,0,1,N/A,N/A,N/A,N/A,N/A,N/A,16,5,11,61,7,14,0,0,17,4,13,39,3,15,2,0
+2022-02-13,Germany,Bundesliga,LEAGUE,2021/2022,FC Union Berlin,Borussia Dortmund,A,0,3,A,0,2,N/A,N/A,N/A,N/A,N/A,N/A,13,4,9,39,2,20,4,0,8,5,3,61,5,9,1,0
+2022-02-13,Germany,Bundesliga,LEAGUE,2021/2022,TSG Hoffenheim,DSC Arminia Bielefeld,H,2,0,H,1,0,N/A,N/A,N/A,N/A,N/A,N/A,19,8,11,54,13,12,2,0,5,2,3,46,3,12,0,0
