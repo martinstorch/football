@@ -251,7 +251,7 @@
         return all_data, all_labels, all_features, teamnames, team_mapping, feature_names
 
 
-    def build_matrices(point_scheme):
+    def build_point_matrix(point_scheme):
         if point_scheme == point_scheme_pistor:
             point_matrix = np.array([[3 if (i // 7 == j // 7) and (np.mod(i, 7) == np.mod(j, 7)) else
                                       2 if (i // 7 - np.mod(i, 7) == j // 7 - np.mod(j, 7)) else
@@ -266,9 +266,7 @@
                 [[np.maximum(5, 10 - np.abs(i // 7 - j // 7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (
                         np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
                   0 for i in range(49)] for j in range(49)])
-        home_away_inversion_matrix = np.array(
-            [[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
-        return home_away_inversion_matrix, point_matrix
+        return point_matrix
 
 
     def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
@@ -1612,6 +1610,117 @@
         return (np.maximum(0, np.minimum(np.round(GS), 6)) * 7 + np.maximum(0, np.minimum(np.round(GC), 6))).astype(
             np.int32)
 
+    def plot_searchlog_points(searchlog):
+        plt.figure()
+        plt.plot(searchlog.score[1:])
+        plt.plot(searchlog.score[1:].loc[searchlog[1:].accept])
+        #plt.ylim(top=15)
+        plt.axhline(searchlog.score.min(), color="gray")
+        plt.show()
+        plt.figure()
+        plt.plot(searchlog.pts)
+        plt.plot(searchlog.pts.loc[searchlog.accept])
+        plt.plot(searchlog.tpts)
+        plt.plot(searchlog.tpts.loc[searchlog.accept])
+        plt.axhline(searchlog.pts.max(), color="gray")
+        plt.ylim(np.quantile(searchlog.pts, 0.05),np.quantile(searchlog.tpts, 0.9))
+        plt.show()
+
+    def plot_weights_distribution(surrogate_posterior, allweights):
+        surrpost_vars, _ = surrogate_posterior.sample_distributions()
+        l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out = surrpost_vars
+        l1weights, l2weights, lgweights, ohweights, smweights = allweights
+        fig, ax = plt.subplots(6, 3)
+        plt.subplots_adjust(left=0.04, bottom=0.03, right=0.96, top=0.97, wspace=0.08, hspace=0.18)
+
+        sns.distplot(l1w_in.mean().numpy().flatten(), ax=ax[0][0], rug=True, hist=False)
+        sns.distplot(l1w_in.stddev().numpy().flatten(), ax=ax[0][1], rug=True, hist=False)
+        sns.distplot(l1w_out.mean().numpy().flatten(), ax=ax[0][0], rug=True, hist=False)
+        sns.distplot(l1w_out.stddev().numpy().flatten(), ax=ax[0][1], rug=True, hist=False)
+        #sns.distplot(l2w_in.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
+        #sns.distplot(l2w_in.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
+        sns.distplot(l2w_out.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
+        sns.distplot(l2w_out.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
+        #sns.distplot(w_in.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
+        #sns.distplot(w_in.stddev().numpy().flatten(), ax=ax[2][1], rug=True, hist=False)
+        sns.distplot(w_out.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
+        sns.distplot(w_out.stddev().numpy().flatten(), ax=ax[2][1], rug=True, hist=False)
+        #sns.distplot(sm_in.mean().numpy().flatten(), ax=ax[3][0], rug=True, hist=False)
+        #sns.distplot(sm_in.stddev().numpy().flatten(), ax=ax[3][1], rug=True, hist=False)
+        sns.distplot(sm_out.mean().numpy().flatten(), ax=ax[3][0], rug=True, hist=False)
+        sns.distplot(sm_out.stddev().numpy().flatten(), ax=ax[3][1], rug=True, hist=False)
+
+        sns.distplot(lgw_out.mean().numpy().flatten(), ax=ax[4][0], rug=True, hist=False)
+        sns.distplot(lgw_out.stddev().numpy().flatten(), ax=ax[4][1], rug=True, hist=False)
+
+        sns.distplot(l1weights[...,:-1,:].numpy().flatten(), ax=ax[5][0], rug=True, hist=False)
+        sns.distplot(l2weights[...,:-1,:].numpy().flatten(), ax=ax[5][1], rug=True, hist=False)
+        sns.distplot(ohweights[...,:-1,:].numpy().flatten(), ax=ax[5][2], rug=True, hist=False)
+
+        sns.kdeplot(l1weights.numpy().flatten(), ax=ax[0][2], clip=(np.mean(l1weights.numpy())-3*np.std(l1weights.numpy()), np.mean(l1weights.numpy())+3*np.std(l1weights.numpy())))
+        sns.kdeplot(l2weights.numpy().flatten(), ax=ax[1][2], clip=(np.mean(l2weights.numpy())-3*np.std(l2weights.numpy()), np.mean(l2weights.numpy())+3*np.std(l2weights.numpy())))
+        sns.kdeplot(ohweights.numpy().flatten(), ax=ax[2][2], clip=(np.mean(ohweights.numpy())-3*np.std(ohweights.numpy()), np.mean(ohweights.numpy())+3*np.std(ohweights.numpy())))
+        sns.kdeplot(smweights.numpy().flatten(), ax=ax[3][2], clip=(np.mean(smweights.numpy())-3*np.std(smweights.numpy()), np.mean(smweights.numpy())+3*np.std(smweights.numpy())))
+        sns.kdeplot(lgweights.numpy().flatten(), ax=ax[4][2], clip=(np.mean(lgweights.numpy())-3*np.std(lgweights.numpy()), np.mean(lgweights.numpy())+3*np.std(lgweights.numpy())))
+        plt.show()
+
+    def plot_result_distribution(sample_train, sample_test, mean_train, mean_test):
+        train_points = sample_train["real_points"].numpy()
+        test_points = sample_test["real_points"].numpy()
+
+        train_softpoints = sample_train["mean_points"].numpy()
+        test_softpoints = sample_test["mean_points"].numpy()
+
+        train_mean_points = mean_train["real_points"].numpy()
+        test_mean_points = mean_test["real_points"].numpy()
+
+        train_mean_softpoints = mean_train["mean_points"].numpy()
+        test_mean_softpoints = mean_train["mean_points"].numpy()
+
+        train_mean_logpoints = mean_test["logpoints"].numpy()
+        test_mean_logpoints = mean_test["logpoints"].numpy()
+
+        fig, ax = plt.subplots(3, 2)
+        plt.subplots_adjust(left=0.04, bottom=0.08, right=0.96, top=0.92, wspace=0.08, hspace=0.18)
+        for i in range(batch_size):
+            sns.kdeplot(train_points[:,i], ax=ax[0][0])
+            sns.kdeplot(test_points[:,i], ax=ax[0][1])
+            sns.kdeplot(train_softpoints[:,i], ax=ax[1][0])
+            sns.kdeplot(test_softpoints[:,i], ax=ax[1][1])
+            sns.kdeplot(sample_train["logpoints"].numpy()[:,i], ax=ax[2][0])
+            sns.kdeplot(sample_test["logpoints"].numpy()[:,i], ax=ax[2][1])
+        ax[0][0].axvline(x=train_mean_points)
+        ax[0][1].axvline(x=test_mean_points)
+        ax[1][0].axvline(x=train_mean_softpoints)
+        ax[1][1].axvline(x=test_mean_softpoints)
+        ax[2][0].axvline(x=train_mean_logpoints)
+        ax[2][1].axvline(x=test_mean_logpoints)
+        plt.show()
+
+    def plot_new_predictions(df_pred, df_smpred):
+        home_away_inversion_matrix = np.array(
+            [[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
+
+        numMatches = min(9, pred_probs.shape[1]//2)
+        if True:
+            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
+            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
+            for j in range(batch_size):
+                for i in range(numMatches):
+                    pr = (pred_probs[j, 2 * i] + np.dot(pred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
+                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
+                                       prefix=df_pred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_pred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
+            plt.show()
+
+        if True:
+            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
+            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
+            for j in range(batch_size):
+                for i in range(numMatches):
+                    pr = (smpred_probs[j, 2 * i] + np.dot(smpred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
+                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
+                                       prefix=df_smpred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_smpred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
+            plt.show()
 
     def laplacian_matrix():
         m = [[-1 if abs(i - i2 + j - j2) == 1 and abs(i - i2 - j + j2) == 1 else \
@@ -1811,6 +1920,20 @@
         return weights, make_outputs, joint_model, make_surrogate_posterior, loss_function
 
 
+    def dictdiff(x, y):
+        return {k: y[k] - x[k] for k in x.keys()}
+
+
+    def eval_score(loss0a, loss0b):
+        sm0 = 0.1 * loss0a["softmax_lp_mean"] - loss0b["softmax_lp_mean"]
+        lp0 = 0.1 * loss0a["logpoints"] - loss0b["logpoints"]
+        ps0 = 0.1 * loss0a["poisson_lp_mean"] - loss0b["poisson_lp_mean"]
+        gs0 = 0.1 * loss0a["gaussian_lp_mean"] - loss0b["gaussian_lp_mean"]
+        pt0 = 0.1 * loss0a["real_points"] - loss0b["real_points"]
+        # score0=sm0+lp0+ps0+pt0-10*loss0b["real_points"]
+        score0 = sm0 + 0.3 * ps0 + gs0 + point_scale * (10 * lp0 + 0.5 * pt0)
+        return (score0)
+
     def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
                       checkpoints, save_steps, data_dir, max_to_keep,
                       reset_variables, skip_plotting, target_system, modes, use_swa, histograms, useBWIN):
@@ -1901,6 +2024,7 @@
 
     FLAGS = None
 
+    batch_size = 3
 
     def main(_):
         if tf.test.gpu_device_name() != '/device:GPU:0':
@@ -2070,7 +2194,7 @@
         # print(label_column_names)
         print(features_arrays["match_input_layer"].shape)
         print(labels_array.shape)
-        home_away_inversion_matrix, point_matrix = build_matrices(point_scheme)
+        point_matrix = build_point_matrix(point_scheme)
 
         X = features_arrays["match_input_layer"]
         print(X.shape)
@@ -2284,19 +2408,6 @@
                 surrpost_vars, samples = surrogate_posterior.sample_distributions(100)
                 l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out = surrpost_vars
 
-                def dictdiff(x,y):
-                    return {k:y[k]-x[k] for k in x.keys()}
-
-                def eval_score(loss0a, loss0b):
-                    sm0 = 0.1*loss0a["softmax_lp_mean"]-loss0b["softmax_lp_mean"]
-                    lp0 = 0.1*loss0a["logpoints"] - loss0b["logpoints"]
-                    ps0 = 0.1*loss0a["poisson_lp_mean"] - loss0b["poisson_lp_mean"]
-                    gs0 = 0.1*loss0a["gaussian_lp_mean"] - loss0b["gaussian_lp_mean"]
-                    pt0 = 0.1*loss0a["real_points"] - loss0b["real_points"]
-                    #score0=sm0+lp0+ps0+pt0-10*loss0b["real_points"]
-                    score0 = sm0 + 0.3*ps0 + gs0 + point_scale*(10*lp0 + 0.5*pt0)
-                    return(score0)
-
                 def train_surrogate_posterior(learning_rate=1e-2, steps=FLAGS.save_steps):
                     tfp.vi.fit_surrogate_posterior(
                         target_log_prob_cat,
@@ -2390,6 +2501,7 @@
                     # restore previous values
                     metaparams = oldmetaparams
                     reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
+                    l1weights, l2weights, lgweights, ohweights, smweights = allweights
                     l = len(surrogate_posterior.trainable_variables)
                     for value, variable in zip(oldvalues[:l], surrogate_posterior.trainable_variables):
                         variable.assign(value)
@@ -2400,226 +2512,17 @@
             filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
             searchlog.to_csv(filename, index=False)
 
-        plt.figure()
-        plt.plot(searchlog.score[1:])
-        plt.plot(searchlog.score[1:].loc[searchlog[1:].accept])
-        #plt.ylim(top=15)
-        plt.axhline(searchlog.score.min(), color="gray")
-        plt.show()
-        plt.figure()
-        plt.plot(searchlog.pts)
-        plt.plot(searchlog.pts.loc[searchlog.accept])
-        plt.plot(searchlog.tpts)
-        plt.plot(searchlog.tpts.loc[searchlog.accept])
-        plt.axhline(searchlog.pts.max(), color="gray")
-        plt.ylim(np.quantile(searchlog.pts, 0.05),np.quantile(searchlog.tpts, 0.9))
-        plt.show()
-
-        def plot_searchlog(xlabel, ylabel, ylabel2=None, x=None, y=None, y2=None, logy=False, lim=5, lim_x=None, lim_y=None):
-            if lim_x is None:
-                lim_x = lim
-            if lim_y is None:
-                lim_y = lim
-            fig = plt.figure()
-            if x is None:
-                x = searchlog.loc[:,xlabel]
-            if y is None:
-                y = searchlog.loc[:,ylabel]
-            if y2 is None and ylabel2 is not None:
-                y2 = searchlog.loc[:,ylabel2]
-            minx = np.min(x)
-            maxx = np.max(x)
-            miny = np.min(y)
-            maxy = np.max(y)
-            if y2 is not None:
-                miny = min(miny, np.min(y2))
-                maxy = max(maxy, np.max(y2))
-
-            plt.plot(x[1:-10], y[1:-10], color="lightgray")
-            plt.plot(x[-11:], y[-11:])
-            plt.scatter(x[1:], y[1:])
-            plt.scatter(x[searchlog.accept][1:], y[searchlog.accept][1:])
-            if y2 is not None:
-                plt.plot(x[1:-10], y2[1:-10], color="gray")
-                plt.plot(x[-11:], y2[-11:])
-                plt.scatter(x[1:], y2[1:])
-                plt.scatter(x[searchlog.accept][1:], y2[searchlog.accept][1:])
-            fig.axes[0].set_xlabel(xlabel)
-            fig.axes[0].set_ylabel(ylabel)
-            if xlabel!="logp" and xlabel!="score":
-                fig.axes[0].set_xscale('log')
-                iqrx = np.log(x).quantile(.75) - np.log(x).quantile(.25)
-                if lim is not None:
-                    plt.xlim(max(minx, np.exp(np.log(x).median() - lim_x * iqrx)), min(maxx, np.exp(np.log(x).median() + lim_x * iqrx)))
-            else:
-                iqrx = x.quantile(.75) - x.quantile(.25)
-                if lim is not None:
-                    plt.xlim(max(minx, x.median() - lim_x * iqrx), min(maxx, x.median() + lim_x * iqrx))
-            y3 = y if y2 is None else pd.concat([y, y2])
-
-            if logy:
-                fig.axes[0].set_yscale('log')
-                iqry = np.log(y3).quantile(.75) - np.log(y3).quantile(.25)
-                if lim is not None:
-                    plt.ylim(max(miny, np.exp(np.log(y3).median()-lim_y*iqry)), min(maxy, np.exp(np.log(y3).median()+lim_y*iqry)))
-            else:
-                iqry = y3.quantile(.75) - y3.quantile(.25)
-                if lim is not None:
-                    plt.ylim((max(miny, y3.median()-lim_y*iqry), min(maxy, y3.median()+lim_y*iqry)))
-            if ylabel=="pts":
-                plt.axhline(y.max(), color="red")
-            plt.show()
-        if False:
-            plot_searchlog("reg1", "pts", "tpts", lim_y=2)
-            plot_searchlog("reg2", "pois", y=np.max(searchlog.pois)-searchlog.pois+0.01, logy=True)
-            plot_searchlog("reg3", "logp")
-            plot_searchlog("reg2g", "gaus")
-            plot_searchlog("reg4", "smx", y=np.max(searchlog.smx)-searchlog.smx+0.01, logy=True)
-            plot_searchlog("wlpt", "logp")
-            plot_searchlog("wlpt", "pts", lim=None)
-            plot_searchlog("wpois", "pts")
-            plot_searchlog("wsmx", "pts")
-            plot_searchlog("wgaus", "pts")
-            plot_searchlog("logp", "pts")
-            plot_searchlog("wkl", "pts")
-            plot_searchlog("wlpt", "pts", "tpts", lim=None)
-            plot_searchlog("wpois", "pts", "tpts")
-            plot_searchlog("wsmx", "pts", "tpts")
-            plot_searchlog("wgaus", "pts", "tpts", lim_y=2)
-            plot_searchlog("logp", "pts", "tpts")
-            plot_searchlog("wkl", "pts", "tpts")
-            plot_searchlog("wlpt", "wkl", logy=True)
-            plot_searchlog("score", "pts", lim=4)
-            plot_searchlog("wlpt", "score", lim=None)
-            plot_searchlog("wpois", "score")
-            plot_searchlog("wsmx", "score")
-            plot_searchlog("wgaus", "score")
-            plot_searchlog("reg1", "score")
-            plot_searchlog("reg2", "score")
-            plot_searchlog("reg2g", "score")
-            plot_searchlog("reg3", "score")
-            plot_searchlog("reg4", "score")
-            plot_searchlog("wkl", "score")
-
-            #sns.kdeplot(data=searchlog.loc[:,["reg1", "wlpt", "pts"]], hue="pts")
+        plot_searchlog_points(searchlog)
+        l1weights, l2weights, lgweights, ohweights, smweights = allweights
+        plot_weights_distribution(surrogate_posterior, allweights)
 
         surrpost_vars, _ = surrogate_posterior.sample_distributions()
-        l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out = surrpost_vars
-
-        fig, ax = plt.subplots(6, 3)
-        plt.subplots_adjust(left=0.04, bottom=0.03, right=0.96, top=0.97, wspace=0.08, hspace=0.18)
-
-        sns.distplot(l1w_in.mean().numpy().flatten(), ax=ax[0][0], rug=True, hist=False)
-        sns.distplot(l1w_in.stddev().numpy().flatten(), ax=ax[0][1], rug=True, hist=False)
-        sns.distplot(l1w_out.mean().numpy().flatten(), ax=ax[0][0], rug=True, hist=False)
-        sns.distplot(l1w_out.stddev().numpy().flatten(), ax=ax[0][1], rug=True, hist=False)
-        #sns.distplot(l2w_in.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
-        #sns.distplot(l2w_in.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
-        sns.distplot(l2w_out.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
-        sns.distplot(l2w_out.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
-        #sns.distplot(w_in.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
-        #sns.distplot(w_in.stddev().numpy().flatten(), ax=ax[2][1], rug=True, hist=False)
-        sns.distplot(w_out.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
-        sns.distplot(w_out.stddev().numpy().flatten(), ax=ax[2][1], rug=True, hist=False)
-        #sns.distplot(sm_in.mean().numpy().flatten(), ax=ax[3][0], rug=True, hist=False)
-        #sns.distplot(sm_in.stddev().numpy().flatten(), ax=ax[3][1], rug=True, hist=False)
-        sns.distplot(sm_out.mean().numpy().flatten(), ax=ax[3][0], rug=True, hist=False)
-        sns.distplot(sm_out.stddev().numpy().flatten(), ax=ax[3][1], rug=True, hist=False)
-
-        sns.distplot(lgw_out.mean().numpy().flatten(), ax=ax[4][0], rug=True, hist=False)
-        sns.distplot(lgw_out.stddev().numpy().flatten(), ax=ax[4][1], rug=True, hist=False)
-
-        sns.distplot(l1weights[...,:-1,:].numpy().flatten(), ax=ax[5][0], rug=True, hist=False)
-        sns.distplot(l2weights[...,:-1,:].numpy().flatten(), ax=ax[5][1], rug=True, hist=False)
-        sns.distplot(ohweights[...,:-1,:].numpy().flatten(), ax=ax[5][2], rug=True, hist=False)
-
-        sns.kdeplot(l1weights.numpy().flatten(), ax=ax[0][2], clip=(np.mean(l1weights.numpy())-3*np.std(l1weights.numpy()), np.mean(l1weights.numpy())+3*np.std(l1weights.numpy())))
-        sns.kdeplot(l2weights.numpy().flatten(), ax=ax[1][2], clip=(np.mean(l2weights.numpy())-3*np.std(l2weights.numpy()), np.mean(l2weights.numpy())+3*np.std(l2weights.numpy())))
-        sns.kdeplot(ohweights.numpy().flatten(), ax=ax[2][2], clip=(np.mean(ohweights.numpy())-3*np.std(ohweights.numpy()), np.mean(ohweights.numpy())+3*np.std(ohweights.numpy())))
-        sns.kdeplot(smweights.numpy().flatten(), ax=ax[3][2], clip=(np.mean(smweights.numpy())-3*np.std(smweights.numpy()), np.mean(smweights.numpy())+3*np.std(smweights.numpy())))
-        sns.kdeplot(lgweights.numpy().flatten(), ax=ax[4][2], clip=(np.mean(lgweights.numpy())-3*np.std(lgweights.numpy()), np.mean(lgweights.numpy())+3*np.std(lgweights.numpy())))
-        # try:
-        #     ax[5][0].plot(losses.numpy())
-        #     ax[5][1].plot(losses.numpy()[750:])
-        # except NameError:
-        #     pass
-        plt.show()
-
-        l1w_df0 = pd.DataFrame(np.transpose(l1w_in.mean().numpy()))
-        l1w_df1 = pd.DataFrame(np.transpose(np.abs(l1w_in.mean().numpy())))
-        l1w_df2 = pd.DataFrame(np.transpose(l1w_in.stddev().numpy()))
-        l1w_df = pd.concat([l1w_df0, l1w_df1, l1w_df2], ignore_index=True, axis=1)
-        l1w_df.index = ["mh1len", "Where", "mh2len", "mh12len"] + feature_names
-
-        #print(l1w_df)
-        #print(l1w_df.sort_values(0)[:100])
-        #print(l1w_df.sort_values(0)[-100:])
-        l1w_df.to_csv("lw1_df.csv", sep=";", decimal=',')
-        l1w_df.abs().rank(ascending=False).to_csv("lw1_rank.csv", sep=";", decimal=',')
-
-        l1weights_df = pd.DataFrame(np.transpose(l1weights.numpy(), (1,2,0)).reshape((l1weights.shape[1], -1)))
-        l1weights_df.index = ["mh1len", "Where", "mh2len", "mh12len"] + feature_names + ["offset"]
-        #print(l1weights_df)
-        l1weights_df.to_csv("l1weights_df.csv", sep=";", decimal=',')
-        ranks_df = l1weights_df.abs().rank(ascending=False)
-        ranks_df.to_csv("l1weights_rank.csv", sep=";", decimal=',')
-        ranks_summary = ranks_df.aggregate(["min", "max", "mean", "median"], axis=1)
-        #print(ranks_summary)
-        ranks_summary.to_csv("l1weights_rank_summary.csv", sep=";", decimal=',')
-
-        if False:
-            fig, ax = plt.subplots(4, 2)
-            sns.distplot(((l1weights - l1weights0) * 2 / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][0])
-            sns.distplot(((l2weights - l2weights0) * 2 / (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][0])
-            sns.distplot(((smweights - smweights0) * 2 / (smweights + smweights0)).numpy(), rug=True, ax=ax[2][0])
-            sns.distplot(((ohweights - weights0) * 2 / (ohweights + weights0)).numpy(), rug=True, ax=ax[3][0])
-            sns.distplot(((l1weights - l1weights0) * 2 * l1weights / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][1])
-            sns.distplot(((l2weights - l2weights0) * 2 * l2weights/ (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][1])
-            sns.distplot(((smweights - smweights0) * 2 * weights/ (smweights + smweights0)).numpy(), rug=True, ax=ax[2][1])
-            sns.distplot(((ohweights - weights0) * 2 * smweights / (ohweights + weights0)).numpy(), rug=True, ax=ax[3][1])
-            plt.show()
-
-
-        #target_log_prob_cat_test(*[v.sample() for v in surrpost_vars])
-
         sample_train = loss_function_train(*[v.sample(100) for v in surrpost_vars], outputs_, Y_train, metaparams, reduce_axis=-1)
-        train_points = sample_train["real_points"].numpy()
-        train_softpoints = sample_train["mean_points"].numpy()
-        sample_test = loss_function_test(*[v.sample(100) for v in surrpost_vars], test_outputs_, Y_test, metaparams, reduce_axis=-1)
-        test_points = sample_test["real_points"].numpy()
-        test_softpoints = sample_test["mean_points"].numpy()
+        sample_test =  loss_function_test (*[v.sample(100) for v in surrpost_vars], test_outputs_, Y_test, metaparams, reduce_axis=-1)
+        mean_train =   loss_function_train(*[v.mean() for v in surrpost_vars], outputs_, Y_train, metaparams)
+        mean_test  =   loss_function_test (*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)
+        plot_result_distribution(sample_train, sample_test, mean_train, mean_test)
 
-        #train_points = [loss_function_train(*[v.sample() for v in surrpost_vars], outputs_, Y_train)["real_points"].numpy() for i in range(100)]
-        train_mean_points = loss_function_train(*[v.mean() for v in surrpost_vars], outputs_, Y_train, metaparams)["real_points"].numpy()
-
-        #test_points = [loss_function_test(*[v.sample() for v in surrpost_vars], test_outputs_, Y_test)["real_points"] .numpy() for i in range(100)]
-        test_mean_points = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["real_points"].numpy()
-
-        #train_softpoints = [loss_function_train(*[v.sample() for v in surrpost_vars], outputs_, Y_train)["mean_points"].numpy() for i in range(100)]
-        train_mean_softpoints = loss_function_train(*[v.mean() for v in surrpost_vars],  outputs_, Y_train, metaparams)["mean_points"].numpy()
-        train_mean_logpoints = loss_function_train(*[v.mean() for v in surrpost_vars],  outputs_, Y_train, metaparams)["logpoints"].numpy()
-
-        #test_softpoints = [loss_function_test(*[v.sample() for v in surrpost_vars], test_outputs_, Y_test)["mean_points"] .numpy() for i in range(100)]
-        test_mean_softpoints = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["mean_points"].numpy()
-        test_mean_logpoints = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["logpoints"].numpy()
-
-        batch_size = 3
-        fig, ax = plt.subplots(3, 2)
-        plt.subplots_adjust(left=0.04, bottom=0.08, right=0.96, top=0.92, wspace=0.08, hspace=0.18)
-        for i in range(batch_size):
-            sns.kdeplot(train_points[:,i], ax=ax[0][0])
-            sns.kdeplot(test_points[:,i], ax=ax[0][1])
-            sns.kdeplot(train_softpoints[:,i], ax=ax[1][0])
-            sns.kdeplot(test_softpoints[:,i], ax=ax[1][1])
-            sns.kdeplot(sample_train["logpoints"].numpy()[:,i], ax=ax[2][0])
-            sns.kdeplot(sample_test["logpoints"].numpy()[:,i], ax=ax[2][1])
-        ax[0][0].axvline(x=train_mean_points)
-        ax[0][1].axvline(x=test_mean_points)
-        ax[1][0].axvline(x=train_mean_softpoints)
-        ax[1][1].axvline(x=test_mean_softpoints)
-        ax[2][0].axvline(x=train_mean_logpoints)
-        ax[2][1].axvline(x=test_mean_logpoints)
-        plt.show()
 
         t2 = make_mixture_probs_train(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
         df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_train.shape[0], point_matrix), Y_train, "Train") for i in range(batch_size)], axis=0)
@@ -2637,280 +2540,7 @@
         df_smpred = pd.concat([create_df(create_argmax_prediction_from_mean(smpred_probs, Y_pred.shape[0], point_matrix), Y_pred, "SoftmaxPred", team1, team2) for i in range(batch_size)], axis=0)
         df_smpred["pred"] = df_smpred.pGS.astype(str) + ":" + df_smpred.pGC.astype(str)
 
-        numMatches = min(9, pred_probs.shape[1]//2)
-        if True:
-            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
-            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-            for j in range(batch_size):
-                for i in range(numMatches):
-                    pr = (pred_probs[j, 2 * i] + np.dot(pred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
-                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
-                                       prefix=df_pred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_pred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
-            plt.show()
-
-        if True:
-            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
-            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-            for j in range(batch_size):
-                for i in range(numMatches):
-                    pr = (smpred_probs[j, 2 * i] + np.dot(smpred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
-                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
-                                       prefix=df_smpred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_smpred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
-            plt.show()
-
-        def avg_points(weights, smweights, X, Y):
-            mk, _ = make_joint_mixture_model(X)
-            pred = mk(weights, smweights)
-            achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
-            actual_points = pred.mean() * tf.cast(achievable_points, tf.float64)
-            actual_points = tf.reduce_sum(actual_points, axis=-1)
-            return actual_points
-
-        def real_points(weights, smweights, X, Y):
-            mk, _ = make_joint_mixture_model(X)
-            pred = mk(weights, smweights)
-            achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
-            actual_points = tf.one_hot(tf.argmax(pred.mean(), axis=-1), 49, dtype=tf.float64) * tf.cast(achievable_points, tf.float64)
-            actual_points = tf.reduce_sum(actual_points, axis=-1)
-            return actual_points
-
-
-        if False:
-            #loss_curve = [target_log_prob_cat(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
-            #loss_curve_test = [target_log_prob_cat_test(weight_mean[i], weight_scale[i], weights[i], smweights[i]).numpy() for i in range(weights.shape[0])]
-            stepsize = 25
-            loss_curve = [target_log_prob_cat(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i
-                          in range(0, weights.shape[0], stepsize)]
-            loss_curve_test = [target_log_prob_cat_test(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)]
-            avg_points_train = np.concatenate([tf.reduce_mean(avg_points(weights[i:(i+stepsize)],
-                                                                         smweights[i:(i+stepsize)], x_train_scaled, outputs_), axis=-1) for i in range(0, weights.shape[0], stepsize)], axis=0)
-            avg_points_test = np.concatenate([tf.reduce_mean(avg_points(weights[i:(i+stepsize)],
-                                                                        smweights[i:(i+stepsize)], x_test_scaled, test_outputs_), axis=-1) for i in range(0, weights.shape[0], stepsize)], axis=0)
-            real_points_train = np.concatenate([tf.reduce_mean(real_points(weights[i:(i+stepsize)],
-                                                                         smweights[i:(i+stepsize)], x_train_scaled, outputs_), axis=-1) for i in range(0, weights.shape[0], stepsize)], axis=0)
-            real_points_test = np.concatenate([tf.reduce_mean(real_points(weights[i:(i+stepsize)],
-                                                                        smweights[i:(i+stepsize)], x_test_scaled, test_outputs_), axis=-1) for i in range(0, weights.shape[0], stepsize)], axis=0)
-            # avg_points_train = [tf.reduce_mean(avg_points(weights[i], smweights[i], x_train_scaled, outputs_)) for i in
-            #  range(weights.shape[0])]
-            # avg_points_test = [tf.reduce_mean(avg_points(weights[i], smweights[i], x_test_scaled, test_outputs_)) for i in
-            #  range(weights.shape[0])]
-            #stepsize = 10
-            #loss_curve = np.concatenate([target_log_prob_cat(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
-            #loss_curve_test = np.concatenate([target_log_prob_cat_test(weight_mean[i:(i+stepsize)], weight_scale[i:(i+stepsize)], weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).numpy() for i in range(0, weights.shape[0], stepsize)], axis=0)
-
-            fig, ax = plt.subplots(6,2)
-            plt.subplots_adjust(left=0.04, bottom=0.03, right=0.96, top=0.97, wspace=0.08, hspace=0.18)
-            sns.kdeplot(weight_mean[-1].numpy().flatten(), ax=ax[0][0])
-            sns.kdeplot(weight_scale[-1].numpy().flatten(), ax=ax[0][1])
-            sns.kdeplot(weights[-1].numpy().flatten(), ax=ax[1][0])
-            sns.kdeplot(smweights[-1].numpy().flatten(), ax=ax[1][1])
-            ax[2][0].plot(loss_curve)
-            ax[2][1].plot(loss_curve_test)
-            sns.kdeplot(weight_mean[0].numpy().flatten(), ax=ax[0][0])
-            sns.kdeplot(weight_scale[0].numpy().flatten(), ax=ax[0][1])
-            sns.kdeplot(weights[0].numpy().flatten(), ax=ax[1][0])
-            sns.kdeplot(smweights[0].numpy().flatten(), ax=ax[1][1])
-            ax[3][0].plot(avg_points_train)
-            ax[3][1].plot(avg_points_test)
-            ax[4][0].plot(real_points_train)
-            ax[4][1].plot(real_points_test)
-            sns.kdeplot(avg_points_train, ax=ax[5][0])
-            sns.kdeplot(avg_points_test, ax=ax[5][0])
-            sns.kdeplot(real_points_train, ax=ax[5][1])
-            sns.kdeplot(real_points_test, ax=ax[5][1])
-            plt.show()
-            #plt.close()
-            fig, ax = plt.subplots(2,2)
-            ax[0,0].plot(np.stack([joint_model.parameters["model"]["weight_mean"].log_prob(weight_mean[q]).numpy() for q in range(weight_scale.shape[0])]))
-            ax[0,1].plot(np.stack([joint_model.parameters["model"]["weight_scale"].log_prob(weight_scale[q]).numpy() for q in range(weight_scale.shape[0])]))
-            ax[1,0].plot(np.stack([joint_model.parameters["model"]["weights"](weight_scale[q], weight_mean[q]).log_prob(weights[q]).numpy() for q in range(weights.shape[0])]))
-            ax[1,1].plot(np.stack([joint_model.parameters["model"]["smweights"].log_prob(smweights[q]).numpy() for q in range(weight_scale.shape[0])]))
-            plt.show()
-
-            initial_state = current_state
-
-
-        #yhat = make_poisson(weights[-10])
-        #df = sample_train_df(yhat)
-        #plot_predictions_3(df, "poisson", "Train")
-        #yhat.mean()
-        #make_poisson(weights[-1]).sample().numpy()
-
-        #sample = yhat.sample().numpy()
-        if False:
-            #df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
-            #df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
-            t2=np.mean(np.mean(np.array([make_mixture_probs_train(weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).mean().numpy() for i in range(0, weights.shape[0], stepsize)]), axis=0), axis=0)
-            df2 = create_df(create_argmax_prediction_from_mean(t2, Y_train.shape[0]), Y_train, "Train")
-            #df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_train(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_train.shape[0]), Y_train, "Train") for i in range(10)], axis=0)
-            #df = pd.concat([sample_categorical_df(make_mixture_probs_train(weights[w], smweights[w]), Y_train, "Train") for w in range(0, weights.shape[0])], axis=0)
-            #df2 = create_maxpoint_prediction(df)
-            print(df2)
-            plot_predictions_3( df2, "poisson", "Train", silent=False)
-            #
-            # df = pd.concat([sample_categorical_df(make_mixture_probs_test(weights[w], smweights[w]), Y_test, "Test") for w in range(0, weights.shape[0])], axis=0)
-            # df2 = create_maxpoint_prediction(df)
-            #df2 = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
-            t2=np.mean(np.mean(np.array([make_mixture_probs_test(weights[i:(i+stepsize)], smweights[i:(i+stepsize)]).mean().numpy() for i in range(0, weights.shape[0], stepsize)]), axis=0), axis=0)
-            df2 = create_df(create_argmax_prediction_from_mean(t2, Y_test.shape[0]), Y_test, "Test")
-            #df2 = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate([make_mixture_probs_test(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 5)], axis=0), Y_test.shape[0]), Y_test, "Test") for i in range(10)], axis=0)
-            plot_predictions_3( df2, "poisson", "Test", silent=False)
-
-        if False:
-            make_mixture_probs_pred, joint_model_pred = make_joint_mixture_model(x_pred_scaled)
-            df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(np.concatenate(
-                [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], weights.shape[0])],
-                axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(weights.shape[0])], axis=0)
-            df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
-            print(df_pred)
-
-            m0 = df_pred.loc[df_pred.match == 0].copy()
-            colour = ['gray', 'blue', 'green', 'darkorange', "yellow", "red"]
-            # plt.figure()
-            # for (group2Name, df2), c in zip(m0.groupby("pred"), colour):
-            #     sns.kdeplot(df2["points"], shade=True, label=group2Name, color=c)
-            # plt.plot()
-            m0.groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points")
-            # sns.pairplot(m0[["est1", "est2"]])
-            # plt.plot()
-            #for i in range(df_pred.match.nunique()):
-            for i in range(18):
-                print(df_pred.loc[df_pred.match == i].groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points"))
-        #joint_model.resolve_graph()
-
-        # df_pred = pd.concat([create_df(create_maxpoint_prediction_from_mean(np.concatenate(
-        #     [make_mixture_probs_pred(weights[w], smweights[w]).mean().numpy() for w in range(i, weights.shape[0], 300)],
-        #     axis=0), Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(300)], axis=0)
-        # df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
-        #
-        # for i in range(18):
-        #     print(df_pred.loc[df_pred.match == i].groupby(["Team1", "Team2", "pred"]).agg({"points":"mean", "pred":"count"}).sort_values("points"))
-
-
-        if False:
-            w=-1
-            print(make_mixture_probs_train(weights[w], smweights[w]).mean())
-            print(make_mixture_probs_train(weights[w], smweights[w]).mixture_distribution.prob(0))
-            print(make_mixture_probs_train(weights[w], smweights[w]).mixture_distribution.prob(1))
-            #print(make_mixture_probs_train(cdist[w], weights[w], smweights[w]).mixture_distribution.prob(2))
-            #print(make_mixture_probs_train(cdist[w], weights[w], smweights[w]).mixture_distribution.prob(3))
-            print(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean())
-            print(np.sort(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()))
-            print(np.sum(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean(), axis=1))
-            print(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean() / (np.sum(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean(), axis=1, keepdims=True)))
-            w=-2
-            print(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean() / (np.sum(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean(), axis=1, keepdims=True)))
-
-            print(make_mixture_probs_train(weights[w], smweights[w]).components_distribution.sample())
-
-        if False:
-            w = tf.transpose(weights, (1, 2, 0))
-            w = tf.reshape(w, (x_train.shape[1] + 1, -1))
-            b = tfb.Reshape(event_shape_out=(-1, d, weights.shape[0]), event_shape_in=(-1, d * weights.shape[0]))
-            b2 = tfb.Transpose((2, 0, 1))
-            b3 = tfb.Reshape(event_shape_out=(-1, d), event_shape_in=[weights.shape[0], -1, d])
-            b4 = b3(b2(b))
-
-            #a = make_poisson_test(w)
-            df = sample_categorical_df(b4(make_poisson_test(w)), Y_test[:,0:2], "Test")
-            df2 = create_maxpoint_prediction(df, point_matrix)
-            plot_predictions_3( df2, "poisson", "Test", silent=True)
-            del df
-            del df2
-            df = sample_categorical_df(b4(make_poisson_train(w)), Y_train[:,0:2], "Train")
-            df2 = create_maxpoint_prediction(df, point_matrix)
-            plot_predictions_3( df2, "poisson", "Train", silent=True)
-            del df
-            del df2
-
-
-        # fig, ax = plt.subplots(4, 4, figsize=(8, 8))
-        # for i in range(4):
-        #     for j in range(4):
-        #         sns.boxplot(y=model(x_train_scaled).mean()[:,4*i+j], x=Y_train[:,4*i+j], ax=ax[i][j])
-        # plt.show()
-        #
-        # fig, ax = plt.subplots(4, 4, figsize=(8, 8))
-        # for i in range(4):
-        #     for j in range(4):
-        #         sns.boxplot(y=model(x_test_scaled).mean()[:,4*i+j], x=Y_test[:,4*i+j], ax=ax[i][j])
-        # plt.show()
-        #
-        # def make_wdl(x):
-        #     return np.sign(x[:,0]-x[:,1])
-        # def make_wl(x):
-        #     return np.sign(x.mean()[:,0]-x.mean()[:,1])
-        # wdl_train = make_wdl(Y_train)
-        # wdl_test = make_wdl(Y_test)
-        # sample_train = make_wdl(model(x_train_scaled))
-        # sample_test = make_wdl(model(x_test_scaled))
-        # sample_train = make_wl(model(x_train_scaled))
-        # sample_test = make_wl(model(x_test_scaled))
-        #
-        # print(Counter(sample_test==wdl_test))
-        # print(Counter(sample_train == wdl_train))
-        # print(np.sum(sample_test==wdl_test)/len(wdl_test))
-        # print(np.sum(sample_train==wdl_train)/len(wdl_train))
-        # print(confusion_matrix(sample_test, wdl_test))
-        # print(confusion_matrix(sample_train ,  wdl_train))
-        #
-        # arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
-        # arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
-        #
-        # def make_train_sample():
-        #     yhat = model(x_train_scaled)
-        #     sample = yhat.sample().numpy()
-        #     df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_train)//2),
-        #                        "GS":Y_train[:,0].astype(int),
-        #                        "GC":Y_train[:,1].astype(int),
-        #                        "pGS":sample[:,0].astype(int),
-        #                        "pGC":sample[:,1].astype(int),
-        #                        "est1":yhat.mean()[:,0],
-        #                        "est2":yhat.mean()[:,1],
-        #                            # "pGS":np.argmax(sample, axis=1)//7,
-        #                        # "pGC":np.mod(np.argmax(sample, axis=1), 7),
-        #                        # "est1":np.sum(yhat.mean() * arraygs, axis=1),
-        #                        # "est2":np.sum(yhat.mean() * arraygc, axis=1),
-        #                        "Prefix": "poisson",
-        #                        "dataset": "Train",
-        #                        "act":"Y_train[:,0:2]",
-        #                        "Team1":"Team1",
-        #                        "Team2": "Team2",
-        #                        "match":range(len(wdl_train))
-        #                        })
-        #     return df
-        #
-        # def make_test_sample():
-        #     yhat = model(x_test_scaled)
-        #     sample = yhat.sample().numpy()
-        #     df = pd.DataFrame({"Where":np.tile(["Home", "Away"], reps=len(wdl_test)//2),
-        #                        "GS":Y_test[:,0].astype(int),
-        #                        "GC":Y_test[:,1].astype(int),
-        #                        "pGS":sample[:,0].astype(int),
-        #                        "pGC":sample[:,1].astype(int),
-        #                        "est1":yhat.mean()[:,0],
-        #                        "est2":yhat.mean()[:,1],
-        #                        # "pGS":np.argmax(sample, axis=1)//7,
-        #                        # "pGC":np.mod(np.argmax(sample, axis=1), 7),
-        #                        # "est1":np.sum(yhat.mean() * arraygs, axis=1),
-        #                        # "est2":np.sum(yhat.mean() * arraygc, axis=1),
-        #                        "Prefix": "poisson",
-        #                        "dataset": "Test",
-        #                        "act":"Y_train[:,0:2]",
-        #                        "Team1":"Team1",
-        #                        "Team2": "Team2",
-        #                        "match":range(len(wdl_test))
-        #                        })
-        #     return df
-        #
-        #
-        # df = pd.concat([make_test_sample() for _ in range(200)], axis=0)
-        # plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Test", )
-        #
-        # df = pd.concat([make_train_sample() for _ in range(200)], axis=0)
-        # plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Train")
-        #
-
+        plot_new_predictions(df_pred, df_smpred)
 
     if True:
         plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
