@@ -251,6 +251,26 @@
         return all_data, all_labels, all_features, teamnames, team_mapping, feature_names
 
 
+    def build_matrices(point_scheme):
+        if point_scheme == point_scheme_pistor:
+            point_matrix = np.array([[3 if (i // 7 == j // 7) and (np.mod(i, 7) == np.mod(j, 7)) else
+                                      2 if (i // 7 - np.mod(i, 7) == j // 7 - np.mod(j, 7)) else
+                                      1 if (np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
+                                      0 for i in range(49)] for j in range(49)])
+        elif point_scheme == point_scheme_sky:
+            point_matrix = np.array([[5 if (i // 7 == j // 7) and (np.mod(i, 7) == np.mod(j, 7)) else
+                                      2 if (np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
+                                      0 for i in range(49)] for j in range(49)])
+        if point_scheme == point_scheme_goal_diff:
+            point_matrix = np.array(
+                [[np.maximum(5, 10 - np.abs(i // 7 - j // 7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (
+                        np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
+                  0 for i in range(49)] for j in range(49)])
+        home_away_inversion_matrix = np.array(
+            [[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
+        return home_away_inversion_matrix, point_matrix
+
+
     def build_features(all_data, all_labels, all_features, teamnames, team_mapping):
         all_data["gameindex"] = all_data.index
 
@@ -1229,6 +1249,568 @@
                                  startangle=90, autopct='%1.1f%%',
                                  radius=1.0, wedgeprops={"alpha": 0.5})
 
+
+    # find_next_params_from_gaussian_process(searchlog, num_iters3=1000)
+    def find_next_params_from_gaussian_process(searchlog, num_iters3=1000):
+        # observations_ = searchlog.pts
+        observations_ = -searchlog.score
+
+        # remove lower end outliers (ususally bad scores)
+        lower_bound = np.quantile(observations_, 0.9) - 5 * (
+                    np.quantile(observations_, 0.9) - np.quantile(observations_, 0.35))
+        searchlog = searchlog[observations_.gt(lower_bound)]
+        observations_ = observations_[observations_.gt(lower_bound)]
+
+        # center the observations so that the best point is positive
+        med = np.median(observations_)
+        print("Median:")
+        print(med)
+        observations_ = observations_ - med
+
+        observation_index_points_ = searchlog.loc[:,
+                                    ["reg1", "reg2", "reg2g", "reg3", "reg4", "wkl", "wlpt", "wpois", "wgaus",
+                                     "wsmx"]].to_numpy()
+        # print(current_point)
+        tfk = tfp.math.psd_kernels
+        k = observation_index_points_.shape[1]
+        observation_index_points_ = np.log(observation_index_points_)
+        last_score = observations_[searchlog.accept.astype(bool)].iloc[-1]
+
+        scaler = preprocessing.StandardScaler().fit(observation_index_points_)
+        observation_index_points_ = scaler.transform(observation_index_points_)
+
+        current_point = observation_index_points_[searchlog.accept.astype(bool)][-1]
+        print("Last score: " + str(last_score))
+        print("Current point: " + str(current_point))
+
+        # if np.random.random() < 0.15:
+        #     current_point = [m * np.random.lognormal(0, 0.15) for m in current_point] # introduce some randomness into the search
+
+        # mm_scaler = preprocessing.MinMaxScaler()
+        # observation_index_points_ = mm_scaler.fit_transform(np.log(observation_index_points_))
+
+        def build_gp(amplitude, length_scale, scale_diag, observation_noise_variance):
+            """Defines the conditional dist. of GP outputs, given kernel parameters."""
+
+            # Create the covariance kernel, which will be shared between the prior (which we
+            # use for maximum likelihood training) and the posterior (which we use for
+            # posterior predictive sampling)
+            # kernel = tfk.MaternOneHalf(amplitude, length_scale, feature_ndims=1)
+            kernel = tfk.MaternThreeHalves(amplitude, length_scale, feature_ndims=1)
+            # kernel = tfk.MaternFiveHalves(amplitude, length_scale, feature_ndims=1)
+            # kernel = tfk.ExponentiatedQuadratic(amplitude, length_scale, feature_ndims=1)
+            kernel = tfk.FeatureScaled(kernel, scale_diag)
+            # Create the GP prior distribution, which we will use to train the model
+            # parameters.
+            gp = tfd.GaussianProcess(
+                kernel=kernel,
+                index_points=observation_index_points_,
+                observation_noise_variance=observation_noise_variance)
+            return gp
+
+        gp_joint_model = tfd.JointDistributionNamed({
+            'amplitude': tfd.LogNormal(loc=0., scale=np.float64(1.)),
+            'length_scale': tfd.LogNormal(loc=0., scale=np.float64(1.)),
+            'scale_diag': tfd.Independent(tfd.LogNormal(loc=[0.] * k, scale=np.float64([1.] * k)),
+                                          reinterpreted_batch_ndims=1),
+            'observation_noise_variance': tfd.LogNormal(loc=0., scale=np.float64(1.)),
+            'observations': build_gp,
+        })
+        # Create the trainable model parameters, which we'll subsequently optimize.
+        # Note that we constrain them to be strictly positive.
+        constrain_positive = tfb.Shift(np.finfo(np.float64).tiny)(tfb.Exp())
+
+        amplitude_var = tfp.util.TransformedVariable(
+            initial_value=1.,
+            bijector=constrain_positive,
+            name='amplitude',
+            dtype=np.float64)
+
+        length_scale_var = tfp.util.TransformedVariable(
+            initial_value=1.,
+            bijector=constrain_positive,
+            name='length_scale',
+            dtype=np.float64)
+
+        scale_diag_var = tfp.util.TransformedVariable(
+            initial_value=[1.] * k,
+            bijector=constrain_positive,
+            name='amplitude',
+            dtype=np.float64)
+
+        observation_noise_variance_var = tfp.util.TransformedVariable(
+            initial_value=1.,
+            bijector=constrain_positive,
+            name='observation_noise_variance_var',
+            dtype=np.float64)
+
+        trainable_variables = [v.trainable_variables[0] for v in
+                               [amplitude_var,
+                                length_scale_var,
+                                scale_diag_var,
+                                observation_noise_variance_var]]
+
+        # Use `tf.function` to trace the loss for more efficient evaluation.
+        @tf.function(autograph=False, experimental_compile=False)
+        def target_log_prob(amplitude, length_scale, scale_diag, observation_noise_variance):
+            return gp_joint_model.log_prob({
+                'amplitude': amplitude,
+                'length_scale': length_scale,
+                'scale_diag': scale_diag,
+                'observation_noise_variance': observation_noise_variance,
+                'observations': observations_
+            })
+
+        # Now we optimize the model parameters.
+        num_iters = 100
+        optimizer2 = tf.optimizers.Adam(learning_rate=.1)
+
+        # Store the likelihood values during training, so we can plot the progress
+        lls_ = np.zeros(num_iters, np.float64)
+        for i in range(num_iters):
+            with tf.GradientTape() as tape:
+                loss = -target_log_prob(amplitude_var, length_scale_var, scale_diag_var,
+                                        observation_noise_variance_var)
+            grads = tape.gradient(loss, trainable_variables)
+            optimizer2.apply_gradients(zip(grads, trainable_variables))
+            lls_[i] = loss
+
+        print('Trained parameters:')
+        print('amplitude: {}'.format(amplitude_var._value().numpy()))
+        print('length_scale: {}'.format(length_scale_var._value().numpy()))
+        print('scale_diag: {}'.format(scale_diag_var._value().numpy()))
+        print('observation_noise_variance: {}'.format(observation_noise_variance_var._value().numpy()))
+
+        # optimized_kernel = tfk.MaternFiveHalves(amplitude_var, length_scale_var, feature_ndims=1)
+        # optimized_kernel = tfk.MaternOneHalf(amplitude_var, length_scale_var, feature_ndims=1)
+        optimized_kernel = tfk.MaternThreeHalves(amplitude_var, length_scale_var, feature_ndims=1)
+        # optimized_kernel = tfk.ExponentiatedQuadratic(amplitude_var, length_scale_var, feature_ndims=1)
+        optimized_kernel = tfk.FeatureScaled(optimized_kernel, scale_diag_var)
+
+        # determine the index_point with the highest expected improvement using gradient descent
+        # best = np.max(observations_)
+        nn = tfd.Normal(tf.zeros(1, dtype=tf.float64), tf.ones(1, dtype=tf.float64))
+
+        reg_min = 0.0001
+        reg_max = 1000.0
+        wgt_min = 0.1
+        wgt_max = 1000000
+        lower_limit = np.log(np.array([reg_min] * 5 + [wgt_min] * 5))
+        upper_limit = np.log(np.array([reg_max] * 5 + [wgt_max] * 5))
+        limit_range = upper_limit - lower_limit
+        b = 5  # batch_size
+        best_index_var = tfp.util.TransformedVariable(
+            initial_value=tf.random_uniform_initializer(minval=lower_limit + 0.2 * limit_range,
+                                                        maxval=upper_limit - 0.2 * limit_range)(shape=[b, k],
+                                                                                                dtype=tf.float64),
+            name="best_index_var", dtype=np.float64,
+            bijector=tfb.SoftClip(low=tf.constant(lower_limit, dtype=tf.float64),
+                                  high=tf.constant(upper_limit, dtype=tf.float64)))
+
+        # prior_dist = tfd.Independent(tfd.Normal(loc=current_point, scale=1.5), reinterpreted_batch_ndims=1) # prevent movements far away from origin
+        @tf.function(autograph=False, experimental_compile=False)
+        def prior_log_prob(index_var):
+            prior = tfd.Normal(loc=tf.constant(0.0, dtype=tf.float64), scale=tf.constant(1.0, dtype=tf.float64))
+            distance = tf.norm(index_var - current_point[tf.newaxis, ...], axis=-1)
+            return prior.log_prob(tf.math.log(distance))
+
+        # best_index_var = tfp.util.TransformedVariable(
+        #     initial_value=tf.random_uniform_initializer(minval=0.2, maxval=0.8)(shape=[k], dtype=tf.float64),
+        #     name="best_index_var", dtype=np.float64,
+        #     bijector=tfb.SoftClip(low=tf.constant(-0.1, dtype=tf.float64), high=tf.constant(1.1, dtype=tf.float64)))
+
+        @tf.function(autograph=False, experimental_compile=False)
+        def expected_improvement(index_var):
+            newgprm = tfd.GaussianProcessRegressionModel(
+                kernel=optimized_kernel,
+                index_points=index_var,  # [tf.newaxis, ...],
+                observation_index_points=observation_index_points_,
+                observations=observations_,
+                observation_noise_variance=observation_noise_variance_var,
+                predictive_noise_variance=0.)
+            Z = (newgprm.mean() - last_score) / newgprm.stddev()
+            EI = (newgprm.mean() - last_score) * nn.cdf(Z) + newgprm.stddev() * nn.prob(Z)
+            return EI, newgprm.mean(), newgprm.stddev(), Z
+
+        obsei = expected_improvement(observation_index_points_)
+        obsdist = prior_log_prob(observation_index_points_).numpy()
+
+        # print(obsei)
+        # obsdist = prior_dist.log_prob(observation_index_points_)
+        print(pd.DataFrame({"actual": observations_, "pred": obsei[1], "ei": obsei[0], "dist": obsdist}))
+        # Now we search the best index point.
+        # num_iters3 = 100
+
+        optimizer3 = tf.optimizers.Adam(learning_rate=.02)
+
+        # Store the likelihood values during training, so we can plot the progress
+        # print(searchlog)
+        # print(last_score)
+        print("New search point base:")
+        print(current_point)
+        print({"expected_improvement": [v.numpy() for v in
+                                        expected_improvement(np.array(current_point)[tf.newaxis, ...])],
+               "distance log prob": prior_log_prob(np.array(current_point)[tf.newaxis, ...]).numpy()})
+        # stop()
+        lls_ = np.zeros((num_iters3, b), np.float64)
+        early_stop_rounds = 20
+        minloss = 1e20
+        rounds_without_improvement = 0
+        for i in range(num_iters3):
+            with tf.GradientTape() as tape:
+                ei = expected_improvement(best_index_var)[0]
+                pp = prior_log_prob(best_index_var)
+                loss = -ei - pp  # -ei#+0.0001*tf.reduce_sum(tf.math.reduce_variance(tf.concat([observation_index_points_, best_index_var], axis=0), axis=0))
+                # if np.mod(i,50) == 0:
+                #     print((i, ei, pp))
+                #     print(best_index_var.trainable_variables[0])
+            grads = tape.gradient(loss, [best_index_var.trainable_variables[0]])
+            optimizer3.apply_gradients(zip(grads, [best_index_var.trainable_variables[0]]))
+            lls_[i] = loss
+            if np.min(loss) < minloss:
+                minloss = np.min(loss)
+                rounds_without_improvement = 0
+            else:
+                rounds_without_improvement += 1
+                if rounds_without_improvement > early_stop_rounds:
+                    break
+        print("Optimization Rounds:")
+        print(i)
+        print(best_index_var)
+        print("Expected Improvement:")
+        print([v.numpy() for v in expected_improvement(best_index_var)])
+        print("Prior Log Prob:")
+        print(prior_log_prob(best_index_var).numpy())
+        # print("Expected Improvement: "+str(expected_improvement(best_index_var).numpy()[0]))
+
+        best_ei_idx = np.argmax(expected_improvement(best_index_var)[0])
+
+        print("Selected:")
+        print(pd.DataFrame({"old": current_point, "new": best_index_var[best_ei_idx].numpy()}))
+
+        best_index_var = scaler.inverse_transform(best_index_var.numpy())
+
+        best_index_var = np.exp(best_index_var)
+
+        print("Selected:")
+        print(best_index_var[best_ei_idx].tolist())
+        # print(result)
+        return best_index_var[best_ei_idx].tolist()
+
+
+    def create_maxpoint_prediction(df, point_matrix):
+        dfpoints = np.stack([point_matrix[create_result_index(df.pGS, df.pGC), i] for i in range(49)],
+                            axis=1)
+        dfpoints = pd.DataFrame(dfpoints, index=df.match)
+        dfpoints = dfpoints.groupby(dfpoints.index).mean()
+        maxpoints = pd.DataFrame({"pGS": np.argmax(dfpoints.to_numpy(), axis=1) // 7,
+                                  "pGC": np.mod(np.argmax(dfpoints.to_numpy(), axis=1), 7),
+                                  "points": np.amax(dfpoints.to_numpy(), axis=1)})
+        df2 = df. \
+            groupby(['match', 'Where', 'GS', 'GC', 'Prefix', 'dataset', 'act', 'Team1', 'Team2']).mean(). \
+            rename(columns={"pGS": "pGS2", "pGC": "pGC2"}). \
+            reset_index().set_index("match")
+        df3 = pd.concat([df2, maxpoints], axis=1)
+        return df3
+
+
+    def create_maxpoint_prediction_from_mean(probs, Ylen, point_matrix):
+        l = probs.shape[0] // Ylen
+        expPoints = np.mean(np.matmul(probs, point_matrix).reshape((-1, Ylen, 49)), axis=0)
+        maxpoints = pd.DataFrame({"pGS": np.argmax(expPoints, axis=1) // 7,
+                                  "pGC": np.mod(np.argmax(expPoints, axis=1), 7),
+                                  "points": np.amax(expPoints, axis=1),
+                                  "est1": np.mean(np.sum(probs * arraygs, axis=1).reshape((-1, Ylen)), axis=0),
+                                  "est2": np.mean(np.sum(probs * arraygc, axis=1).reshape((-1, Ylen)), axis=0)
+                                  })
+        return maxpoints
+
+
+    def create_argmax_prediction_from_mean(probs, Ylen, point_matrix):
+        probs = probs.reshape((-1, Ylen, 49))
+        expPoints = np.mean(np.matmul(probs, point_matrix), axis=-3)  # shape: w*batch, 49
+        maxpoints = pd.DataFrame({"pGS": np.argmax(np.mean(probs, axis=-3), axis=-1) // 7,
+                                  "pGC": np.mod(np.argmax(np.mean(probs, axis=-3), axis=-1), 7),
+                                  "points": np.amax(expPoints, axis=-1),
+                                  "est1": np.mean(np.sum(probs * arraygs, axis=-1).reshape((-1, Ylen)), axis=0),  #
+                                  "est2": np.mean(np.sum(probs * arraygc, axis=-1).reshape((-1, Ylen)), axis=0)
+                                  })
+        return maxpoints
+
+
+    def create_df(maxpoints, Y, dataset, team1=None, team2=None):
+        l = maxpoints.shape[0] // Y.shape[0]
+        df = pd.DataFrame({"Where": np.tile(np.tile(["Home", "Away"], reps=Y[:, 0].shape[0] // 2), reps=l),
+                           "GS": np.tile(Y[:, 0].astype(int), reps=l),
+                           "GC": np.tile(Y[:, 1].astype(int), reps=l),
+                           "pGS": maxpoints.pGS,
+                           "pGC": maxpoints.pGC,
+                           "est1": maxpoints.est1,
+                           "est2": maxpoints.est2,
+                           "points": maxpoints.points,
+                           "Prefix": "poisson",
+                           "dataset": dataset,
+                           "act": "act",
+                           "Team1": team1,
+                           "Team2": team2,
+                           "match": np.tile(range(Y[:, 0].shape[0]), reps=l)
+                           })
+        return df
+
+
+    def sample_df(yhat, Y, dataset):
+        sample = yhat.sample().numpy()
+        l = sample.shape[0] // Y.shape[0]
+        df = pd.DataFrame({"Where": np.tile(np.tile(["Home", "Away"], reps=Y[:, 0].shape[0] // 2), reps=l),
+                           "GS": np.tile(Y[:, 0].astype(int), reps=l),
+                           "GC": np.tile(Y[:, 1].astype(int), reps=l),
+                           "pGS": sample[:, 0].astype(int),
+                           "pGC": sample[:, 1].astype(int),
+                           "est1": yhat.mean()[:, 0],
+                           "est2": yhat.mean()[:, 1],
+                           # "pGS":np.argmax(sample, axis=1)//7,
+                           # "pGC":np.mod(np.argmax(sample, axis=1), 7),
+                           # "est1":np.sum(yhat.mean() * arraygs, axis=1),
+                           # "est2":np.sum(yhat.mean() * arraygc, axis=1),
+                           "Prefix": "poisson",
+                           "dataset": dataset,
+                           "act": "Y_test[:,0:2]",
+                           "Team1": "Team1",
+                           "Team2": "Team2",
+                           "match": np.tile(range(Y[:, 0].shape[0]), reps=l)
+                           })
+        return df
+
+
+    def sample_categorical_df(yhat, Y, dataset):
+        sample = yhat.sample().numpy()
+        l = sample.shape[0] // Y.shape[0]
+        probs = yhat.mean()
+        probs = probs / np.sum(probs, axis=1, keepdims=True)
+        df = pd.DataFrame({"Where": np.tile(np.tile(["Home", "Away"], reps=Y[:, 0].shape[0] // 2), reps=l),
+                           "GS": np.tile(Y[:, 0].astype(int), reps=l),
+                           "GC": np.tile(Y[:, 1].astype(int), reps=l),
+                           # "pGS":sample//7,
+                           # "pGC":np.mod(sample, 7),
+                           # "est1":yhat.mean()[:,0],
+                           # "est2":yhat.mean()[:,1],
+                           "pGS": np.argmax(sample, axis=1) // 7,
+                           "pGC": np.mod(np.argmax(sample, axis=1), 7),
+                           "est1": np.sum(probs * arraygs, axis=1),
+                           "est2": np.sum(probs * arraygc, axis=1),
+                           "Prefix": "poisson",
+                           "dataset": dataset,
+                           "act": "Y_test[:,0:2]",
+                           "Team1": "Team1",
+                           "Team2": "Team2",
+                           "match": np.tile(range(Y[:, 0].shape[0]), reps=l)
+                           })
+        return df
+
+
+    def create_result_index(GS, GC):
+        return (np.maximum(0, np.minimum(np.round(GS), 6)) * 7 + np.maximum(0, np.minimum(np.round(GC), 6))).astype(
+            np.int32)
+
+
+    def laplacian_matrix():
+        m = [[-1 if abs(i - i2 + j - j2) == 1 and abs(i - i2 - j + j2) == 1 else \
+                  2 if (i, j) == (i2, j2) and (i, j) in [(0, 0), (0, 6), (6, 0), (6, 6)] else \
+                      3 if (i, j) == (i2, j2) and (i in [0, 6] or j in [0, 6]) else \
+                          4 if (i, j) == (i2, j2) else \
+                              0
+              for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]
+        t_laplacian = tf.constant(m, dtype=tf.float64)
+        return t_laplacian
+
+
+    def create_laplacian_loss(p_pred_12, alpha=1.0):
+        laplm = laplacian_matrix()
+        lp = tf.matmul(p_pred_12, laplm)
+        laplacian_loss = (lp ** 2) / 2
+        laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
+        laplacian_loss = alpha * tf.reduce_mean(laplacian_loss, name="laplacian")
+        return laplacian_loss
+
+
+    def tensor_size(tensor):
+        size = 1
+        for s in tensor.shape:
+            size *= s
+        return size
+
+    def make_joint_mixture_model(x, weights=None):
+        batch_size = 3
+        def create_weights():
+            return (
+                tf.Variable(
+                    0.001 * tf.random.normal(shape=[batch_size, x.shape[1] + 1, L1size], dtype=tf.float64))
+                , tf.Variable(0.01 * tf.random.normal(shape=[batch_size, L1size + 1, len(label_columns_poisson)],
+                                                      dtype=tf.float64))
+                , tf.Variable(0.01 * tf.random.normal(shape=[batch_size, L1size + 1, len(label_columns_gaussian)],
+                                                      dtype=tf.float64))
+                , tf.Variable(0.01 * tf.random.normal(shape=[batch_size, L1size + 1, 49], dtype=tf.float64))
+                , tf.Variable(0.01 * tf.random.normal(shape=[batch_size, L1size + 1, 49], dtype=tf.float64))
+            )
+
+        if weights is None:
+            weights = create_weights()
+        l1weights, l2weights, lgweights, ohweights, smweights = weights
+
+        def make_outputs(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
+           l1w = l1weights[..., :-1, :] * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
+           l2w = l2weights[..., :-1, :] * l2w_out[...,tf.newaxis, :]
+           lgw = lgweights[..., :-1, :] *  lgw_out[...,tf.newaxis, :]
+           wgt = ohweights[..., :-1, :] *  w_out[...,tf.newaxis, :]
+           smw = smweights[..., :-1, :]  * sm_out[...,tf.newaxis, :]
+           x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math.tanh
+           x2 = tf.matmul(x1, l2w[..., :, :]) + l2weights[..., -1:, :]
+           x2g = tf.matmul(x1, lgw[..., :, :]) + lgweights[..., -1:, :]
+           l = tf.matmul(x1, wgt[..., :, :]) + ohweights[..., -1:, :]
+           sml = tf.matmul(x1, smw[..., :, :]) + smweights[..., -1:, :]
+           return tfd.JointDistributionNamed(dict(
+               mainresult = tfd.Independent(tfd.OneHotCategorical(logits=l), reinterpreted_batch_ndims=1),
+               sidebets = tfd.Independent(tfd.Poisson(log_rate=x2), reinterpreted_batch_ndims=2),
+               sidebets_gaussian = tfd.Independent(tfd.Normal(loc=x2g, scale=1.0), reinterpreted_batch_ndims=2),
+               softmax = tfd.Independent(tfd.OneHotCategorical(logits=sml), reinterpreted_batch_ndims=1)
+           ))
+
+        sc = 2.0
+        joint_model = tfd.JointDistributionNamed(dict(
+            l1w_in=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, x.shape[1] + 0], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, x.shape[1] + 0], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            l1w_out=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, L1size], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, L1size], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            l2w_out=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, len(label_columns_poisson)], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, len(label_columns_poisson)], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            lgw_out=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, len(label_columns_gaussian)], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, len(label_columns_gaussian)], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            w_out=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, 49], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, 49], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            sm_out=tfd.Independent(
+                tfd.Normal(loc=tf.zeros(shape=[batch_size, 49], dtype=tf.float64),
+                           scale=sc * tf.ones(shape=[batch_size, 49], dtype=tf.float64)), reinterpreted_batch_ndims=2),
+            outputs=make_outputs
+         )
+        )
+        def make_surrogate_posterior():
+            return tfp.experimental.vi.build_factored_surrogate_posterior(
+                event_shape=[joint_model.event_shape_tensor()[c] for c in [ 'l1w_in', 'l1w_out','l2w_out', 'lgw_out', 'w_out', 'sm_out']],
+                #constraining_bijectors=[None, None, None, None],
+                trainable_distribution_fn=lambda initial_loc, initial_scale, event_ndims,
+                                             validate_args: tfp.experimental.vi.build_trainable_location_scale_distribution(
+                    tf.cast(initial_loc, tf.float64),
+                    tf.cast(initial_scale, tf.float64),
+                    event_ndims,
+                    distribution_fn=tfd.Normal),
+        )
+
+        regularizer = tf.keras.regularizers.L1L2(l1=1.0)
+        regularizer2 = tf.keras.regularizers.L1L2(l2=1.0)
+        draw_mask = tf.constant([1 if np.mod(z,7)==(z//7) else 0 for z in range(49)], dtype=tf.float32)
+        wdl_mask = tf.transpose(tf.constant([
+            [1 if np.mod(z, 7) > (z // 7) else 0 for z in range(49)],
+            [1 if np.mod(z, 7) == (z // 7) else 0 for z in range(49)],
+            [1 if np.mod(z, 7) < (z // 7) else 0 for z in range(49)]], dtype=tf.float32))
+
+        def loss_function(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, Y, Y2, metaparams, reduce_axis=None):  # weight_mean, weight_scale,
+            reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
+            Y_pois = Y2[:, label_columns_poisson]
+            Y_gaus = Y2[:, label_columns_gaussian]
+
+            lpp = joint_model.log_prob_parts({
+                'l1w_in': l1w_in,
+                'l1w_out': l1w_out,
+                'l2w_out': l2w_out,
+                'lgw_out': lgw_out,
+                'w_out': w_out,
+                'sm_out': sm_out,
+                'outputs': {"mainresult": Y, "sidebets": Y_pois, "sidebets_gaussian": Y_gaus, "softmax": Y}
+            })
+            # normalize log prob by tensor sizes
+            lpp['l1w_in'] /= tensor_size(l1w_in)
+            lpp['l1w_out'] /= tensor_size(l1w_out)
+            lpp['l2w_out'] /= tensor_size(l2w_out)
+            lpp['lgw_out'] /= tensor_size(lgw_out)
+            lpp['w_out'] /= tensor_size(w_out)
+            lpp['sm_out'] /= tensor_size(sm_out)
+
+            lp = tf.reduce_sum(
+                lpp['l1w_in'] + lpp['l1w_out'] + lpp['l2w_out'] + lpp['lgw_out'] + lpp['w_out'] + lpp['sm_out'])
+            # reg_loss = create_laplacian_loss(smweights, alpha=0.3)
+            rl_l1 = reg1 * regularizer(l1weights[..., :-1, :]) / tensor_size(l1weights)  # do not penalize offsets
+            rl_l2 = reg2 * regularizer2(l2weights[..., :-1, :]) / tensor_size(l2weights)
+            rl_lg = reg2g * regularizer2(lgweights[..., :-1, :]) / tensor_size(lgweights)
+            rl_w = reg3 * regularizer2(ohweights[..., :-1, :]) / tensor_size(ohweights)
+            rl_sm = reg4 * regularizer2(smweights[..., :-1, :]) / tensor_size(smweights)
+            reg_loss2 = rl_l1 + rl_l2 + rl_lg + rl_w + rl_sm
+            achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
+            pred = make_outputs(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out)
+
+            predprob = tf.nn.softmax(pred.parameters["model"]["mainresult"].distribution.logits, axis=-1)
+            logpoints = tf.math.log(1 + predprob) * tf.cast(achievable_points,
+                                                            tf.float64)  # * (0.0001+tf.stop_gradient(pred.parameters["model"]["softmax"].mean()))
+            reg_loss3 = create_laplacian_loss(predprob, alpha=10.0)
+            actual_points = predprob * tf.cast(achievable_points, tf.float64)
+            actual_points = tf.reduce_sum(actual_points, axis=-1)
+            prediction = tf.one_hot(tf.argmax(pred.parameters["model"]["mainresult"].mean(), axis=-1), 49)
+            numdraws = tf.reduce_sum(prediction * draw_mask, axis=-1)
+            real_points = tf.reduce_sum(prediction * achievable_points, axis=-1)
+            # print(X.shape)
+            # print(Y.shape)
+            # print(logpoints.shape)
+            mask_cup = tf.cast(tf.greater(x[:, -1], 0), real_points.dtype)
+            mask_league = tf.cast(tf.less_equal(x[:, -1], 0), real_points.dtype)
+            cup_fraction = tf.reduce_mean(mask_cup) + 1e-8
+            # sample_weights = mask_league + 1.0 * mask_cup
+            accuracy = tf.reduce_sum(tf.cast(tf.matmul(prediction, wdl_mask) * tf.matmul(Y, wdl_mask), tf.float32),
+                                     axis=-1)
+            draw_points = tf.reduce_sum(prediction * draw_mask * achievable_points, axis=-1) / tf.reduce_mean(
+                numdraws)
+            logpoints = tf.reduce_sum(logpoints, axis=-1)
+            softmax_lp = pred.parameters["model"]["softmax"].log_prob(Y) / Y.shape[-2] / Y.shape[-1]
+            poisson_lp = pred.parameters["model"]["sidebets"].log_prob(Y_pois) / Y_pois.shape[-2] / Y_pois.shape[-1]
+            gaussian_lp = pred.parameters["model"]["sidebets_gaussian"].log_prob(Y_gaus) / Y_gaus.shape[-2] / \
+                          Y_gaus.shape[-1]
+            kl_div = pred.parameters["model"]["mainresult"].kl_divergence(pred.parameters["model"]["softmax"]) / \
+                     Y2.shape[-2] / Y2.shape[-1]
+            softmax_acc = tf.reduce_sum(
+                tf.one_hot(tf.argmax(pred.parameters["model"]["softmax"].mean(), axis=-1), 49) * Y, axis=-1)
+            lpp.update({"rl_l1": rl_l1, "rl_l2": rl_l2, "rl_lg": rl_lg, "rl_w": rl_w, "rl_sm": rl_sm,
+                        "laplacian_prob_reg_loss": reg_loss3,
+                        "joint_model_log_prob": lp, "numdraws": tf.reduce_mean(numdraws, axis=reduce_axis),
+                        "draw_points": tf.reduce_mean(draw_points, axis=reduce_axis),
+                        "accuracy": tf.reduce_mean(accuracy, axis=reduce_axis),
+                        "kl_div": tf.reduce_mean(kl_div, axis=reduce_axis),
+                        "softmax_lp_mean": tf.reduce_mean(softmax_lp, axis=reduce_axis),
+                        "softmax_mean_acc": tf.reduce_mean(softmax_acc, axis=reduce_axis),
+                        "poisson_lp_mean": tf.reduce_mean(poisson_lp, axis=reduce_axis),
+                        "gaussian_lp_mean": tf.reduce_mean(gaussian_lp, axis=reduce_axis),
+                        "logpoints": tf.reduce_mean(logpoints, axis=reduce_axis),
+                        "mean_points": tf.reduce_mean(actual_points, axis=reduce_axis),
+                        "real_points": tf.reduce_mean(real_points, axis=reduce_axis),
+                        "cup_fraction": cup_fraction,
+                        "accuracy_cup": tf.reduce_mean(accuracy * mask_cup, axis=reduce_axis) / cup_fraction,
+                        "accuracy_league": tf.reduce_mean(accuracy * mask_league, axis=reduce_axis) / (
+                                    1.0 - cup_fraction),
+                        "real_points_cup": tf.reduce_mean(real_points * mask_cup, axis=reduce_axis) / cup_fraction,
+                        "real_points_league": tf.reduce_mean(real_points * mask_league, axis=reduce_axis) / (
+                                    1.0 - cup_fraction),
+                        # "mask_max":tf.reduce_max(mask_cup), "mask_min":tf.reduce_min(mask_cup), "mask_mean":tf.reduce_mean(mask_cup),
+                        })
+            lpp["total"] = tf.reduce_mean(lp) - kl * tf.reduce_mean(kl_div) + lpt * tf.reduce_mean(
+                logpoints) + pois * tf.reduce_mean(poisson_lp) + gaus * tf.reduce_mean(
+                gaussian_lp) + smx * tf.reduce_mean(softmax_lp) - reg_loss2  # Pistor
+            return lpp
+
+        return weights, make_outputs, joint_model, make_surrogate_posterior, loss_function
+
+
     def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
                       checkpoints, save_steps, data_dir, max_to_keep,
                       reset_variables, skip_plotting, target_system, modes, use_swa, histograms, useBWIN):
@@ -1321,6 +1903,15 @@
 
 
     def main(_):
+        if tf.test.gpu_device_name() != '/device:GPU:0':
+            print('WARNING: GPU device not found.')
+        else:
+            print('SUCCESS: Found GPU: {}'.format(tf.test.gpu_device_name()))
+
+        # For numeric stability, set the default floating-point dtype to float64
+        tf.keras.backend.set_floatx('float64')
+
+
         #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/Mapping_Layer/WM", target_file_name="mapping.csv", all_tensor_names=False, all_tensors=False)
         #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/candidate/kernel", target_file_name="rnn_candidate_kernel.csv", all_tensor_names=False, all_tensors=False)
         #  utils.print_tensors_in_checkpoint_file(FLAGS.model_dir, tensor_name="Model/RNN_1/rnn/multi_rnn_cell/cell_0/gru_cell/gates/kernel", target_file_name="rnn_gates_kernel.csv", all_tensor_names=False, all_tensors=False)
@@ -1458,12 +2049,8 @@
             type=str,
             # default="static",
             #default="train",
-            # default="eval_stop",
             default="eval",
             # default="predict",
-            # default="upgrade",
-            # default="train_eval",
-            # default="upgrade,train,eval,predict",
             help="What to do"
         )
         parser.add_argument(
@@ -1483,51 +2070,10 @@
         # print(label_column_names)
         print(features_arrays["match_input_layer"].shape)
         print(labels_array.shape)
-
-        if point_scheme == point_scheme_pistor:
-            point_matrix = np.array([[3 if (i // 7 == j // 7) and (np.mod(i, 7) == np.mod(j, 7)) else
-                                      2 if (i // 7 - np.mod(i, 7) == j // 7 - np.mod(j, 7)) else
-                                      1 if (np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
-                                      0 for i in range(49)] for j in range(49)])
-        elif point_scheme == point_scheme_sky:
-            point_matrix = np.array([[5 if (i // 7 == j // 7) and (np.mod(i, 7) == np.mod(j, 7)) else
-                                      2 if (np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
-                                      0 for i in range(49)] for j in range(49)])
-        if point_scheme == point_scheme_goal_diff:
-            point_matrix = np.array([[np.maximum(5, 10 - np.abs(i // 7 - j // 7) - np.abs(np.mod(i, 7) - np.mod(j, 7))) if (
-                    np.sign(i // 7 - np.mod(i, 7)) == np.sign(j // 7 - np.mod(j, 7))) else
-                                      0 for i in range(49)] for j in range(49)])
-        home_away_inversion_matrix = np.array([[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
+        home_away_inversion_matrix, point_matrix = build_matrices(point_scheme)
 
         X = features_arrays["match_input_layer"]
-        label_filter = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 46, 47, 48, 49, 50, 51, 52, 53]
-        # X = np.concatenate([X,
-        #                     np.mean(labels_array[features_arrays["match_history_t1"][:, -5:]][:, :, label_filter], axis=1),
-        #                     np.mean(labels_array[features_arrays["match_history_t2"][:, -5:]][:, :, label_filter], axis=1),
-        #                     np.mean(labels_array[features_arrays["match_history_t12"][:, -2:]][:, :, label_filter], axis=1)
-        #                     # labels_array[features_arrays["match_history_t2"][:,-5:]][:,:,label_filter].reshape((-1,5*len(label_filter))),
-        #                     # labels_array[features_arrays["match_history_t12"][:,-2:]][:,:,label_filter].reshape((-1,2*len(label_filter)))
-        #                     ], axis=1)
-
-        # label_column_sublist = label_column_names[18:21]
-        label_column_sublist = label_column_names[label_filter]
-        # label_column_sublist = label_column_names
-        label_column_names_extended = \
-            ["T1_Hi5_" + x for x in label_column_sublist.tolist()] + \
-            ["T2_Hi5_" + x for x in label_column_sublist.tolist()] + \
-            ["T12_Hi2_" + x for x in label_column_sublist.tolist()]
-
-        #feature_names += label_column_names_extended
-
         print(X.shape)
-
-        #  train_idx = train_idx[::2]
-        #  test_idx = test_idx[::2]
-        #  pred_idx = pred_idx[::2]
-        #train_idx = train_idx[::306]
-
-        # reset "Where"
-        #X[:,1]=0.5
 
         X_train = X[train_idx]
         X_test = X[test_idx]
@@ -1537,27 +2083,6 @@
         X_test_bwin = np.take(X[test_idx], bwin_index, axis=1)
         X_pred_bwin = np.take(X[pred_idx], bwin_index, axis=1)
 
-        # spi_index = [210, 211, 212, 213, 214, 215, 216, 217, 218]
-        # spi_index = [1, 214, 215, 216, 217, 218]
-        # X_train_spi = np.take(X[train_idx], spi_index, axis=1)
-        # X_test_spi = np.take(X[test_idx], spi_index, axis=1)
-        # X_pred_spi = np.take(X[pred_idx], spi_index, axis=1)
-
-        #tf.config.set_visible_devices([], 'GPU')
-        #sess = tf.Session(config=tf.ConfigProto(device_count={'GPU': 0}))
-
-
-        if tf.test.gpu_device_name() != '/device:GPU:0':
-            print('WARNING: GPU device not found.')
-        else:
-            print('SUCCESS: Found GPU: {}'.format(tf.test.gpu_device_name()))
-
-        # For numeric stability, set the default floating-point dtype to float64
-        tf.keras.backend.set_floatx('float64')
-
-
-        #feature_idx = list(range(0,30))
-        #feature_idx = bwin_index
         feature_idx = range(X_train.shape[1])
         label_columns_poisson = [i for i in range(46)]
         label_columns_gaussian = [i for i in range(46, 54+2)]
@@ -1576,76 +2101,6 @@
         x_pred_scaled = scaler.transform(x_pred)
         #scaler.inverse_transform(small_x_train)
 
-        def sample_df(yhat, Y, dataset):
-            sample = yhat.sample().numpy()
-            l = sample.shape[0]//Y.shape[0]
-            df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
-                               "GS":np.tile(Y[:,0].astype(int), reps=l),
-                               "GC":np.tile(Y[:,1].astype(int), reps=l),
-                               "pGS":sample[:,0].astype(int),
-                               "pGC":sample[:,1].astype(int),
-                               "est1":yhat.mean()[:,0],
-                               "est2":yhat.mean()[:,1],
-                                   # "pGS":np.argmax(sample, axis=1)//7,
-                               # "pGC":np.mod(np.argmax(sample, axis=1), 7),
-                               # "est1":np.sum(yhat.mean() * arraygs, axis=1),
-                               # "est2":np.sum(yhat.mean() * arraygc, axis=1),
-                               "Prefix": "poisson",
-                               "dataset": dataset,
-                               "act":"Y_test[:,0:2]",
-                               "Team1":"Team1",
-                               "Team2": "Team2",
-                               "match":np.tile(range(Y[:,0].shape[0]), reps=l)
-                               })
-            return df
-
-        def sample_categorical_df(yhat, Y, dataset):
-            sample = yhat.sample().numpy()
-            l = sample.shape[0]//Y.shape[0]
-            probs = yhat.mean()
-            probs = probs / np.sum(probs, axis=1,  keepdims=True)
-            df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
-                               "GS":np.tile(Y[:,0].astype(int), reps=l),
-                               "GC":np.tile(Y[:,1].astype(int), reps=l),
-                               # "pGS":sample//7,
-                               # "pGC":np.mod(sample, 7),
-                               # "est1":yhat.mean()[:,0],
-                               # "est2":yhat.mean()[:,1],
-                               "pGS":np.argmax(sample, axis=1)//7,
-                               "pGC":np.mod(np.argmax(sample, axis=1), 7),
-                               "est1":np.sum(probs * arraygs, axis=1),
-                               "est2":np.sum(probs * arraygc, axis=1),
-                               "Prefix": "poisson",
-                               "dataset": dataset,
-                               "act":"Y_test[:,0:2]",
-                               "Team1":"Team1",
-                               "Team2": "Team2",
-                               "match":np.tile(range(Y[:,0].shape[0]), reps=l)
-                               })
-            return df
-
-        def create_result_index(GS, GC):
-            return (np.maximum(0, np.minimum(np.round(GS), 6)) * 7 + np.maximum(0, np.minimum(np.round(GC), 6))).astype(np.int32)
-
-        def laplacian_matrix():
-            m = [[-1 if abs(i - i2 + j - j2) == 1 and abs(i - i2 - j + j2) == 1 else \
-                      2 if (i, j) == (i2, j2) and (i, j) in [(0, 0), (0, 6), (6, 0), (6, 6)] else \
-                          3 if (i, j) == (i2, j2) and (i in [0, 6] or j in [0, 6]) else \
-                              4 if (i, j) == (i2, j2) else \
-                                  0
-                  for i in range(7) for j in range(7)] for i2 in range(7) for j2 in range(7)]
-            t_laplacian = tf.constant(m, dtype=tf.float64)
-            return t_laplacian
-
-        def create_laplacian_loss(p_pred_12, alpha=1.0):
-            laplm = laplacian_matrix()
-            lp = tf.matmul(p_pred_12, laplm)
-            laplacian_loss = (lp ** 2) / 2
-            laplacian_loss = tf.reduce_sum(laplacian_loss, axis=1)
-            laplacian_loss = alpha * tf.reduce_mean(laplacian_loss, name="laplacian")
-            return laplacian_loss
-
-
         arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
         arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
         outputs_ = tf.one_hot(create_result_index(Y_train[:,0], Y_train[:,1]), 49) #.astype(np.float64)
@@ -1662,893 +2117,27 @@
         print(empAwayDist)
         print(np.sum(empHomeDist))
 
-        def create_maxpoint_prediction(df):
-            dfpoints = np.stack([point_matrix[create_result_index(df.pGS, df.pGC), i] for i in range(49)],
-                                axis=1)
-            dfpoints = pd.DataFrame(dfpoints, index=df.match)
-            dfpoints = dfpoints.groupby(dfpoints.index).mean()
-            maxpoints = pd.DataFrame({"pGS": np.argmax(dfpoints.to_numpy(), axis=1) // 7,
-                                      "pGC": np.mod(np.argmax(dfpoints.to_numpy(), axis=1), 7),
-                                      "points": np.amax(dfpoints.to_numpy(), axis=1)})
-            df2 = df. \
-                groupby(['match', 'Where', 'GS', 'GC', 'Prefix', 'dataset', 'act', 'Team1', 'Team2']).mean(). \
-                rename(columns={"pGS": "pGS2", "pGC": "pGC2"}). \
-                reset_index().set_index("match")
-            df3 = pd.concat([df2, maxpoints], axis=1)
-            return df3
-
-        def create_maxpoint_prediction_from_mean(probs, Ylen):
-            l = probs.shape[0]//Ylen
-            expPoints = np.mean(np.matmul(probs, point_matrix).reshape((-1, Ylen,49)), axis=0)
-            maxpoints = pd.DataFrame({"pGS": np.argmax(expPoints, axis=1) // 7,
-                                      "pGC": np.mod(np.argmax(expPoints, axis=1), 7),
-                                      "points": np.amax(expPoints, axis=1),
-                                      "est1": np.mean(np.sum(probs * arraygs, axis=1).reshape((-1, Ylen)), axis=0),
-                                      "est2": np.mean(np.sum(probs * arraygc, axis=1).reshape((-1, Ylen)), axis=0)
-                                      })
-            return maxpoints
-
-        def create_argmax_prediction_from_mean(probs, Ylen):
-            probs = probs.reshape((-1, Ylen,49))
-            expPoints = np.mean(np.matmul(probs, point_matrix), axis=-3) # shape: w*batch, 49
-            maxpoints = pd.DataFrame({"pGS": np.argmax(np.mean(probs, axis=-3), axis=-1) // 7,
-                                      "pGC": np.mod(np.argmax(np.mean(probs, axis=-3), axis=-1), 7),
-                                      "points": np.amax(expPoints, axis=-1),
-                                      "est1": np.mean(np.sum(probs * arraygs, axis=-1).reshape((-1, Ylen)), axis=0), #
-                                      "est2": np.mean(np.sum(probs * arraygc, axis=-1).reshape((-1, Ylen)), axis=0)
-                                      })
-            return maxpoints
-
-        def create_df(maxpoints, Y, dataset, team1=None, team2=None):
-            l = maxpoints.shape[0]//Y.shape[0]
-            df = pd.DataFrame({"Where":np.tile(np.tile(["Home", "Away"], reps=Y[:,0].shape[0]//2), reps=l),
-                               "GS":np.tile(Y[:,0].astype(int), reps=l),
-                               "GC":np.tile(Y[:,1].astype(int), reps=l),
-                               "pGS":maxpoints.pGS,
-                               "pGC":maxpoints.pGC,
-                               "est1":maxpoints.est1,
-                               "est2":maxpoints.est2,
-                               "points":maxpoints.points,
-                               "Prefix": "poisson",
-                               "dataset": dataset,
-                               "act":"act",
-                               "Team1":team1,
-                               "Team2": team2,
-                               "match":np.tile(range(Y[:,0].shape[0]), reps=l)
-                               })
-            return df
-
-
-        #plot_gaussian_process(searchlog, 0, 6)
-        def plot_gaussian_process(searchlog, xlabel, ylabel):
-            #observations_ = searchlog.pts
-            observations_ = -searchlog.score
-
-            # remove lower end outliers (ususally bad scores)
-            lower_bound = np.quantile(observations_, 0.9) - 5*(np.quantile(observations_, 0.9)-np.quantile(observations_, 0.35))
-            searchlog = searchlog[observations_.gt(lower_bound)]
-            observations_ = observations_[observations_.gt(lower_bound)]
-
-            # center the observations so that the best point is positive
-            med = np.median(observations_)
-            print("Median:")
-            print(med)
-            observations_ = observations_ - med
-            print(observations_)
-            print(searchlog)
-            observation_index_points_ = searchlog.loc[:,
-                                        ["reg1", "reg2", "reg2g", "reg3", "reg4", "wkl", "wlpt", "wpois", "wgaus", "wsmx"]].to_numpy()
-            tfk = tfp.math.psd_kernels
-            k = observation_index_points_.shape[1]
-            observation_index_points_ = np.log(observation_index_points_)
-
-            scaler = preprocessing.StandardScaler().fit(observation_index_points_)
-            observation_index_points_ = scaler.transform(observation_index_points_)
-
-            last_score = observations_[searchlog.accept.astype(bool)].iloc[-1]
-            current_point = observation_index_points_[searchlog.accept.astype(bool)][-1]
-
-            #plotdata = searchlog.loc[:, [xlabel, ylabel]]
-
-            def build_gp(amplitude, length_scale, scale_diag, observation_noise_variance):
-                """Defines the conditional dist. of GP outputs, given kernel parameters."""
-
-                # Create the covariance kernel, which will be shared between the prior (which we
-                # use for maximum likelihood training) and the posterior (which we use for
-                # posterior predictive sampling)
-                #kernel = tfk.MaternOneHalf(amplitude, length_scale, feature_ndims=1)
-                #kernel = tfk.MaternThreeHalves(amplitude, length_scale, feature_ndims=1)
-
-                #kernel = tfk.MaternFiveHalves(amplitude, length_scale, feature_ndims=1)
-                kernel = tfk.ExponentiatedQuadratic(amplitude, length_scale, feature_ndims=1)
-                kernel = tfk.FeatureScaled(kernel, scale_diag)
-                # Create the GP prior distribution, which we will use to train the model
-                # parameters.
-                gp = tfd.GaussianProcess(
-                    kernel=kernel,
-                    index_points=observation_index_points_,
-                    observation_noise_variance=observation_noise_variance)
-                return gp
-
-            gp_joint_model = tfd.JointDistributionNamed({
-                'amplitude':  tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'length_scale': tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'scale_diag': tfd.Independent(tfd.LogNormal(loc=[0.] * k, scale=np.float64([1.] * k)),
-                                              reinterpreted_batch_ndims=1),
-                'observation_noise_variance': tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'observations': build_gp,
-            })
-            # Create the trainable model parameters, which we'll subsequently optimize.
-            # Note that we constrain them to be strictly positive.
-            constrain_positive = tfb.Shift(np.finfo(np.float64).tiny)(tfb.Exp())
-
-            amplitude_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='amplitude',
-                dtype=np.float64)
-
-            length_scale_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='length_scale',
-                dtype=np.float64)
-
-            scale_diag_var = tfp.util.TransformedVariable(
-                initial_value=[1.] * k,
-                bijector=constrain_positive,
-                name='amplitude',
-                dtype=np.float64)
-
-            observation_noise_variance_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='observation_noise_variance_var',
-                dtype=np.float64)
-
-            trainable_variables = [v.trainable_variables[0] for v in
-                                   [amplitude_var,
-                                    length_scale_var,
-                                    scale_diag_var,
-                                    observation_noise_variance_var]]
-            # Use `tf.function` to trace the loss for more efficient evaluation.
-            @tf.function(autograph=False, experimental_compile=False)
-            def target_log_prob(amplitude, length_scale, scale_diag, observation_noise_variance):
-                return gp_joint_model.log_prob({
-                    'amplitude': amplitude,
-                    'length_scale': length_scale,
-                    'scale_diag': scale_diag,
-                    'observation_noise_variance': observation_noise_variance,
-                    'observations': observations_
-                })
-
-            # Now we optimize the model parameters.
-            num_iters = 100
-            optimizer2 = tf.optimizers.Adam(learning_rate=.1)
-
-            # Store the likelihood values during training, so we can plot the progress
-            lls_ = np.zeros(num_iters, np.float64)
-            for i in range(num_iters):
-                with tf.GradientTape() as tape:
-                    loss = -target_log_prob(amplitude_var, length_scale_var, scale_diag_var,
-                                            observation_noise_variance_var)
-                grads = tape.gradient(loss, trainable_variables)
-                optimizer2.apply_gradients(zip(grads, trainable_variables))
-                lls_[i] = loss
-
-            print('Trained parameters:')
-            print('amplitude: {}'.format(amplitude_var._value().numpy()))
-            print('length_scale: {}'.format(length_scale_var._value().numpy()))
-            print('scale_diag: {}'.format(scale_diag_var._value().numpy()))
-            print('observation_noise_variance: {}'.format(observation_noise_variance_var._value().numpy()))
-
-            #optimized_kernel = tfk.MaternFiveHalves(amplitude_var, length_scale_var, feature_ndims=1)
-            #optimized_kernel = tfk.MaternOneHalf(amplitude_var, length_scale_var, feature_ndims=1)
-            #optimized_kernel = tfk.MaternThreeHalves(amplitude_var, length_scale_var, feature_ndims=1)
-            optimized_kernel = tfk.ExponentiatedQuadratic(amplitude_var, length_scale_var, feature_ndims=1)
-            optimized_kernel = tfk.FeatureScaled(optimized_kernel, scale_diag_var)
-
-            @tf.function(autograph=False, experimental_compile=False)
-            def expected_improvement(index_var):
-                newgprm = tfd.GaussianProcessRegressionModel(
-                    kernel=optimized_kernel,
-                    index_points=index_var, #[tf.newaxis, ...],
-                    observation_index_points=observation_index_points_,
-                    observations=observations_,
-                    observation_noise_variance=observation_noise_variance_var,
-                    predictive_noise_variance=0.)
-                Z = (newgprm.mean() - last_score) / newgprm.stddev()
-                EI = (newgprm.mean() - last_score) * nn.cdf(Z) + newgprm.stddev() * nn.prob(Z)
-                return EI,newgprm.mean() , newgprm.stddev()
-
-
-            # determine the index_point with the highest expected improvement using gradient descent
-            #best = np.max(observations_)
-            nn = tfd.Normal(tf.zeros(1, dtype=tf.float64), tf.ones(1, dtype=tf.float64))
-
-            current_point = observation_index_points_[searchlog.accept.astype(bool)][-1]
-            print("current_point:")
-            print(current_point)
-
-            print("norms:")
-            print(np.linalg.norm(observation_index_points_-current_point[np.newaxis, ...], ord=2, axis=1))
-
-            xlabel = 0
-            ylabel = 6
-            #plotdata = searchlog.loc[:, [xlabel, ylabel]]
-
-            xdata = observation_index_points_[:,xlabel]
-            ydata = observation_index_points_[:, ylabel]
-            k = len(observation_index_points_[:,xlabel])
-            pointdata = np.concatenate([xdata[...,np.newaxis],
-                                       current_point[1:6]*np.ones((k,5)),
-                                       ydata[...,np.newaxis],
-                                       current_point[7:]*np.ones((k,3))], axis=-1)
-
-            obsei = expected_improvement(observation_index_points_)
-            obsei2 = expected_improvement(pointdata)
-            print(pd.DataFrame({"actual":observations_, "pred":obsei[1], "stddev":obsei[2], "ei":obsei[0], "distnorm":np.linalg.norm(observation_index_points_-current_point[np.newaxis, ...], ord=2, axis=1),
-                               "x":xdata, "y":ydata, "p_pred":obsei2[1], "p_stddev":obsei2[2], "p_ei":obsei2[0], "p_distnorm":np.linalg.norm(pointdata-current_point[np.newaxis, ...], ord=2, axis=1)}))
-
-            y = np.arange(ydata.min(), ydata.max(), 0.01*(ydata.max()-ydata.min()))
-            x = np.arange(xdata.min(), xdata.max(), 0.01*(xdata.max()-xdata.min()))
-            X, Y = np.meshgrid(x, y)
-            #print(X)
-            #print(Y)
-            griddata = np.concatenate([X[...,np.newaxis],
-                                       current_point[1:6]*np.ones((100,100,5)),
-                                       Y[...,np.newaxis],
-                                       current_point[7:]*np.ones((100,100,3))], axis=-1)
-            Z0, Z, Zstd = expected_improvement(griddata)
-
-            fig, ax = plt.subplots()
-            #plt.imshow(Z)
-            CS = ax.contour(X, Y, Z0, cmap="RdYlGn", levels=12)
-            ax.clabel(CS, inline=1, fontsize=10)
-            #cset1 = ax.contourf(X, Y, Z, cmap="RdYlGn_r", levels=6)
-            #ax.scatter(xdata[~searchlog.accept.astype(bool)], ydata[~searchlog.accept.astype(bool)], color="blue")
-            #ax.scatter(xdata[searchlog.accept.astype(bool)], ydata[searchlog.accept.astype(bool)], color="red")
-            ax.plot(xdata, ydata)
-            sns.scatterplot(xdata, ydata, hue=observations_, palette="RdYlGn")
-            #plt.colorbar()
-            for i, obs in enumerate(observations_):
-                ax.annotate("{:.3f}".format(obs), (xdata[i]+0.01, ydata[i]+0.01))
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Expected Improvement")
-            im = plt.imshow(Z0)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Means")
-            im = plt.imshow(Z)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Standard deviations")
-            im = plt.imshow(Zstd)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-            xlabel = 1
-            ylabel = 7
-            #plotdata = searchlog.loc[:, [xlabel, ylabel]]
-            xdata = observation_index_points_[:,xlabel]
-            ydata = observation_index_points_[:, ylabel]
-
-            obsei = expected_improvement(observation_index_points_)
-            print(pd.DataFrame({"actual":observations_, "pred":obsei[1], "stddev":obsei[2], "ei":obsei[0], "x":xdata, "y":ydata}))
-
-            y = np.arange(ydata.min(), ydata.max(), 0.01*(ydata.max()-ydata.min()))
-            x = np.arange(xdata.min(), xdata.max(), 0.01*(xdata.max()-xdata.min()))
-            x=x[0:100]
-            y=y[0:100]
-            X, Y = np.meshgrid(x, y)
-            #print(X)
-            #print(Y)
-            griddata = np.concatenate([current_point[0:1]*np.ones((100,100,1)),
-                                       X[...,np.newaxis],
-                                       current_point[2:7]*np.ones((100,100,5)),
-                                       Y[...,np.newaxis],
-                                       current_point[8:]*np.ones((100,100,2))], axis=-1)
-            Z0, Z, Zstd = expected_improvement(griddata)
-
-            fig, ax = plt.subplots()
-            #plt.imshow(Z)
-            CS = ax.contour(X, Y, Z0, cmap="RdYlGn", levels=12)
-            ax.clabel(CS, inline=1, fontsize=10)
-            #cset1 = ax.contourf(X, Y, Z, cmap="RdYlGn_r", levels=6)
-            #ax.scatter(xdata[~searchlog.accept.astype(bool)], ydata[~searchlog.accept.astype(bool)], color="blue")
-            #ax.scatter(xdata[searchlog.accept.astype(bool)], ydata[searchlog.accept.astype(bool)], color="red")
-            ax.plot(xdata, ydata)
-            sns.scatterplot(xdata, ydata, hue=observations_, palette="RdYlGn")
-            #plt.colorbar()
-            for i, obs in enumerate(observations_):
-                ax.annotate("{:.3f}".format(obs), (xdata[i]+0.01, ydata[i]+0.01))
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Expected Improvement")
-            im = plt.imshow(Z0)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Means")
-            im = plt.imshow(Z)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-            fig, ax = plt.subplots()
-            plt.title("Standard deviations")
-            im = plt.imshow(Zstd)
-            fig.colorbar(im, ax=ax)
-            fig.tight_layout()
-            plt.show()
-
-
-        #find_next_params_from_gaussian_process(searchlog, num_iters3=1000)
-        def find_next_params_from_gaussian_process(searchlog, num_iters3=1000):
-            #observations_ = searchlog.pts
-            observations_ = -searchlog.score
-
-            # remove lower end outliers (ususally bad scores)
-            lower_bound = np.quantile(observations_, 0.9) - 5*(np.quantile(observations_, 0.9)-np.quantile(observations_, 0.35))
-            searchlog = searchlog[observations_.gt(lower_bound)]
-            observations_ = observations_[observations_.gt(lower_bound)]
-
-            # center the observations so that the best point is positive
-            med = np.median(observations_)
-            print("Median:")
-            print(med)
-            observations_ = observations_ - med
-
-            observation_index_points_ = searchlog.loc[:,
-                                        ["reg1", "reg2", "reg2g", "reg3", "reg4", "wkl", "wlpt", "wpois", "wgaus", "wsmx"]].to_numpy()
-            #print(current_point)
-            tfk = tfp.math.psd_kernels
-            k = observation_index_points_.shape[1]
-            observation_index_points_ = np.log(observation_index_points_)
-            last_score = observations_[searchlog.accept.astype(bool)].iloc[-1]
-
-            scaler = preprocessing.StandardScaler().fit(observation_index_points_)
-            observation_index_points_ = scaler.transform(observation_index_points_)
-
-            current_point = observation_index_points_[searchlog.accept.astype(bool)][-1]
-            print("Last score: "+str(last_score))
-            print("Current point: "+str(current_point))
-            # if np.random.random() < 0.15:
-            #     current_point = [m * np.random.lognormal(0, 0.15) for m in current_point] # introduce some randomness into the search
-
-            #mm_scaler = preprocessing.MinMaxScaler()
-            #observation_index_points_ = mm_scaler.fit_transform(np.log(observation_index_points_))
-
-            def build_gp(amplitude, length_scale, scale_diag, observation_noise_variance):
-                """Defines the conditional dist. of GP outputs, given kernel parameters."""
-
-                # Create the covariance kernel, which will be shared between the prior (which we
-                # use for maximum likelihood training) and the posterior (which we use for
-                # posterior predictive sampling)
-                #kernel = tfk.MaternOneHalf(amplitude, length_scale, feature_ndims=1)
-                kernel = tfk.MaternThreeHalves(amplitude, length_scale, feature_ndims=1)
-                #kernel = tfk.MaternFiveHalves(amplitude, length_scale, feature_ndims=1)
-                #kernel = tfk.ExponentiatedQuadratic(amplitude, length_scale, feature_ndims=1)
-                kernel = tfk.FeatureScaled(kernel, scale_diag)
-                # Create the GP prior distribution, which we will use to train the model
-                # parameters.
-                gp = tfd.GaussianProcess(
-                    kernel=kernel,
-                    index_points=observation_index_points_,
-                    observation_noise_variance=observation_noise_variance)
-                return gp
-
-            gp_joint_model = tfd.JointDistributionNamed({
-                'amplitude':  tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'length_scale': tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'scale_diag': tfd.Independent(tfd.LogNormal(loc=[0.] * k, scale=np.float64([1.] * k)),
-                                              reinterpreted_batch_ndims=1),
-                'observation_noise_variance': tfd.LogNormal(loc=0., scale=np.float64(1.)),
-                'observations': build_gp,
-            })
-            # Create the trainable model parameters, which we'll subsequently optimize.
-            # Note that we constrain them to be strictly positive.
-            constrain_positive = tfb.Shift(np.finfo(np.float64).tiny)(tfb.Exp())
-
-            amplitude_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='amplitude',
-                dtype=np.float64)
-
-            length_scale_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='length_scale',
-                dtype=np.float64)
-
-            scale_diag_var = tfp.util.TransformedVariable(
-                initial_value=[1.] * k,
-                bijector=constrain_positive,
-                name='amplitude',
-                dtype=np.float64)
-
-            observation_noise_variance_var = tfp.util.TransformedVariable(
-                initial_value=1.,
-                bijector=constrain_positive,
-                name='observation_noise_variance_var',
-                dtype=np.float64)
-
-            trainable_variables = [v.trainable_variables[0] for v in
-                                   [amplitude_var,
-                                    length_scale_var,
-                                    scale_diag_var,
-                                    observation_noise_variance_var]]
-            # Use `tf.function` to trace the loss for more efficient evaluation.
-            @tf.function(autograph=False, experimental_compile=False)
-            def target_log_prob(amplitude, length_scale, scale_diag, observation_noise_variance):
-                return gp_joint_model.log_prob({
-                    'amplitude': amplitude,
-                    'length_scale': length_scale,
-                    'scale_diag': scale_diag,
-                    'observation_noise_variance': observation_noise_variance,
-                    'observations': observations_
-                })
-
-            # Now we optimize the model parameters.
-            num_iters = 100
-            optimizer2 = tf.optimizers.Adam(learning_rate=.1)
-
-            # Store the likelihood values during training, so we can plot the progress
-            lls_ = np.zeros(num_iters, np.float64)
-            for i in range(num_iters):
-                with tf.GradientTape() as tape:
-                    loss = -target_log_prob(amplitude_var, length_scale_var, scale_diag_var,
-                                            observation_noise_variance_var)
-                grads = tape.gradient(loss, trainable_variables)
-                optimizer2.apply_gradients(zip(grads, trainable_variables))
-                lls_[i] = loss
-
-            print('Trained parameters:')
-            print('amplitude: {}'.format(amplitude_var._value().numpy()))
-            print('length_scale: {}'.format(length_scale_var._value().numpy()))
-            print('scale_diag: {}'.format(scale_diag_var._value().numpy()))
-            print('observation_noise_variance: {}'.format(observation_noise_variance_var._value().numpy()))
-
-            #optimized_kernel = tfk.MaternFiveHalves(amplitude_var, length_scale_var, feature_ndims=1)
-            #optimized_kernel = tfk.MaternOneHalf(amplitude_var, length_scale_var, feature_ndims=1)
-            optimized_kernel = tfk.MaternThreeHalves(amplitude_var, length_scale_var, feature_ndims=1)
-            #optimized_kernel = tfk.ExponentiatedQuadratic(amplitude_var, length_scale_var, feature_ndims=1)
-            optimized_kernel = tfk.FeatureScaled(optimized_kernel, scale_diag_var)
-
-            # determine the index_point with the highest expected improvement using gradient descent
-            #best = np.max(observations_)
-            nn = tfd.Normal(tf.zeros(1, dtype=tf.float64), tf.ones(1, dtype=tf.float64))
-
-            reg_min=0.0001
-            reg_max=1000.0
-            wgt_min=0.1
-            wgt_max=1000000
-            lower_limit=np.log(np.array([reg_min]*5+[wgt_min]*5))
-            upper_limit=np.log(np.array([reg_max]*5+[wgt_max]*5))
-            limit_range=upper_limit-lower_limit
-            b = 5 # batch_size
-            best_index_var = tfp.util.TransformedVariable(
-                initial_value=tf.random_uniform_initializer(minval=lower_limit+0.2*limit_range, maxval=upper_limit-0.2*limit_range)(shape=[b,k], dtype=tf.float64),
-                name="best_index_var", dtype=np.float64,
-                bijector=tfb.SoftClip(low=tf.constant(lower_limit, dtype=tf.float64), high=tf.constant(upper_limit, dtype=tf.float64)))
-
-            #prior_dist = tfd.Independent(tfd.Normal(loc=current_point, scale=1.5), reinterpreted_batch_ndims=1) # prevent movements far away from origin
-            @tf.function(autograph=False, experimental_compile=False)
-            def prior_log_prob(index_var):
-                prior = tfd.Normal(loc=tf.constant(0.0, dtype=tf.float64), scale=tf.constant(1.0, dtype=tf.float64))
-                distance = tf.norm(index_var - current_point[tf.newaxis, ...], axis=-1)
-                return prior.log_prob(tf.math.log(distance))
-
-            # best_index_var = tfp.util.TransformedVariable(
-            #     initial_value=tf.random_uniform_initializer(minval=0.2, maxval=0.8)(shape=[k], dtype=tf.float64),
-            #     name="best_index_var", dtype=np.float64,
-            #     bijector=tfb.SoftClip(low=tf.constant(-0.1, dtype=tf.float64), high=tf.constant(1.1, dtype=tf.float64)))
-
-            @tf.function(autograph=False, experimental_compile=False)
-            def expected_improvement(index_var):
-                newgprm = tfd.GaussianProcessRegressionModel(
-                    kernel=optimized_kernel,
-                    index_points=index_var, #[tf.newaxis, ...],
-                    observation_index_points=observation_index_points_,
-                    observations=observations_,
-                    observation_noise_variance=observation_noise_variance_var,
-                    predictive_noise_variance=0.)
-                Z = (newgprm.mean() - last_score) / newgprm.stddev()
-                EI = (newgprm.mean() - last_score) * nn.cdf(Z) + newgprm.stddev() * nn.prob(Z)
-                return EI, newgprm.mean(), newgprm.stddev(), Z
-
-
-            obsei = expected_improvement(observation_index_points_)
-            obsdist = prior_log_prob(observation_index_points_).numpy()
-
-            #print(obsei)
-            #obsdist = prior_dist.log_prob(observation_index_points_)
-            print(pd.DataFrame({"actual":observations_, "pred":obsei[1], "ei":obsei[0], "dist":obsdist}))
-            # Now we search the best index point.
-            #num_iters3 = 100
-
-            optimizer3 = tf.optimizers.Adam(learning_rate=.02)
-
-            # Store the likelihood values during training, so we can plot the progress
-            #print(searchlog)
-            # print(last_score)
-            print("New search point base:")
-            print(current_point)
-            print({"expected_improvement":[v.numpy() for v in expected_improvement(np.array(current_point)[tf.newaxis, ...])],
-                   "distance log prob": prior_log_prob(np.array(current_point)[tf.newaxis, ...]).numpy()})
-            #stop()
-            lls_ = np.zeros((num_iters3, b), np.float64)
-            early_stop_rounds = 20
-            minloss = 1e20
-            rounds_without_improvement = 0
-            for i in range(num_iters3):
-                with tf.GradientTape() as tape:
-                    ei = expected_improvement(best_index_var)[0]
-                    pp = prior_log_prob(best_index_var)
-                    loss = -ei - pp #-ei#+0.0001*tf.reduce_sum(tf.math.reduce_variance(tf.concat([observation_index_points_, best_index_var], axis=0), axis=0))
-                    # if np.mod(i,50) == 0:
-                    #     print((i, ei, pp))
-                    #     print(best_index_var.trainable_variables[0])
-                grads = tape.gradient(loss, [best_index_var.trainable_variables[0]])
-                optimizer3.apply_gradients(zip(grads, [best_index_var.trainable_variables[0]]))
-                lls_[i] = loss
-                if np.min(loss) < minloss:
-                    minloss = np.min(loss)
-                    rounds_without_improvement = 0
-                else:
-                    rounds_without_improvement += 1
-                    if rounds_without_improvement > early_stop_rounds:
-                        break
-            print("Optimization Rounds:")
-            print(i)
-            print(best_index_var)
-            print("Expected Improvement:")
-            print([v.numpy() for v in expected_improvement(best_index_var)])
-            print("Prior Log Prob:")
-            print(prior_log_prob(best_index_var).numpy())
-            #print("Expected Improvement: "+str(expected_improvement(best_index_var).numpy()[0]))
-
-            best_ei_idx = np.argmax(expected_improvement(best_index_var)[0])
-
-            print("Selected:")
-            print(pd.DataFrame({"old":current_point, "new":best_index_var[best_ei_idx].numpy()}))
-
-            best_index_var = scaler.inverse_transform(best_index_var.numpy())
-
-            best_index_var = np.exp(best_index_var)
-
-            print("Selected:")
-            print(best_index_var[best_ei_idx].tolist())
-            #print(result)
-            return best_index_var[best_ei_idx].tolist()
 
         n_train_samples = x_train.shape[0]
 
-        mixcom = 15 # mixture components
         L1size = 32
         L2size = Y_train.shape[1]
         x = x_train_scaled
 
-        batch_size = 3
-        def create_weights():
-            return (
-                tf.Variable(0.001*tf.random.normal(shape=[batch_size, x.shape[1] + 1, L1size], dtype=tf.float64))
-                 , tf.Variable(0.01*tf.random.normal(shape=[batch_size, L1size + 1, len(label_columns_poisson)], dtype=tf.float64))
-                 , tf.Variable(0.01*tf.random.normal(shape=[batch_size, L1size + 1, len(label_columns_gaussian)], dtype=tf.float64))
-                 , tf.Variable(0.01*tf.random.normal(shape=[batch_size, L1size + 1, 49], dtype=tf.float64))
-                 , tf.Variable(0.01*tf.random.normal(shape=[batch_size, L1size + 1, 49], dtype=tf.float64))
-            )
-        l1weights, l2weights, lgweights, weights, smweights  = create_weights()
 
-        regularizer = tf.keras.regularizers.L1L2(l1=1.0)
-        regularizer2 = tf.keras.regularizers.L1L2(l2=1.0)
+        reg1  = 1000.0
+        reg2  = 1000.0
+        reg2g = 1000.0
+        reg3  = 1000.0
+        reg4  = 1000.0
+        kl   = 1000.0
+        lpt  = 10.0
+        pois = 10.0
+        gaus = 10.0
+        smx  = 10.0
 
-        def make_joint_mixture_model(x):
-            def make_outputs(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, ): #tfd.Sample(
-               l1w = l1weights[..., :-1, :] * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
-               l2w = l2weights[..., :-1, :] * l2w_out[...,tf.newaxis, :]
-               lgw = lgweights[..., :-1, :] *  lgw_out[...,tf.newaxis, :]
-               wgt = weights[..., :-1, :] *  w_out[...,tf.newaxis, :]
-               smw = smweights[..., :-1, :]  * sm_out[...,tf.newaxis, :]
-               x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math.tanh
-               x2 = tf.matmul(x1, l2w[..., :, :]) + l2weights[..., -1:, :]
-               x2g = tf.matmul(x1, lgw[..., :, :]) + lgweights[..., -1:, :]
-               l = tf.matmul(x1, wgt[..., :, :]) + weights[..., -1:, :]
-               sml = tf.matmul(x1, smw[..., :, :]) + smweights[..., -1:, :]
-               # l1w = l1weights * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
-               # l2w = l2weights * l2w_out[...,tf.newaxis, :]
-               # lgw = lgweights *  lgw_out[...,tf.newaxis, :]
-               # wgt = weights *  w_out[...,tf.newaxis, :]
-               # smw = smweights  * sm_out[...,tf.newaxis, :]
-               # x1 = tf.nn.relu(tf.matmul(x, l1w[..., :-1, :]) + l1w[..., -1:, :]) # tf.math.tanh
-               # x2 = tf.matmul(x1, l2w[..., :-1, :]) + l2w[..., -1:, :]
-               # x2g = tf.matmul(x1, lgw[..., :-1, :]) + lgw[..., -1:, :]
-               # l = tf.matmul(x1, wgt[..., :-1, :]) + wgt[..., -1:, :]
-               # sml = tf.matmul(x1, smw[..., :-1, :]) + smw[..., -1:, :]
-               return tfd.JointDistributionNamed(dict(
-                   mainresult = tfd.Independent(tfd.OneHotCategorical(logits=l), reinterpreted_batch_ndims=1),
-                   sidebets = tfd.Independent(tfd.Poisson(log_rate=x2), reinterpreted_batch_ndims=2),
-                   sidebets_gaussian = tfd.Independent(tfd.Normal(loc=x2g, scale=1.0), reinterpreted_batch_ndims=2),
-                   softmax = tfd.Independent(tfd.OneHotCategorical(logits=sml), reinterpreted_batch_ndims=1)
-               ))
-            sc = 2.0
-            return make_outputs, tfd.JointDistributionNamed(dict(
-                l1w_in=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, x.shape[1] + 0], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, x.shape[1] + 0], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                l1w_out=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, L1size], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, L1size], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                l2w_out=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, len(label_columns_poisson)], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, len(label_columns_poisson)], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                lgw_out=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, len(label_columns_gaussian)], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, len(label_columns_gaussian)], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                w_out=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, 49], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, 49], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                sm_out=tfd.Independent(
-                    tfd.Normal(loc=tf.zeros(shape=[batch_size, 49], dtype=tf.float64),
-                               scale=sc * tf.ones(shape=[batch_size, 49], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-                outputs=make_outputs
-             )
-            )
-
-
-        make_mixture_probs_train, joint_model = make_joint_mixture_model(x_train_scaled)
-        make_mixture_probs_test, joint_model_test = make_joint_mixture_model(x_test_scaled)
-        make_mixture_probs_pred, joint_model_pred = make_joint_mixture_model(x_pred_scaled)
-
-        print(joint_model)
-        #joint_model.sample()["w_in"]
-        # joint_model.sample()["weight_mean"]
-        # joint_model.sample()["weight_scale"]
-        #joint_model.sample()["component_distribution"]
-        joint_model.sample()["sm_out"]
-
-        # cd = joint_model.parameters["model"]["smweights"]
-        # cd.sample()
-        # cd.log_prob(cd.sample())
-        # cd.prob(cd.sample())
-
-        #np.sum(cd.sample(), axis=1)
-
-
-        joint_model
-        joint_model.parameters
-        joint_model.event_shape
-        joint_model.batch_shape
-        # joint_model.parameters["model"]["outputs"](
-        #     joint_model.parameters["model"]["component_distribution"].sample(),
-        #     joint_model.parameters["model"]["weights"](
-        #         joint_model.parameters["model"]["weight_scale"].sample(),
-        #         joint_model.parameters["model"]["weight_mean"].sample()
-        #     ).sample()
-        # )
-
-        joint_model.sample()
-        joint_model.log_prob(joint_model.sample())
-        # joint_model.mean()
-        # {s:v.shape for s,v in joint_model.sample().items()}
-        #empiricalDist = tfd.Empirical(empirical_results, event_ndims=0)  # [x.shape[0], d]
-
-        reg1 = 0.3
-        reg2 = 0.3
-        reg2g = 0.3
-        reg3 = 0.3
-        reg4 = 0.3
-        kl = 10.0
-        lpt = 250.0
-        pois = 40.0
-        gaus = 100.0
-        smx = 250.0
-
-        reg1 = 3.3
-        reg2 = 3.3
-        reg2g = 3.3
-        reg3 = 3.3
-        reg4 = 3.3
-        kl = 10.0
-        lpt = 125.0
-        pois = 40.0
-        gaus = 100.0
-        smx = 200.0
-        # reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-        #     4.944416316777906,
-        #  10.082641897054293,
-        #  6.360554538652137,
-        #  6.256629927766232,
-        #  1.4681506627824792,
-        #  3.415245441326043,
-        #  299.5762196324349,
-        #  75.10385968042918,
-        #  228.4353119286165,
-        #  778.1051397543414] # GoalDiff
-
-        reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-            7.790581026476395,
-         54.118634654859505,
-         6.45872733699362,
-         3.5960901202501345,
-         3.5185993570104217,
-         1.9763906465042098,
-         1463.2568888902092,
-         184.14446596325726,
-         498.2907336214255,
-         836.6541099515921] # Pistor
-
-        # reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-        #     3*7.790581026476395,
-        #  3*54.118634654859505,
-        #  3*6.45872733699362,
-        #  3*3.5960901202501345,
-        #  3*3.5185993570104217,
-        #  3*1.9763906465042098,
-        #  463.2568888902092,
-        #  184.14446596325726,
-        #  498.2907336214255,
-        #  836.6541099515921] # Pistor
-        # Sky
-        #reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [30.06458190875656,	40.1918119676015,	4.321314865899112,	2.524883871214151,	7.122375159069683,	7.5613837836437146,	3390.5851157718234,	433.29620880964984,	826.7903719059955,	921.7516541247792]
-
-        # Sky 64
-        # reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = [
-        # 65.95459628358374,
-        # 16.401733089714277,
-        # 1.3146886990891065,
-        # 1.0183184492433304,
-        # 3.520335892462611,
-        # 4.882879118372497,
-        # 5780.341648714803,
-        # 796.3056309968048,
-        # 861.3450940373662,
-        # 758.1406346008536
-        # ]
         metaparams = (reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx )
 
-        #metaparams = (0.0051081069220212175, 0.059952482246497935, 0.19331630222128357, 0.035694381954010014, 0.8370222414757852, 116.83426393946185, 183.8459838528271, 207.63877420562545)
-        #metaparams = (0.004488,  0.010834,  0.025476,  0.075807,  36.465435,   983.788435,  1995.498555,  471.912004)
-        draw_mask = tf.constant([1 if np.mod(z,7)==(z//7) else 0 for z in range(49)], dtype=tf.float32)
-        wdl_mask = tf.transpose(tf.constant([
-            [1 if np.mod(z, 7) > (z // 7) else 0 for z in range(49)],
-            [1 if np.mod(z, 7) == (z // 7) else 0 for z in range(49)],
-            [1 if np.mod(z, 7) < (z // 7) else 0 for z in range(49)]], dtype=tf.float32))
-
-
-        def loss_function(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, X, Y, Y2, reduce_axis=None): # weight_mean, weight_scale,
-            Y_pois = Y2[:,label_columns_poisson]
-            Y_gaus = Y2[:,label_columns_gaussian]
-
-            mk, joint_model = make_joint_mixture_model(X)
-            #Y = tf.cond(tf.rank(weights)==3, lambda: Y[..., tf.newaxis, :, :], lambda: Y)
-            lpp = joint_model.log_prob_parts({
-                'l1w_in': l1w_in,
-                'l1w_out': l1w_out,
-                'l2w_out': l2w_out,
-                'lgw_out': lgw_out,
-                'w_out': w_out,
-                'sm_out': sm_out,
-                'outputs': {"mainresult":Y, "sidebets":Y_pois, "sidebets_gaussian":Y_gaus, "softmax":Y}
-            })
-            lp = tf.reduce_sum(lpp['l1w_in']+lpp['l1w_out']+lpp['l2w_out']+lpp['lgw_out']+lpp['w_out']+lpp['sm_out'])
-            #reg_loss = create_laplacian_loss(smweights, alpha=0.3)
-            rl_l1 = reg1*regularizer(l1weights[..., :-1, :]) # do not penalize offsets
-            rl_l2 = reg2*regularizer2(l2weights[..., :-1, :])
-            rl_lg = reg2g*regularizer2(lgweights[..., :-1, :])
-            rl_w = reg3*regularizer2(weights[..., :-1, :])
-            rl_sm = reg4*regularizer2(smweights[..., :-1, :])
-            reg_loss2 = rl_l1+rl_l2+rl_lg+rl_w+rl_sm
-            achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
-            pred = mk(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out)
-
-            predprob = tf.nn.softmax(pred.parameters["model"]["mainresult"].distribution.logits, axis=-1)
-            logpoints = tf.math.log(1+predprob)  * tf.cast(achievable_points, tf.float64) # * (0.0001+tf.stop_gradient(pred.parameters["model"]["softmax"].mean()))
-            reg_loss3 = create_laplacian_loss(predprob, alpha=10.0)
-            actual_points = predprob * tf.cast(achievable_points, tf.float64)
-            actual_points = tf.reduce_sum(actual_points, axis=-1)
-            prediction = tf.one_hot(tf.argmax(pred.parameters["model"]["mainresult"].mean(), axis=-1), 49)
-            numdraws = tf.reduce_sum(prediction * draw_mask, axis=-1)
-            real_points = tf.reduce_sum(prediction * achievable_points, axis=-1)
-            # print(X.shape)
-            # print(Y.shape)
-            # print(logpoints.shape)
-            mask_cup = tf.cast(tf.greater(X[:,-1], 0), real_points.dtype)
-            mask_league = tf.cast(tf.less_equal(X[:,-1], 0), real_points.dtype)
-            cup_fraction = tf.reduce_mean(mask_cup)+1e-8
-            #sample_weights = mask_league + 1.0 * mask_cup
-            accuracy = tf.reduce_sum(tf.cast(tf.matmul(prediction, wdl_mask) * tf.matmul(Y, wdl_mask), tf.float32), axis=-1)
-            draw_points = tf.reduce_sum(prediction * draw_mask * achievable_points, axis=-1)/tf.reduce_mean(numdraws)
-            logpoints = tf.reduce_sum(logpoints, axis=-1)
-            softmax_lp = pred.parameters["model"]["softmax"].log_prob(Y)/Y.shape[-2]
-            poisson_lp = pred.parameters["model"]["sidebets"].log_prob(Y_pois)/Y_pois.shape[-2]
-            gaussian_lp = pred.parameters["model"]["sidebets_gaussian"].log_prob(Y_gaus)/Y_gaus.shape[-2]
-            # print(logpoints.shape)
-            #logpoints *= tf.cast(sample_weights, logpoints.dtype)
-            # print(softmax_lp)
-            # softmax_lp *= tf.cast(sample_weights, logpoints.dtype)
-            # poisson_lp *= tf.cast(sample_weights, logpoints.dtype)
-            # gaussian_lp *= tf.cast(sample_weights, logpoints.dtype)
-            kl_div = pred.parameters["model"]["mainresult"].kl_divergence(pred.parameters["model"]["softmax"])/Y2.shape[-2]
-            softmax_acc = tf.reduce_sum(tf.one_hot(tf.argmax(pred.parameters["model"]["softmax"].mean(), axis=-1), 49) * Y, axis=-1)
-            lpp.update({"rl_l1":rl_l1, "rl_l2":rl_l2, "rl_lg":rl_lg, "rl_w":rl_w, "rl_sm":rl_sm, "laplacian_prob_reg_loss":reg_loss3,
-                        "joint_model_log_prob":lp, "numdraws":tf.reduce_mean(numdraws, axis=reduce_axis),  "draw_points":tf.reduce_mean(draw_points, axis=reduce_axis),
-                        "accuracy":tf.reduce_mean(accuracy, axis=reduce_axis),
-                        "kl_div":tf.reduce_mean(kl_div, axis=reduce_axis), "softmax_lp_mean":tf.reduce_mean(softmax_lp, axis=reduce_axis), "softmax_mean_acc":tf.reduce_mean(softmax_acc, axis=reduce_axis),
-                        "poisson_lp_mean":tf.reduce_mean(poisson_lp, axis=reduce_axis), "gaussian_lp_mean":tf.reduce_mean(gaussian_lp, axis=reduce_axis),
-                        "logpoints":tf.reduce_mean(logpoints, axis=reduce_axis), "mean_points":tf.reduce_mean(actual_points, axis=reduce_axis), "real_points":tf.reduce_mean(real_points, axis=reduce_axis),
-                        "cup_fraction":cup_fraction,
-                        "accuracy_cup":tf.reduce_mean(accuracy * mask_cup, axis=reduce_axis) / cup_fraction,
-                        "accuracy_league":tf.reduce_mean(accuracy * mask_league, axis=reduce_axis) / (1.0-cup_fraction),
-                        "real_points_cup": tf.reduce_mean(real_points * mask_cup, axis=reduce_axis) / cup_fraction,
-                        "real_points_league": tf.reduce_mean(real_points * mask_league, axis=reduce_axis ) / (1.0-cup_fraction),
-                        #"mask_max":tf.reduce_max(mask_cup), "mask_min":tf.reduce_min(mask_cup), "mask_mean":tf.reduce_mean(mask_cup),
-                       })
-            # Pistor lpp["total"] = tf.reduce_sum(lp) - 0.03*tf.reduce_sum(kl_div) + 0.2*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
-            # lpp["total"] = tf.reduce_sum(lp) - 0.06 * tf.reduce_sum(kl_div) + 0.3 * tf.reduce_sum(
-            #      logpoints) + 0.202 * tf.reduce_sum(poisson_lp) + 0.5 * tf.reduce_sum(softmax_lp) - tf.reduce_sum(
-            #      reg_loss2)  # Pistor
-            lpp["total"] = tf.reduce_mean(lp) - kl * tf.reduce_mean(kl_div) + lpt * tf.reduce_mean(logpoints) + pois * tf.reduce_mean(poisson_lp) + gaus * tf.reduce_mean(gaussian_lp) + smx * tf.reduce_mean(softmax_lp) - reg_loss2  # Pistor
-            # Sky lpp["total"] = tf.reduce_sum(lp) - 0.01*tf.reduce_sum(kl_div) + 0.3*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
-            # Sky lpp["total"] = tf.reduce_sum(lp) - 0.25*tf.reduce_sum(kl_div) + 0.6*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
-            #lpp["total"] = tf.reduce_mean(lp) - 100.0*tf.reduce_mean(kl_div) + 500.0*tf.reduce_mean(logpoints)  +400.0*tf.reduce_mean(poisson_lp) + 200.0*tf.reduce_mean(softmax_lp) - tf.reduce_mean(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 #
-            #lpp["total"] = tf.reduce_sum(lp) - 0.95*tf.reduce_sum(kl_div) + 0.5*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)#- lpp["outputs"] + lpp["outputs"]*0.3 # Sky
-            # GD
-            #lpp["total"] = tf.reduce_sum(lp) - 0.001*tf.reduce_sum(kl_div) + 0.25*tf.reduce_sum(logpoints)  +0.202*tf.reduce_sum(poisson_lp) + 0.5*tf.reduce_sum(softmax_lp) - tf.reduce_sum(reg_loss2)# GoalDiff
-            #
-            #+0.3 * tf.reduce_sum(actual_points)
-            # - tf.reduce_sum(reg_loss3)+0.0*tf.reduce_sum(lpp["outputs"])
-            return lpp
-
-        def analyse_losses(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, X, Y, Y2, reduce_axis=None): # weight_mean, weight_scale,
-            return loss_function(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, X, Y, Y2, reduce_axis)
-
-        def target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
-            return loss_function(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, x_train_scaled, outputs_, Y_train)["total"]
-
-
-        def target_log_prob_cat_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
-            return loss_function(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, x_test_scaled, test_outputs_, Y_test)["total"]
-
-
-        def analyse_target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
-            #print("Train")
-            al = analyse_losses(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, x_train_scaled, outputs_, Y_train, reduce_axis)
-            return {k:v.numpy() for k,v in al.items()}
-
-        def analyse_test_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
-            #print("Test")
-            return {k:v.numpy() for k,v in analyse_losses(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, x_test_scaled, test_outputs_, Y_test, reduce_axis).items()}
-
-        print(joint_model)
-        jm_components = joint_model.event_shape_tensor().keys()
-        def make_surrogate_posterior():
-            return tfp.experimental.vi.build_factored_surrogate_posterior(
-                event_shape=[joint_model.event_shape_tensor()[c] for c in [ 'l1w_in', 'l1w_out','l2w_out', 'lgw_out', 'w_out', 'sm_out']],
-                #constraining_bijectors=[None, None, None, None],
-                trainable_distribution_fn=lambda initial_loc, initial_scale, event_ndims,
-                                             validate_args: tfp.experimental.vi.build_trainable_location_scale_distribution(
-                    tf.cast(initial_loc, tf.float64),
-                    tf.cast(initial_scale, tf.float64),
-                    event_ndims,
-                    distribution_fn=tfd.Normal),
-        )
-
-
-        surrogate_posterior = make_surrogate_posterior()
         optimizer = tf.optimizers.Adam(learning_rate=1e-3)
 
         searchlog = pd.DataFrame(columns=["dtn", "accept", "accprob", "score", "tpts", "pts", "logp", "pois", "gaus", "smx", "reg1", "reg2", "reg2g", "reg3", "reg4", "wkl", "wlpt", "wpois", "wgaus", "wsmx", "reset"])
@@ -2583,17 +2172,29 @@
             print(inputfilename)
             filehandler = open("models/"+inputfilename, 'rb')
             all_states, all_weights, metaparams = pickle.load(filehandler)
-            for value, variable in zip(all_states, surrogate_posterior.trainable_variables):
-                variable.assign(value)
-            if len(all_weights) == 4: # bugfix
-                for value, variable in zip(all_weights, [l1weights, l2weights, weights, smweights]):
-                    variable.assign(value)
-            else:
-                for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, weights, smweights]):
-                    variable.assign(value)
-
             reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
 
+            allweights, make_mixture_probs_train, joint_model_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled, all_weights)
+            _, make_mixture_probs_test, joint_model_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, allweights)
+            _, make_mixture_probs_pred, joint_model_pred, _, _ = make_joint_mixture_model(x_pred_scaled, allweights)
+            l1weights, l2weights, lgweights, ohweights, smweights = allweights
+            surrogate_posterior = make_surrogate_posterior()
+
+            print(joint_model_train)
+            #print(surrogate_posterior.trainable_variables)
+
+            # test the joint model ...
+            joint_model_train.sample()
+            joint_model_train.log_prob(joint_model_train.sample())
+
+            joint_model_train.parameters
+            joint_model_train.event_shape
+            joint_model_train.batch_shape
+
+            for value, variable in zip(all_states, surrogate_posterior.trainable_variables):
+                variable.assign(value)
+            for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, ohweights, smweights]):
+                variable.assign(value)
 
         if FLAGS.action=="train":
             print(searchlog)
@@ -2631,11 +2232,27 @@
                         print("MODEL RESET")
                         reset_performed = True
                         #metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams] # jump elsewhere
-                        l = len(surrogate_posterior.trainable_variables)
-                        for initvalue, variable in zip(make_surrogate_posterior().trainable_variables[:l], surrogate_posterior.trainable_variables):
-                            variable.assign(initvalue)
-                        for initvalue, variable in zip(create_weights()[l:], [l1weights, l2weights, lgweights, weights, smweights]):
-                            variable.assign(initvalue)
+
+                        allweights, make_mixture_probs_train, joint_model_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled)
+                        _, make_mixture_probs_test, joint_model_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, allweights)
+                        _, make_mixture_probs_pred, joint_model_pred, _, _ = make_joint_mixture_model(x_pred_scaled, allweights)
+                        l1weights, l2weights, lgweights, ohweights, smweights = allweights
+                        surrogate_posterior = make_surrogate_posterior()
+
+                        print(joint_model_train)
+                        # test the joint model ...
+                        joint_model_train.sample()
+                        joint_model_train.log_prob(joint_model_train.sample())
+
+                        joint_model_train.parameters
+                        joint_model_train.event_shape
+                        joint_model_train.batch_shape
+
+                        # l = len(surrogate_posterior.trainable_variables)
+                        # for initvalue, variable in zip(make_surrogate_posterior().trainable_variables[:l], surrogate_posterior.trainable_variables):
+                        #     variable.assign(initvalue)
+                        # for initvalue, variable in zip(create_weights()[l:], [l1weights, l2weights, lgweights, ohweights, smweights]):
+                        #     variable.assign(initvalue)
                         best_score = 1e10
                         rounds_without_score_improvement = 0
 
@@ -2645,7 +2262,25 @@
                 print(comparedf)
                 reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
                 print(metaparams)
-                # trace_fn = lambda loss, grads, vars: (loss, [], analyse_losses(*[v.mean() for v in surrogate_posterior.sample_distributions()[0]], x_test_scaled, test_outputs_, Y_test)["mean_points"]),
+
+
+                def target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
+                    return loss_function_train(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, outputs_, Y_train, metaparams)[
+                        "total"]
+
+                def target_log_prob_cat_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
+                    return loss_function_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, test_outputs_, Y_test, metaparams)[
+                        "total"]
+
+                def analyse_target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
+                    al = loss_function_train(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, outputs_, Y_train, metaparams, reduce_axis)
+                    return {k: v.numpy() for k, v in al.items()}
+
+                def analyse_test_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
+                    al = loss_function_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, test_outputs_, Y_test, metaparams, reduce_axis)
+                    return {k: v.numpy() for k, v in al.items()}
+
+
                 surrpost_vars, samples = surrogate_posterior.sample_distributions(100)
                 l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out = surrpost_vars
 
@@ -2692,7 +2327,7 @@
 
 
                 # save previous values
-                oldvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, lgweights, weights, smweights]]
+                oldvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, lgweights, ohweights, smweights]]
                 # loss0a = analyse_target_log_prob_cat(*[v.mean() for v in surrpost_vars])
                 # loss0b = analyse_test_log_prob_cat(*[v.mean() for v in surrpost_vars])
                 loss0a = analyse_target_log_prob_cat(*samples)
@@ -2743,9 +2378,13 @@
                 print(searchlog)
                 if accept:
                     last_accepted_score = es2
+
                     filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+".pickle"
                     filehandler = open(filename, 'wb')
-                    pickle.dump((surrogate_posterior.trainable_variables, (l1weights, l2weights, lgweights, weights, smweights), metaparams), filehandler)
+                    pickle.dump((surrogate_posterior.trainable_variables, (l1weights, l2weights, lgweights, ohweights, smweights), metaparams), filehandler)
+
+                    filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
+                    searchlog.to_csv(filename, index=False)
 
                 else:
                     # restore previous values
@@ -2754,12 +2393,9 @@
                     l = len(surrogate_posterior.trainable_variables)
                     for value, variable in zip(oldvalues[:l], surrogate_posterior.trainable_variables):
                         variable.assign(value)
-                    for value, variable in zip(oldvalues[l:], [l1weights, l2weights, lgweights, weights, smweights]):
+                    for value, variable in zip(oldvalues[l:], [l1weights, l2weights, lgweights, ohweights, smweights]):
                         variable.assign(value)
 
-                if round_number == FLAGS.warmup-1:
-                    filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
-                    searchlog.to_csv(filename, index=False)
 
             filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
             searchlog.to_csv(filename, index=False)
@@ -2770,7 +2406,6 @@
         #plt.ylim(top=15)
         plt.axhline(searchlog.score.min(), color="gray")
         plt.show()
-
         plt.figure()
         plt.plot(searchlog.pts)
         plt.plot(searchlog.pts.loc[searchlog.accept])
@@ -2896,11 +2531,11 @@
 
         sns.distplot(l1weights[...,:-1,:].numpy().flatten(), ax=ax[5][0], rug=True, hist=False)
         sns.distplot(l2weights[...,:-1,:].numpy().flatten(), ax=ax[5][1], rug=True, hist=False)
-        sns.distplot(weights[...,:-1,:].numpy().flatten(), ax=ax[5][2], rug=True, hist=False)
+        sns.distplot(ohweights[...,:-1,:].numpy().flatten(), ax=ax[5][2], rug=True, hist=False)
 
         sns.kdeplot(l1weights.numpy().flatten(), ax=ax[0][2], clip=(np.mean(l1weights.numpy())-3*np.std(l1weights.numpy()), np.mean(l1weights.numpy())+3*np.std(l1weights.numpy())))
         sns.kdeplot(l2weights.numpy().flatten(), ax=ax[1][2], clip=(np.mean(l2weights.numpy())-3*np.std(l2weights.numpy()), np.mean(l2weights.numpy())+3*np.std(l2weights.numpy())))
-        sns.kdeplot(weights.numpy().flatten(), ax=ax[2][2], clip=(np.mean(weights.numpy())-3*np.std(weights.numpy()), np.mean(weights.numpy())+3*np.std(weights.numpy())))
+        sns.kdeplot(ohweights.numpy().flatten(), ax=ax[2][2], clip=(np.mean(ohweights.numpy())-3*np.std(ohweights.numpy()), np.mean(ohweights.numpy())+3*np.std(ohweights.numpy())))
         sns.kdeplot(smweights.numpy().flatten(), ax=ax[3][2], clip=(np.mean(smweights.numpy())-3*np.std(smweights.numpy()), np.mean(smweights.numpy())+3*np.std(smweights.numpy())))
         sns.kdeplot(lgweights.numpy().flatten(), ax=ax[4][2], clip=(np.mean(lgweights.numpy())-3*np.std(lgweights.numpy()), np.mean(lgweights.numpy())+3*np.std(lgweights.numpy())))
         # try:
@@ -2937,37 +2572,38 @@
             sns.distplot(((l1weights - l1weights0) * 2 / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][0])
             sns.distplot(((l2weights - l2weights0) * 2 / (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][0])
             sns.distplot(((smweights - smweights0) * 2 / (smweights + smweights0)).numpy(), rug=True, ax=ax[2][0])
-            sns.distplot(((weights - weights0) * 2 / (weights + weights0)).numpy(), rug=True, ax=ax[3][0])
+            sns.distplot(((ohweights - weights0) * 2 / (ohweights + weights0)).numpy(), rug=True, ax=ax[3][0])
             sns.distplot(((l1weights - l1weights0) * 2 * l1weights / (l1weights + l1weights0)).numpy(), rug=True, ax=ax[0][1])
             sns.distplot(((l2weights - l2weights0) * 2 * l2weights/ (l2weights + l2weights0)).numpy(), rug=True, ax=ax[1][1])
             sns.distplot(((smweights - smweights0) * 2 * weights/ (smweights + smweights0)).numpy(), rug=True, ax=ax[2][1])
-            sns.distplot(((weights - weights0) * 2 * smweights / (weights + weights0)).numpy(), rug=True, ax=ax[3][1])
+            sns.distplot(((ohweights - weights0) * 2 * smweights / (ohweights + weights0)).numpy(), rug=True, ax=ax[3][1])
             plt.show()
 
 
-        target_log_prob_cat_test(*[v.sample() for v in surrpost_vars])
+        #target_log_prob_cat_test(*[v.sample() for v in surrpost_vars])
 
-        sample_train = analyse_losses(*[v.sample(100) for v in surrpost_vars], x_train_scaled, outputs_, Y_train, reduce_axis=-1)
+        sample_train = loss_function_train(*[v.sample(100) for v in surrpost_vars], outputs_, Y_train, metaparams, reduce_axis=-1)
         train_points = sample_train["real_points"].numpy()
         train_softpoints = sample_train["mean_points"].numpy()
-        sample_test = analyse_losses(*[v.sample(100) for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test, reduce_axis=-1)
+        sample_test = loss_function_test(*[v.sample(100) for v in surrpost_vars], test_outputs_, Y_test, metaparams, reduce_axis=-1)
         test_points = sample_test["real_points"].numpy()
         test_softpoints = sample_test["mean_points"].numpy()
 
-        #train_points = [analyse_losses(*[v.sample() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["real_points"].numpy() for i in range(100)]
-        train_mean_points = analyse_losses(*[v.mean() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["real_points"].numpy()
+        #train_points = [loss_function_train(*[v.sample() for v in surrpost_vars], outputs_, Y_train)["real_points"].numpy() for i in range(100)]
+        train_mean_points = loss_function_train(*[v.mean() for v in surrpost_vars], outputs_, Y_train, metaparams)["real_points"].numpy()
 
-        #test_points = [analyse_losses(*[v.sample() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["real_points"] .numpy() for i in range(100)]
-        test_mean_points = analyse_losses(*[v.mean() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["real_points"].numpy()
+        #test_points = [loss_function_test(*[v.sample() for v in surrpost_vars], test_outputs_, Y_test)["real_points"] .numpy() for i in range(100)]
+        test_mean_points = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["real_points"].numpy()
 
-        #train_softpoints = [analyse_losses(*[v.sample() for v in surrpost_vars], x_train_scaled, outputs_, Y_train)["mean_points"].numpy() for i in range(100)]
-        train_mean_softpoints = analyse_losses(*[v.mean() for v in surrpost_vars],  x_train_scaled, outputs_, Y_train)["mean_points"].numpy()
-        train_mean_logpoints = analyse_losses(*[v.mean() for v in surrpost_vars],  x_train_scaled, outputs_, Y_train)["logpoints"].numpy()
+        #train_softpoints = [loss_function_train(*[v.sample() for v in surrpost_vars], outputs_, Y_train)["mean_points"].numpy() for i in range(100)]
+        train_mean_softpoints = loss_function_train(*[v.mean() for v in surrpost_vars],  outputs_, Y_train, metaparams)["mean_points"].numpy()
+        train_mean_logpoints = loss_function_train(*[v.mean() for v in surrpost_vars],  outputs_, Y_train, metaparams)["logpoints"].numpy()
 
-        #test_softpoints = [analyse_losses(*[v.sample() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["mean_points"] .numpy() for i in range(100)]
-        test_mean_softpoints = analyse_losses(*[v.mean() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["mean_points"].numpy()
-        test_mean_logpoints = analyse_losses(*[v.mean() for v in surrpost_vars], x_test_scaled, test_outputs_, Y_test)["logpoints"].numpy()
+        #test_softpoints = [loss_function_test(*[v.sample() for v in surrpost_vars], test_outputs_, Y_test)["mean_points"] .numpy() for i in range(100)]
+        test_mean_softpoints = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["mean_points"].numpy()
+        test_mean_logpoints = loss_function_test(*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)["logpoints"].numpy()
 
+        batch_size = 3
         fig, ax = plt.subplots(3, 2)
         plt.subplots_adjust(left=0.04, bottom=0.08, right=0.96, top=0.92, wspace=0.08, hspace=0.18)
         for i in range(batch_size):
@@ -2986,34 +2622,21 @@
         plt.show()
 
         t2 = make_mixture_probs_train(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_train.shape[0]), Y_train, "Train") for i in range(batch_size)], axis=0)
+        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_train.shape[0], point_matrix), Y_train, "Train") for i in range(batch_size)], axis=0)
         plot_predictions_3(df2, "poisson", "Train", silent=False)
 
         t2 = make_mixture_probs_test(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_test.shape[0]), Y_test, "Test") for i in range(batch_size)], axis=0)
+        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_test.shape[0], point_matrix), Y_test, "Test") for i in range(batch_size)], axis=0)
         plot_predictions_3(df2, "poisson", "Test", silent=False)
 
         pred_probs = make_mixture_probs_pred(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(pred_probs[i], Y_pred.shape[0]), Y_pred, "Pred", team1, team2) for i in range(batch_size)], axis=0)
+        df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(pred_probs[i], Y_pred.shape[0], point_matrix), Y_pred, "Pred", team1, team2) for i in range(batch_size)], axis=0)
         df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
 
-        if False:
-            t2 = make_mixture_probs_test(*[v.mean() for v in surrpost_vars]).parameters["model"]["softmax"].mean().numpy()
-            df2 = create_df(create_argmax_prediction_from_mean(t2, Y_test.shape[0]), Y_test, "SoftmaxTest")
-            plot_predictions_3(df2, "poisson", "SoftmaxTest", silent=False)
-
         smpred_probs = make_mixture_probs_pred(*[v.mean() for v in surrpost_vars]).parameters["model"]["softmax"].mean().numpy()
-        df_smpred = pd.concat([create_df(create_argmax_prediction_from_mean(smpred_probs, Y_pred.shape[0]), Y_pred, "SoftmaxPred", team1, team2) for i in range(batch_size)], axis=0)
+        df_smpred = pd.concat([create_df(create_argmax_prediction_from_mean(smpred_probs, Y_pred.shape[0], point_matrix), Y_pred, "SoftmaxPred", team1, team2) for i in range(batch_size)], axis=0)
         df_smpred["pred"] = df_smpred.pGS.astype(str) + ":" + df_smpred.pGC.astype(str)
 
-        if False:
-            fig, ax = plt.subplots((mixcom+2)//3, 6, figsize=(20, 10))
-            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-            for i in range(mixcom):
-                pr = make_mixture_probs_train(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].components_distribution[0].mean()[i]
-                plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
-                                   prefix="C" + str(i))
-            plt.show()
         numMatches = min(9, pred_probs.shape[1]//2)
         if True:
             fig, ax = plt.subplots(3, 6, figsize=(20, 10))
@@ -3035,93 +2658,6 @@
                                        prefix=df_smpred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_smpred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
             plt.show()
 
-        #
-        # num_results = 1000
-        # num_burnin_steps = 1000
-        #
-        # #sampler = tfp.mcmc.TransformedTransitionKernel(
-        # sampler = tfp.mcmc.HamiltonianMonteCarlo(
-        #         target_log_prob_fn=target_log_prob_cat,
-        #         step_size=tf.cast(0.1, tf.float64),
-        #         num_leapfrog_steps=16)
-        #         #, bijector=[tfb.Identity(), tfb.Identity(), tfb.Identity()])
-        #
-        # sampler_bij = tfp.mcmc.TransformedTransitionKernel(
-        #     inner_kernel=sampler,
-        #     bijector=[tfb.Identity(), tfb.Softplus(), tfb.Identity(), tfb.Identity()]) # tfb.Affine(shift=0.135, scale_identity_multiplier=0.01, dtype=tf.float64)
-        #
-        # adaptive_sampler = tfp.mcmc.DualAveragingStepSizeAdaptation(
-        #     inner_kernel=sampler_bij,
-        #     #num_adaptation_steps=int(0.8 * num_burnin_steps),
-        #     num_adaptation_steps=tf.cast(0.8 * num_burnin_steps, tf.int32),
-        #     target_accept_prob=tf.cast(0.75, tf.float64))
-        #
-        # #initial_state = [tf.ones_like(s) for s in list(joint_model.sample().values())[:3]]
-        # initial_state = [#np.random.randn(x_train.shape[1]+1, mixcom), # np.zeros # weight_mean
-        #                  tf.zeros(shape=[x_train.shape[1]+1, mixcom], dtype=tf.float64), # weight_mean
-        #                  tf.ones(shape=[x_train.shape[1]+1, mixcom], dtype=tf.float64), # weight_scale
-        #                  tf.ones(shape=[x_train.shape[1]+1, mixcom], dtype=tf.float64), # weights
-        #     #np.ones(shape=[mixcom, 49]) / 49.
-        #     tf.zeros(shape=[mixcom, 49], dtype=tf.float64),  # smweight
-        #     #np.log(joint_model.sample()["component_distribution"]),
-        #     #joint_model.sample()["component_distribution"]
-        #     ]  # compdist
-        #
-        # s = joint_model.sample()
-        # #initial_state = [s['weight_mean'].numpy(), s['weight_scale'].numpy(), s['weights'].numpy(), s['smweights'].numpy()] #, s['component_distribution'].numpy()]
-        # #initial_state = [s['weight_mean'], s['weight_scale'], s['weights'], s['smweights']] #, s['component_distribution'].numpy()]
-        #
-        # # inputfilename = "mcmc_allstates_20200804_102700.pickle"
-        # # inputfilename = "mcmc_allstates_20200805_142138.pickle"
-        # # inputfilename = "mcmc_allstates_20200805_185024.pickle"
-        # # inputfilename = "mcmc_allstates_20200915_110729.pickle"
-        # inputfilename = sorted([f for f in os.listdir() if re.search("mcmc_opt12a_"+FLAGS.target_system+".*pickle", f)])
-        # if len(inputfilename) > 0:
-        #     inputfilename = inputfilename[-1]
-        #     print(inputfilename)
-        #     filehandler = open(inputfilename, 'rb')
-        #     all_states = pickle.load(filehandler)
-        #     weight_mean, weight_scale, weights, smweights = all_states
-        #     initial_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
-        #
-        # [v.shape for v in initial_state]
-        #
-        # # v = {"component_distribution": initial_state[0],
-        # # 'weight_mean': initial_state[1],
-        # # 'weight_scale': initial_state[2],
-        # # 'weights': initial_state[3],
-        # # 'outputs': outputs_  # Y_train[:,0:2]
-        # #  }
-        # # print(joint_model.log_prob_parts(v))
-        # # #joint_model.log_prob(*initial_state, outputs_)
-        # # print(target_log_prob_cat(*initial_state))
-        #
-        # @tf.function(autograph=False)
-        # def sample():
-        #     return tfp.mcmc.sample_chain(
-        #         num_results=num_results,
-        #         num_burnin_steps=num_burnin_steps,
-        #         current_state=initial_state,
-        #         kernel=adaptive_sampler,
-        #         trace_fn=lambda states, kernel_results: states
-        #         )
-        #
-        # print(target_log_prob_cat(*initial_state))
-        # print(analyse_target_log_prob_cat(*initial_state))
-        #
-        # # states = sample()
-        # # filename = "mcmc_opt12a_"+FLAGS.target_system+"_"+datetime.now().strftime("%Y%m%d_%H%M%S")+".pickle"
-        # # filehandler = open(filename, 'wb')
-        # # pickle.dump(states.all_states, filehandler)
-        # # weight_mean, weight_scale, weights, smweights = states.all_states # , cdist
-        #
-        # current_state = [weight_mean[-1], weight_scale[-1], weights[-1], smweights[-1]]
-        # current_state2 = [weight_mean[-10], weight_scale[-10], weights[-10], smweights[-10]]
-        # print(target_log_prob_cat(*current_state))
-        # print(analyse_target_log_prob_cat(*current_state))
-        # tf.reduce_mean(analyse_target_log_prob_cat(*initial_state)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
-        # tf.reduce_mean(analyse_target_log_prob_cat(*current_state2)["outputs"]-analyse_target_log_prob_cat(*current_state)["outputs"])
-        #
         def avg_points(weights, smweights, X, Y):
             mk, _ = make_joint_mixture_model(X)
             pred = mk(weights, smweights)
@@ -3277,12 +2813,12 @@
 
             #a = make_poisson_test(w)
             df = sample_categorical_df(b4(make_poisson_test(w)), Y_test[:,0:2], "Test")
-            df2 = create_maxpoint_prediction(df)
+            df2 = create_maxpoint_prediction(df, point_matrix)
             plot_predictions_3( df2, "poisson", "Test", silent=True)
             del df
             del df2
             df = sample_categorical_df(b4(make_poisson_train(w)), Y_train[:,0:2], "Train")
-            df2 = create_maxpoint_prediction(df)
+            df2 = create_maxpoint_prediction(df, point_matrix)
             plot_predictions_3( df2, "poisson", "Train", silent=True)
             del df
             del df2
@@ -3375,28 +2911,6 @@
         # plot_predictions_3( create_maxpoint_prediction(df), "poisson", "Train")
         #
 
-
-
-    if False:
-        w = -1
-        for i in range(mixcom):
-        #for i in range(4):
-            plot_softprob_simple(make_mixture_probs_train(weights[w], smweights[w]).components_distribution[0].mean()[i], title="component "+str(i), prefix="component "+str(i))
-
-
-    if False:
-        pred_probs = np.mean(make_mixture_probs_pred(weights, smweights).mean().numpy(), axis=0)
-        for i in range(18):
-            plot_softprob_simple(pred_probs[i], prefix=df_pred.Team1.iloc[i]+" - "+df_pred.Team2.iloc[i])
-
-    if False:
-        pred_probs = np.mean(make_mixture_probs_pred(weights, smweights).mean().numpy(), axis=0)
-        fig, ax = plt.subplots(3, 6, figsize=(20, 10))
-        plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-        for i in range(9):
-            pr = (pred_probs[2*i] + np.dot(pred_probs[2*i+1], home_away_inversion_matrix))/2
-            plot_softprob_grid(pr, ax[i//3][2*np.mod(i,3)], ax[i//3][2*np.mod(i,3)+1], prefix=df_pred.Team1.iloc[i*2] + " - " + df_pred.Team2.iloc[i*2])
-        plt.show()
 
     if True:
         plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")

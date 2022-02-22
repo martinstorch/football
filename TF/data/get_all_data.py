@@ -20,6 +20,7 @@ from requests_html import HTMLSession
 import re
 import sys
 import time
+import requests
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -265,9 +266,12 @@ def download_betonjamesdata(model_dir, season, skip_download, prefix="DE", leagu
     if (not skip_download):
         url = "https://www.betonjames.com/wp-content/uploads/boj-free-data-downloads/"+ league + "-20"+season[:2]+"-20"+season[2:] + ".csv"
         print("Downloading %s" % url)
-        request.urlretrieve(
-            url,
-            file_name)  # pylint: disable=line-too-long
+        r = requests.get(url)
+        with open(file_name, 'wb') as outfile:
+            outfile.write(r.content)
+        # request.urlretrieve(
+        #     url,
+        #     file_name)  # pylint: disable=line-too-long
         print("Data is downloaded to %s" % file_name)
     data = pd.read_csv(
         file_name,
@@ -299,6 +303,27 @@ def getFiveThirtyEightData(skip_download):
     return data
     
 
+all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
+boj_data = []
+for s in all_seasons[1:]:
+  sdata = download_betonjamesdata(dir_path, s, skip_download=False)
+  #print(sdata.columns.values)
+  sdata["Predict"]=False
+  boj_data.append(sdata)
+boj_data = pd.concat(boj_data, ignore_index=True)
+boj_data = boj_data[['Season' ,'Predict',"DATE","HOME_TEAM","AWAY_TEAM","FTHG","FTAG","FTR","HTHG","HTAG","HTR","H_ST","H_SOG","H_SFG","H_PT","H_COR","H_FL","H_YC","H_RC","A_ST","A_SOG","A_SFG","A_PT","A_COR","A_FL","A_YC","A_RC"]]
+boj_data.H_PT.replace('SNV', -1, inplace=True)
+boj_data.A_PT.replace('SNV', -1, inplace=True)
+print(boj_data.HOME_TEAM.unique())
+# standardize team names
+boj_team_mapping= pd.read_csv(dir_path+"/boj_team_mapping.csv", sep='\t')
+boj_data= boj_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
+boj_data = boj_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
+boj_data["Date"]=pd.to_datetime(boj_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
+boj_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
+print(boj_data[-9:])
+
 if skip_download:
     quotes_bwin = pd.read_csv(dir_path+"/all_quotes_bwin.csv", encoding = "utf-8")
 else:
@@ -323,33 +348,13 @@ else:
     xgdf.to_csv(dir_path+'/xgoals.csv', index=False)  
 print(xgdf)
 
-all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
-boj_data = []
-for s in all_seasons[1:]:
-  sdata = download_betonjamesdata(dir_path, s, skip_download=True)
-  #print(sdata.columns.values)
-  sdata["Predict"]=False
-  boj_data.append(sdata)
-boj_data = pd.concat(boj_data, ignore_index=True)
-boj_data = boj_data[['Season' ,'Predict',"DATE","HOME_TEAM","AWAY_TEAM","FTHG","FTAG","FTR","HTHG","HTAG","HTR","H_ST","H_SOG","H_SFG","H_PT","H_COR","H_FL","H_YC","H_RC","A_ST","A_SOG","A_SFG","A_PT","A_COR","A_FL","A_YC","A_RC"]]
-boj_data.H_PT.replace('SNV', -1, inplace=True)
-boj_data.A_PT.replace('SNV', -1, inplace=True)
-print(boj_data.HOME_TEAM.unique())
-# standardize team names
-boj_team_mapping= pd.read_csv(dir_path+"/boj_team_mapping.csv", sep='\t')
-boj_data= boj_data.merge(boj_team_mapping, left_on="HOME_TEAM", right_on="bojTeam", how="left")
-boj_data = boj_data.merge(boj_team_mapping, left_on="AWAY_TEAM", right_on="bojTeam", how="left")
-boj_data = boj_data.rename(columns={"stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
-boj_data["Date"]=pd.to_datetime(boj_data.DATE).apply(lambda x: x.strftime('%d.%m.%Y'))
-boj_data.drop(columns = ['DATE', 'bojTeam_x', 'bojTeam_y'], inplace=True)
-print(boj_data[-9:])
 
 cup_data = []
 for s in all_seasons[1:]:
-    sdata = download_betonjamesdata(dir_path, s, skip_download=True, prefix="CL", league="europe-champions-league")
+    sdata = download_betonjamesdata(dir_path, s, skip_download=False, prefix="CL", league="europe-champions-league")
     sdata["Predict"]=False
     cup_data.append(sdata)
-    sdata = download_betonjamesdata(dir_path, s, skip_download=True, prefix="EL", league="europe-europa-league")
+    sdata = download_betonjamesdata(dir_path, s, skip_download=False, prefix="EL", league="europe-europa-league")
     sdata["Predict"] = False
     cup_data.append(sdata)
 cup_data = pd.concat(cup_data, ignore_index=True)
