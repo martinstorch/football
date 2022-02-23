@@ -1640,7 +1640,11 @@
         #sns.distplot(l2w_in.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
         #sns.distplot(l2w_in.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
         sns.distplot(l2w_out.mean().numpy().flatten(), ax=ax[1][0], rug=True, hist=False)
-        sns.distplot(l2w_out.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
+        try:
+            sns.distplot(l2w_out.stddev().numpy().flatten(), ax=ax[1][1], rug=True, hist=False)
+        except Exception as e:
+            print("l2w_out: " + str(e))
+            print(l2w_out.stddev().numpy().flatten())
         #sns.distplot(w_in.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
         #sns.distplot(w_in.stddev().numpy().flatten(), ax=ax[2][1], rug=True, hist=False)
         sns.distplot(w_out.mean().numpy().flatten(), ax=ax[2][0], rug=True, hist=False)
@@ -1697,31 +1701,6 @@
         ax[2][1].axvline(x=test_mean_logpoints)
         plt.show()
 
-    def plot_new_predictions(df_pred, df_smpred):
-        home_away_inversion_matrix = np.array(
-            [[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
-
-        numMatches = min(9, pred_probs.shape[1]//2)
-        if True:
-            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
-            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-            for j in range(batch_size):
-                for i in range(numMatches):
-                    pr = (pred_probs[j, 2 * i] + np.dot(pred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
-                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
-                                       prefix=df_pred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_pred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
-            plt.show()
-
-        if True:
-            fig, ax = plt.subplots(3, 6, figsize=(20, 10))
-            plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
-            for j in range(batch_size):
-                for i in range(numMatches):
-                    pr = (smpred_probs[j, 2 * i] + np.dot(smpred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
-                    plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
-                                       prefix=df_smpred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_smpred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
-            plt.show()
-
     def laplacian_matrix():
         m = [[-1 if abs(i - i2 + j - j2) == 1 and abs(i - i2 - j + j2) == 1 else \
                   2 if (i, j) == (i2, j2) and (i, j) in [(0, 0), (0, 6), (6, 0), (6, 6)] else \
@@ -1766,13 +1745,13 @@
             weights = create_weights()
         l1weights, l2weights, lgweights, ohweights, smweights = weights
 
-        def make_outputs(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
+        def make_forward_path(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
            l1w = l1weights[..., :-1, :] * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
            l2w = l2weights[..., :-1, :] * l2w_out[...,tf.newaxis, :]
            lgw = lgweights[..., :-1, :] *  lgw_out[...,tf.newaxis, :]
            wgt = ohweights[..., :-1, :] *  w_out[...,tf.newaxis, :]
            smw = smweights[..., :-1, :]  * sm_out[...,tf.newaxis, :]
-           x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math.tanh
+           x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math# .tanh
            x2 = tf.matmul(x1, l2w[..., :, :]) + l2weights[..., -1:, :]
            x2g = tf.matmul(x1, lgw[..., :, :]) + lgweights[..., -1:, :]
            l = tf.matmul(x1, wgt[..., :, :]) + ohweights[..., -1:, :]
@@ -1804,9 +1783,16 @@
             sm_out=tfd.Independent(
                 tfd.Normal(loc=tf.zeros(shape=[batch_size, 49], dtype=tf.float64),
                            scale=sc * tf.ones(shape=[batch_size, 49], dtype=tf.float64)), reinterpreted_batch_ndims=2),
-            outputs=make_outputs
+            outputs=make_forward_path
          )
         )
+        # sanity check
+        joint_model.sample()
+        joint_model.log_prob(joint_model.sample())
+        joint_model.parameters
+        joint_model.event_shape
+        joint_model.batch_shape
+
         def make_surrogate_posterior():
             return tfp.experimental.vi.build_factored_surrogate_posterior(
                 event_shape=[joint_model.event_shape_tensor()[c] for c in [ 'l1w_in', 'l1w_out','l2w_out', 'lgw_out', 'w_out', 'sm_out']],
@@ -1859,7 +1845,7 @@
             rl_sm = reg4 * regularizer2(smweights[..., :-1, :]) / tensor_size(smweights)
             reg_loss2 = rl_l1 + rl_l2 + rl_lg + rl_w + rl_sm
             achievable_points = tf.matmul(Y, tf.cast(point_matrix, tf.float32))
-            pred = make_outputs(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out)
+            pred = make_forward_path(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out)
 
             predprob = tf.nn.softmax(pred.parameters["model"]["mainresult"].distribution.logits, axis=-1)
             logpoints = tf.math.log(1 + predprob) * tf.cast(achievable_points,
@@ -1917,7 +1903,7 @@
                 gaussian_lp) + smx * tf.reduce_mean(softmax_lp) - reg_loss2  # Pistor
             return lpp
 
-        return weights, make_outputs, joint_model, make_surrogate_posterior, loss_function
+        return weights, make_forward_path, make_surrogate_posterior, loss_function
 
 
     def dictdiff(x, y):
@@ -1933,6 +1919,156 @@
         # score0=sm0+lp0+ps0+pt0-10*loss0b["real_points"]
         score0 = sm0 + 0.3 * ps0 + gs0 + point_scale * (10 * lp0 + 0.5 * pt0)
         return (score0)
+
+    def prepare_train_test_data(X, Y, train_idx, test_idx, pred_idx):
+        data = {'train':{}, 'test':{}, 'pred':{}}
+        X_train = X[train_idx]
+        X_test = X[test_idx]
+        X_pred = X[pred_idx]
+
+        feature_idx = range(X_train.shape[1])
+
+        Y_train = Y[train_idx]
+        Y_test = Y[test_idx]
+        Y_pred = Y[pred_idx]
+
+        x_train = X_train[:, feature_idx].astype(np.float64)
+        x_test = X_test[:, feature_idx].astype(np.float64)
+        x_pred = X_pred[:, feature_idx].astype(np.float64)
+
+        scaler = preprocessing.StandardScaler().fit(x_train)
+        x_train_scaled = scaler.transform(x_train)
+        x_test_scaled = scaler.transform(x_test)
+        x_pred_scaled = scaler.transform(x_pred)
+        #scaler.inverse_transform(small_x_train)
+
+        Y_train_oh = tf.one_hot(create_result_index(Y_train[:, 0], Y_train[:, 1]), 49) #.astype(np.float64)
+        Y_test_oh = tf.one_hot(create_result_index(Y_test[:, 0], Y_test[:, 1]), 49) #.astype(np.float64)
+
+        data['train']['X'] = x_train_scaled
+        data['test']['X'] = x_test_scaled
+        data['pred']['X'] = x_pred_scaled
+        data['train']['Y'] = Y_train
+        data['test']['Y'] = Y_test
+        data['pred']['Y'] = Y_pred
+        data['train']['Y_OH'] = Y_train_oh
+        data['test']['Y_OH'] = Y_test_oh
+
+        return data
+
+    def make_model_instance(data, all_weights=None, all_states=None):
+        weight_tensors, forward_calc_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(
+            data['train']['X'], all_weights)
+        _, forward_calc_test, _, loss_function_test = make_joint_mixture_model(data['test']['X'], weight_tensors)
+        _, forward_calc_pred, _, _ = make_joint_mixture_model(data['pred']['X'], weight_tensors)
+        data['train']['loss'] = loss_function_train
+        data['test']['loss'] = loss_function_test
+        data['train']['forward'] = forward_calc_train
+        data['test']['forward'] = forward_calc_test
+        data['pred']['forward'] = forward_calc_pred
+        data['weight_tensors'] = weight_tensors
+        data['surrogate_posterior'] = make_surrogate_posterior()
+        if all_weights is not None:
+            for value, variable in zip(all_weights, weight_tensors):
+                variable.assign(value)
+        if all_states is not None:
+            for value, variable in zip(all_states, data['surrogate_posterior'].trainable_variables):
+                variable.assign(value)
+        return data
+
+
+    def calc_score_from_trained_model(data):
+        surrogate_posterior = data['surrogate_posterior']
+        surrpost_vars, samples = surrogate_posterior.sample_distributions(100)
+
+        def analyse_target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
+            al = data['train']['loss'](l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, data['train']['Y_OH'],
+                                       data['train']['Y'],
+                                       metaparams, reduce_axis)
+            return {k: v.numpy() for k, v in al.items()}
+
+        def analyse_test_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
+            al = data['test']['loss'](l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, data['test']['Y_OH'],
+                                      data['test']['Y'],
+                                      metaparams, reduce_axis)
+            return {k: v.numpy() for k, v in al.items()}
+
+        loss1a = analyse_target_log_prob_cat(*samples)
+        loss1b = analyse_test_log_prob_cat(*samples)
+        score = eval_score(loss1a, loss1b)
+        return (score, loss1a, loss1b)
+
+
+    def train_surrogate_posterior(data, metaparams, learning_rate=1e-2, steps=50):
+        def target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
+            return data['train']['loss'](l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, data['train']['Y_OH'],
+                                         data['train']['Y'], metaparams)["total"]
+
+        surrogate_posterior = data['surrogate_posterior']
+        tfp.vi.fit_surrogate_posterior(
+            target_log_prob_cat,
+            surrogate_posterior,
+            optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
+            num_steps=steps,
+            # trainable_variables=surrogate_posterior.trainable_variables,
+            seed=42,
+            sample_size=8)
+        return calc_score_from_trained_model(model_with_data)
+
+    def mean_and_sample(model_with_data, metaparams, key):
+        surrpost_vars, _ = model_with_data['surrogate_posterior'].sample_distributions()
+        m = model_with_data[key]
+        samples = m['loss'](*[v.sample(100) for v in surrpost_vars], m['Y_OH'], m['Y'], metaparams, reduce_axis=-1)
+        mean = m['loss'](*[v.mean() for v in surrpost_vars], m['Y_OH'], m['Y'], metaparams)
+        return samples, mean
+
+    def plot_train_test_results(model_with_data, metaparams):
+        sample_train, mean_train = mean_and_sample(model_with_data, metaparams, 'train')
+        sample_test, mean_test = mean_and_sample(model_with_data, metaparams, 'test')
+        plot_result_distribution(sample_train, sample_test, mean_train, mean_test)
+
+    def plot_new_predictions(df_pred, pred_probs):
+        home_away_inversion_matrix = np.array(
+            [[1 if (i // 7) == np.mod(j, 7) and (j // 7) == np.mod(i, 7) else 0 for i in range(49)] for j in range(49)])
+
+        numMatches = min(9, pred_probs.shape[1]//2)
+
+        fig, ax = plt.subplots(3, 6, figsize=(20, 10))
+        plt.subplots_adjust(left=0.02, bottom=0.03, right=0.98, top=0.97, wspace=0.18, hspace=0.08)
+        for j in range(batch_size):
+            for i in range(numMatches):
+                pr = (pred_probs[j, 2 * i] + np.dot(pred_probs[j, 2 * i + 1], home_away_inversion_matrix)) / 2
+                plot_softprob_grid(pr, ax[i // 3][2 * np.mod(i, 3)], ax[i // 3][2 * np.mod(i, 3) + 1],
+                                   prefix=df_pred.Team1.iloc[j*pred_probs.shape[1] + i * 2] + " - " + df_pred.Team2.iloc[j*pred_probs.shape[1] + i * 2])
+        plt.show()
+
+    def calc_and_plot_new_predictions(model_with_data):
+        surrpost_vars, _ = model_with_data['surrogate_posterior'].sample_distributions()
+        m = model_with_data['pred']
+        means = [v.mean() for v in surrpost_vars]
+        pred_probs = m['forward'](*means).parameters["model"]["mainresult"].mean().numpy()
+        df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(pred_probs[i], m['Y'].shape[0], point_matrix),
+                                       m['Y'], "Pred", team1, team2) for i in range(batch_size)], axis=0)
+        df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
+
+        smpred_probs = m['forward'](*means).parameters["model"]["softmax"].mean().numpy()
+        df_smpred = pd.concat([create_df(
+            create_argmax_prediction_from_mean(smpred_probs, m['Y'].shape[0], point_matrix), m['Y'], "SoftmaxPred",
+            team1, team2) for i in range(batch_size)], axis=0)
+        df_smpred["pred"] = df_smpred.pGS.astype(str) + ":" + df_smpred.pGC.astype(str)
+
+        plot_new_predictions(df_pred, pred_probs)
+        plot_new_predictions(df_smpred, smpred_probs)
+
+    def plot_train_test_results_detailed(model_with_data, key):
+        surrpost_vars, _ = model_with_data['surrogate_posterior'].sample_distributions()
+        m = model_with_data[key]
+
+        t2 = m['forward'](*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
+        df2 = pd.concat(
+            [create_df(create_argmax_prediction_from_mean(t2[i], m['Y'].shape[0], point_matrix), m['Y'], key) for i in
+             range(batch_size)], axis=0)
+        plot_predictions_3(df2, "poisson", key, silent=False)
 
     def dispatch_main(target_distr, model_dir, train_steps, train_data, test_data,
                       checkpoints, save_steps, data_dir, max_to_keep,
@@ -2105,12 +2241,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=10,
+            default=1,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=25,
+            default=1,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -2146,10 +2282,10 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            default="Pistor",
+            #default="Pistor",
             #default="Sky",
             # default="TCS",
-            #default="GoalDiff",
+            default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
@@ -2160,8 +2296,8 @@
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            default="best",
-            #default="-1",  # slice(-2, None)
+            #default="best",
+            default="-1",  # slice(-2, None)
             #default="20211101_135039",
             #default = "20211108_090047",
             # default="",
@@ -2172,8 +2308,8 @@
             "--action",
             type=str,
             # default="static",
-            #default="train",
-            default="eval",
+            default="train",
+            #default="eval",
             # default="predict",
             help="What to do"
         )
@@ -2196,58 +2332,19 @@
         print(labels_array.shape)
         point_matrix = build_point_matrix(point_scheme)
 
+        arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
+        arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
+
         X = features_arrays["match_input_layer"]
         print(X.shape)
 
-        X_train = X[train_idx]
-        X_test = X[test_idx]
-        X_pred = X[pred_idx]
-        bwin_index = [1, 23, 24, 25]
-        X_train_bwin = np.take(X[train_idx], bwin_index, axis=1)
-        X_test_bwin = np.take(X[test_idx], bwin_index, axis=1)
-        X_pred_bwin = np.take(X[pred_idx], bwin_index, axis=1)
+        train_test_data = prepare_train_test_data(X, labels_array, train_idx, test_idx, pred_idx)
 
-        feature_idx = range(X_train.shape[1])
         label_columns_poisson = [i for i in range(46)]
-        label_columns_gaussian = [i for i in range(46, 54+2)]
-        #Y_train = labels_array[train_idx, 0:16]
-        Y_train = labels_array[train_idx]
-        Y_test = labels_array[test_idx]
-        Y_pred = labels_array[pred_idx]
-
-        x_train = X_train[:, feature_idx].astype(np.float64)
-        x_test = X_test[:, feature_idx].astype(np.float64)
-        x_pred = X_pred[:, feature_idx].astype(np.float64)
-
-        scaler = preprocessing.StandardScaler().fit(x_train)
-        x_train_scaled = scaler.transform(x_train)
-        x_test_scaled = scaler.transform(x_test)
-        x_pred_scaled = scaler.transform(x_pred)
-        #scaler.inverse_transform(small_x_train)
-
-        arraygs = np.array([i // 7 for i in range(49)])[np.newaxis, ...]
-        arraygc = np.array([np.mod(i, 7) for i in range(49)])[np.newaxis, ...]
-        outputs_ = tf.one_hot(create_result_index(Y_train[:,0], Y_train[:,1]), 49) #.astype(np.float64)
-        test_outputs_ = tf.one_hot(create_result_index(Y_test[:, 0], Y_test[:, 1]), 49) #.astype(np.float64)
-        empHomeDist = (1.0 + np.sum(outputs_[1::2], axis=0, dtype=np.float64))#*0.1
-        empAwayDist = (1.0 + np.sum(outputs_[0::2], axis=0, dtype=np.float64))#*0.1
-        #outputs_ = create_result_index(Y_train[:,0], Y_train[:,1]) #.astype(np.float64)
-        #test_outputs_ = create_result_index(Y_test[:, 0], Y_test[:, 1]) #.astype(np.float64)
-
-        #outputs_ = tf.matmul(outputs_, tf.cast(point_matrix, tf.float32))
-        #test_outputs_ = tf.matmul(test_outputs_, tf.cast(point_matrix, tf.float32))
-
-        print(empHomeDist)
-        print(empAwayDist)
-        print(np.sum(empHomeDist))
-
-
-        n_train_samples = x_train.shape[0]
+        label_columns_gaussian = [i for i in range(46, 54 + 2)]
 
         L1size = 32
-        L2size = Y_train.shape[1]
-        x = x_train_scaled
-
+        L2size = train_test_data['train']['Y'].shape[1]
 
         reg1  = 1000.0
         reg2  = 1000.0
@@ -2298,27 +2395,8 @@
             all_states, all_weights, metaparams = pickle.load(filehandler)
             reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
 
-            allweights, make_mixture_probs_train, joint_model_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled, all_weights)
-            _, make_mixture_probs_test, joint_model_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, allweights)
-            _, make_mixture_probs_pred, joint_model_pred, _, _ = make_joint_mixture_model(x_pred_scaled, allweights)
-            l1weights, l2weights, lgweights, ohweights, smweights = allweights
-            surrogate_posterior = make_surrogate_posterior()
+            model_with_data = make_model_instance(train_test_data, all_weights=all_weights, all_states=all_states)
 
-            print(joint_model_train)
-            #print(surrogate_posterior.trainable_variables)
-
-            # test the joint model ...
-            joint_model_train.sample()
-            joint_model_train.log_prob(joint_model_train.sample())
-
-            joint_model_train.parameters
-            joint_model_train.event_shape
-            joint_model_train.batch_shape
-
-            for value, variable in zip(all_states, surrogate_posterior.trainable_variables):
-                variable.assign(value)
-            for value, variable in zip(all_weights, [l1weights, l2weights, lgweights, ohweights, smweights]):
-                variable.assign(value)
 
         if FLAGS.action=="train":
             print(searchlog)
@@ -2339,11 +2417,6 @@
                 else:
                     metaparams = find_next_params_from_gaussian_process(searchlog)
 
-                # metaparams = [30.06458190875656, 40.1918119676015, 4.321314865899112, 2.524883871214151,
-                #               7.122375159069683,
-                #               7.5613837836437146, 3390.5851157718234, 433.29620880964984, 826.7903719059955,
-                #               921.7516541247792]
-
                 # Perform a model reset if no improvement is showing
                 if  False and round_number>0 and es2<best_score:
                     best_score = es2
@@ -2357,20 +2430,13 @@
                         reset_performed = True
                         #metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams] # jump elsewhere
 
-                        allweights, make_mixture_probs_train, joint_model_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled)
-                        _, make_mixture_probs_test, joint_model_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, allweights)
-                        _, make_mixture_probs_pred, joint_model_pred, _, _ = make_joint_mixture_model(x_pred_scaled, allweights)
-                        l1weights, l2weights, lgweights, ohweights, smweights = allweights
-                        surrogate_posterior = make_surrogate_posterior()
+                        model_with_data = make_model_instance(train_test_data, all_weights=None, all_states=None)
 
-                        print(joint_model_train)
-                        # test the joint model ...
-                        joint_model_train.sample()
-                        joint_model_train.log_prob(joint_model_train.sample())
-
-                        joint_model_train.parameters
-                        joint_model_train.event_shape
-                        joint_model_train.batch_shape
+                        # weight_tensors, forward_calc_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled)
+                        # _, forward_calc_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, weight_tensors)
+                        # _, forward_calc_pred, _, _ = make_joint_mixture_model(x_pred_scaled, weight_tensors)
+                        # l1weights, l2weights, lgweights, ohweights, smweights = weight_tensors
+                        # surrogate_posterior = make_surrogate_posterior()
 
                         # l = len(surrogate_posterior.trainable_variables)
                         # for initvalue, variable in zip(make_surrogate_posterior().trainable_variables[:l], surrogate_posterior.trainable_variables):
@@ -2387,48 +2453,11 @@
                 reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
                 print(metaparams)
 
-
-                def target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
-                    return loss_function_train(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, outputs_, Y_train, metaparams)[
-                        "total"]
-
-                def target_log_prob_cat_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
-                    return loss_function_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, test_outputs_, Y_test, metaparams)[
-                        "total"]
-
-                def analyse_target_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
-                    al = loss_function_train(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, outputs_, Y_train, metaparams, reduce_axis)
-                    return {k: v.numpy() for k, v in al.items()}
-
-                def analyse_test_log_prob_cat(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, reduce_axis=None):
-                    al = loss_function_test(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out, test_outputs_, Y_test, metaparams, reduce_axis)
-                    return {k: v.numpy() for k, v in al.items()}
-
-
-                surrpost_vars, samples = surrogate_posterior.sample_distributions(100)
-                l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out = surrpost_vars
-
-                def train_surrogate_posterior(learning_rate=1e-2, steps=FLAGS.save_steps):
-                    tfp.vi.fit_surrogate_posterior(
-                        target_log_prob_cat,
-                        surrogate_posterior,
-                        optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
-                        num_steps=steps,
-                        # trainable_variables=surrogate_posterior.trainable_variables,
-                        seed=42,
-                        sample_size=8)
-                    surrpost_vars, samples = surrogate_posterior.sample_distributions(100)
-                    loss1a = analyse_target_log_prob_cat(*samples)
-                    loss1b = analyse_test_log_prob_cat(*samples)
-                    score = eval_score(loss1a, loss1b)
-                    return (score, loss1a, loss1b)
-
-
                 def optimize_surrogate_posterior(learning_rate, stepsize = 50):
                     oldscore = 1e10
                     r = 0
                     while(True):
-                        score, loss_train, loss_test = train_surrogate_posterior(learning_rate, steps=stepsize)
+                        score, loss_train, loss_test = train_surrogate_posterior(model_with_data, metaparams, learning_rate, steps=stepsize)
                         r += stepsize
                         print((r, score, loss_train["real_points"], loss_train["real_points_league"], loss_train["real_points_cup"], " ", loss_test["real_points"], loss_test["real_points_league"], loss_test["real_points_cup"]))
                         if score > oldscore:
@@ -2438,12 +2467,10 @@
 
 
                 # save previous values
-                oldvalues = [v.numpy() for v in list(surrogate_posterior.trainable_variables) + [l1weights, l2weights, lgweights, ohweights, smweights]]
-                # loss0a = analyse_target_log_prob_cat(*[v.mean() for v in surrpost_vars])
-                # loss0b = analyse_test_log_prob_cat(*[v.mean() for v in surrpost_vars])
-                loss0a = analyse_target_log_prob_cat(*samples)
-                loss0b = analyse_test_log_prob_cat(*samples)
-                es0 = eval_score(loss0a, loss0b)
+                oldvalues = [v.numpy() for v in list(model_with_data['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data['weight_tensors']]
+
+                es0, loss0a, loss0b =   calc_score_from_trained_model(model_with_data)
+
                 loss0b["score"] = es0
                 print(pd.DataFrame([loss0a, loss0b]).T.iloc[11:])
 
@@ -2492,7 +2519,7 @@
 
                     filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+".pickle"
                     filehandler = open(filename, 'wb')
-                    pickle.dump((surrogate_posterior.trainable_variables, (l1weights, l2weights, lgweights, ohweights, smweights), metaparams), filehandler)
+                    pickle.dump((model_with_data['surrogate_posterior'].trainable_variables, model_with_data['weight_tensors'], metaparams), filehandler)
 
                     filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
                     searchlog.to_csv(filename, index=False)
@@ -2501,11 +2528,10 @@
                     # restore previous values
                     metaparams = oldmetaparams
                     reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
-                    l1weights, l2weights, lgweights, ohweights, smweights = allweights
-                    l = len(surrogate_posterior.trainable_variables)
-                    for value, variable in zip(oldvalues[:l], surrogate_posterior.trainable_variables):
+                    l = len(model_with_data['surrogate_posterior'].trainable_variables)
+                    for value, variable in zip(oldvalues[:l], model_with_data['surrogate_posterior'].trainable_variables):
                         variable.assign(value)
-                    for value, variable in zip(oldvalues[l:], [l1weights, l2weights, lgweights, ohweights, smweights]):
+                    for value, variable in zip(oldvalues[l:], model_with_data['weight_tensors']):
                         variable.assign(value)
 
 
@@ -2513,41 +2539,22 @@
             searchlog.to_csv(filename, index=False)
 
         plot_searchlog_points(searchlog)
-        l1weights, l2weights, lgweights, ohweights, smweights = allweights
-        plot_weights_distribution(surrogate_posterior, allweights)
+        plot_weights_distribution(model_with_data['surrogate_posterior'], model_with_data['weight_tensors'])
+        plot_train_test_results(model_with_data, metaparams)
 
-        surrpost_vars, _ = surrogate_posterior.sample_distributions()
-        sample_train = loss_function_train(*[v.sample(100) for v in surrpost_vars], outputs_, Y_train, metaparams, reduce_axis=-1)
-        sample_test =  loss_function_test (*[v.sample(100) for v in surrpost_vars], test_outputs_, Y_test, metaparams, reduce_axis=-1)
-        mean_train =   loss_function_train(*[v.mean() for v in surrpost_vars], outputs_, Y_train, metaparams)
-        mean_test  =   loss_function_test (*[v.mean() for v in surrpost_vars], test_outputs_, Y_test, metaparams)
-        plot_result_distribution(sample_train, sample_test, mean_train, mean_test)
+        plot_train_test_results_detailed(model_with_data, 'train')
+        plot_train_test_results_detailed(model_with_data, 'test')
 
-
-        t2 = make_mixture_probs_train(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_train.shape[0], point_matrix), Y_train, "Train") for i in range(batch_size)], axis=0)
-        plot_predictions_3(df2, "poisson", "Train", silent=False)
-
-        t2 = make_mixture_probs_test(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df2 = pd.concat([create_df(create_argmax_prediction_from_mean(t2[i], Y_test.shape[0], point_matrix), Y_test, "Test") for i in range(batch_size)], axis=0)
-        plot_predictions_3(df2, "poisson", "Test", silent=False)
-
-        pred_probs = make_mixture_probs_pred(*[v.mean() for v in surrpost_vars]).parameters["model"]["mainresult"].mean().numpy()
-        df_pred = pd.concat([create_df(create_argmax_prediction_from_mean(pred_probs[i], Y_pred.shape[0], point_matrix), Y_pred, "Pred", team1, team2) for i in range(batch_size)], axis=0)
-        df_pred["pred"] = df_pred.pGS.astype(str) + ":" + df_pred.pGC.astype(str)
-
-        smpred_probs = make_mixture_probs_pred(*[v.mean() for v in surrpost_vars]).parameters["model"]["softmax"].mean().numpy()
-        df_smpred = pd.concat([create_df(create_argmax_prediction_from_mean(smpred_probs, Y_pred.shape[0], point_matrix), Y_pred, "SoftmaxPred", team1, team2) for i in range(batch_size)], axis=0)
-        df_smpred["pred"] = df_smpred.pGS.astype(str) + ":" + df_smpred.pGC.astype(str)
-
-        plot_new_predictions(df_pred, df_smpred)
+        calc_and_plot_new_predictions(model_with_data)
 
     if True:
-        plot_softprob_simple(np.mean(outputs_[::2], axis=0), prefix="Train Seasons Summary")
-        plot_softprob_simple(np.mean(test_outputs_[::2], axis=0), prefix="Test Seasons Summary")
+        Y_train_oh = model_with_data['train']['Y_OH']
+        Y_test_oh = model_with_data['test']['Y_OH']
+        plot_softprob_simple(np.mean(Y_train_oh[::2], axis=0), prefix="Train Seasons Summary")
+        plot_softprob_simple(np.mean(Y_test_oh[::2], axis=0), prefix="Test Seasons Summary")
 
         print("Best points - Train")
-        print(np.dot(np.mean(outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+        print(np.dot(np.mean(Y_train_oh[::2], axis=0), point_matrix).reshape((7, 7)).transpose()[::-1])
         print("Best points - Test")
-        print(np.dot(np.mean(test_outputs_[::2], axis=0), point_matrix).reshape((7,7)).transpose()[::-1])
+        print(np.dot(np.mean(Y_test_oh[::2], axis=0), point_matrix).reshape((7, 7)).transpose()[::-1])
 
