@@ -1730,6 +1730,8 @@
     def make_joint_mixture_model(x, weights=None):
         batch_size = 3
         def create_weights():
+            # print("create_weights()")
+            # print(x.shape)
             return (
                 tf.Variable(
                     0.001 * tf.random.normal(shape=[batch_size, x.shape[1] + 1, L1size], dtype=tf.float64))
@@ -1746,22 +1748,25 @@
         l1weights, l2weights, lgweights, ohweights, smweights = weights
 
         def make_forward_path(l1w_in, l1w_out, l2w_out, lgw_out, w_out, sm_out):
-           l1w = l1weights[..., :-1, :] * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
-           l2w = l2weights[..., :-1, :] * l2w_out[...,tf.newaxis, :]
-           lgw = lgweights[..., :-1, :] *  lgw_out[...,tf.newaxis, :]
-           wgt = ohweights[..., :-1, :] *  w_out[...,tf.newaxis, :]
-           smw = smweights[..., :-1, :]  * sm_out[...,tf.newaxis, :]
-           x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math# .tanh
-           x2 = tf.matmul(x1, l2w[..., :, :]) + l2weights[..., -1:, :]
-           x2g = tf.matmul(x1, lgw[..., :, :]) + lgweights[..., -1:, :]
-           l = tf.matmul(x1, wgt[..., :, :]) + ohweights[..., -1:, :]
-           sml = tf.matmul(x1, smw[..., :, :]) + smweights[..., -1:, :]
-           return tfd.JointDistributionNamed(dict(
+            # print("make_forward_path()")
+            # print(x.shape)
+
+            l1w = l1weights[..., :-1, :] * l1w_in[...,tf.newaxis]  * l1w_out[...,tf.newaxis, :]
+            l2w = l2weights[..., :-1, :] * l2w_out[...,tf.newaxis, :]
+            lgw = lgweights[..., :-1, :] *  lgw_out[...,tf.newaxis, :]
+            wgt = ohweights[..., :-1, :] *  w_out[...,tf.newaxis, :]
+            smw = smweights[..., :-1, :]  * sm_out[...,tf.newaxis, :]
+            x1 = tf.nn.relu(tf.matmul(x, l1w[..., :, :]) + l1weights[..., -1:, :]) # tf.math# .tanh
+            x2 = tf.matmul(x1, l2w[..., :, :]) + l2weights[..., -1:, :]
+            x2g = tf.matmul(x1, lgw[..., :, :]) + lgweights[..., -1:, :]
+            l = tf.matmul(x1, wgt[..., :, :]) + ohweights[..., -1:, :]
+            sml = tf.matmul(x1, smw[..., :, :]) + smweights[..., -1:, :]
+            return tfd.JointDistributionNamed(dict(
                mainresult = tfd.Independent(tfd.OneHotCategorical(logits=l), reinterpreted_batch_ndims=1),
                sidebets = tfd.Independent(tfd.Poisson(log_rate=x2), reinterpreted_batch_ndims=2),
                sidebets_gaussian = tfd.Independent(tfd.Normal(loc=x2g, scale=1.0), reinterpreted_batch_ndims=2),
                softmax = tfd.Independent(tfd.OneHotCategorical(logits=sml), reinterpreted_batch_ndims=1)
-           ))
+            ))
 
         sc = 2.0
         joint_model = tfd.JointDistributionNamed(dict(
@@ -1794,6 +1799,8 @@
         joint_model.batch_shape
 
         def make_surrogate_posterior():
+            # print("make_surrogate_posterior()")
+            # print(x.shape)
             return tfp.experimental.vi.build_factored_surrogate_posterior(
                 event_shape=[joint_model.event_shape_tensor()[c] for c in [ 'l1w_in', 'l1w_out','l2w_out', 'lgw_out', 'w_out', 'sm_out']],
                 #constraining_bijectors=[None, None, None, None],
@@ -1878,7 +1885,9 @@
                 tf.one_hot(tf.argmax(pred.parameters["model"]["softmax"].mean(), axis=-1), 49) * Y, axis=-1)
             lpp.update({"rl_l1": rl_l1, "rl_l2": rl_l2, "rl_lg": rl_lg, "rl_w": rl_w, "rl_sm": rl_sm,
                         "laplacian_prob_reg_loss": reg_loss3,
-                        "joint_model_log_prob": lp, "numdraws": tf.reduce_mean(numdraws, axis=reduce_axis),
+                        "joint_model_log_prob": lp,
+                        "datapoints": tf.shape(Y)[-2],
+                        "numdraws": tf.reduce_mean(numdraws, axis=reduce_axis),
                         "draw_points": tf.reduce_mean(draw_points, axis=reduce_axis),
                         "accuracy": tf.reduce_mean(accuracy, axis=reduce_axis),
                         "kl_div": tf.reduce_mean(kl_div, axis=reduce_axis),
@@ -2013,7 +2022,7 @@
             # trainable_variables=surrogate_posterior.trainable_variables,
             seed=42,
             sample_size=8)
-        return calc_score_from_trained_model(model_with_data)
+        return calc_score_from_trained_model(data)
 
     def mean_and_sample(model_with_data, metaparams, key):
         surrpost_vars, _ = model_with_data['surrogate_posterior'].sample_distributions()
@@ -2241,12 +2250,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=1,
+            default=5,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=1,
+            default=10,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -2290,7 +2299,7 @@
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8_2122_batch_feb",
+            default="vi8_2122_batch_feb2",
             #default="vi8relubatch",
             help="The prefix to be used for model files"
         )
@@ -2339,6 +2348,7 @@
         print(X.shape)
 
         train_test_data = prepare_train_test_data(X, labels_array, train_idx, test_idx, pred_idx)
+        test_train_data = prepare_train_test_data(X, labels_array, test_idx, train_idx, pred_idx)
 
         label_columns_poisson = [i for i in range(46)]
         label_columns_gaussian = [i for i in range(46, 54 + 2)]
@@ -2351,7 +2361,7 @@
         reg2g = 1000.0
         reg3  = 1000.0
         reg4  = 1000.0
-        kl   = 1000.0
+        kl   = 100.0
         lpt  = 10.0
         pois = 10.0
         gaus = 10.0
@@ -2385,17 +2395,23 @@
         inputfilename = sorted([f for f in os.listdir("models") if re.search("mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+".*pickle", f)])
         if FLAGS.checkpoints != "" and len(inputfilename) > 0:
             if str.isnumeric(FLAGS.checkpoints[1:]):
-                inputfilename = inputfilename[int(FLAGS.checkpoints)]
+                inputfilename2 = inputfilename[int(FLAGS.checkpoints)]
+                inputfilename = inputfilename2.replace("__2.pickle", ".pickle")
             elif FLAGS.checkpoints=="best":
                 inputfilename = "mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+searchlog.dtn[searchlog.pts==searchlog.pts.max()].iloc[-1]+".pickle" # row with max points
+                inputfilename2 = "mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+searchlog.dtn[searchlog.pts==searchlog.pts.max()].iloc[-1]+"__2.pickle" # row with max points
             else:
                 inputfilename = "mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+FLAGS.checkpoints+".pickle"
+                inputfilename2 = "mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + FLAGS.checkpoints + "__2.pickle"
             print(inputfilename)
             filehandler = open("models/"+inputfilename, 'rb')
             all_states, all_weights, metaparams = pickle.load(filehandler)
             reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
+            filehandler2 = open("models/"+inputfilename2, 'rb')
+            all_states2, all_weights2, metaparams = pickle.load(filehandler2)
 
             model_with_data = make_model_instance(train_test_data, all_weights=all_weights, all_states=all_states)
+            model_with_data2 = make_model_instance(test_train_data, all_weights=all_weights2, all_states=all_states2)
 
 
         if FLAGS.action=="train":
@@ -2431,18 +2447,8 @@
                         #metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams] # jump elsewhere
 
                         model_with_data = make_model_instance(train_test_data, all_weights=None, all_states=None)
+                        model_with_data2 = make_model_instance(test_train_data, all_weights=None, all_states=None)
 
-                        # weight_tensors, forward_calc_train, make_surrogate_posterior, loss_function_train = make_joint_mixture_model(x_train_scaled)
-                        # _, forward_calc_test, _, loss_function_test = make_joint_mixture_model(x_test_scaled, weight_tensors)
-                        # _, forward_calc_pred, _, _ = make_joint_mixture_model(x_pred_scaled, weight_tensors)
-                        # l1weights, l2weights, lgweights, ohweights, smweights = weight_tensors
-                        # surrogate_posterior = make_surrogate_posterior()
-
-                        # l = len(surrogate_posterior.trainable_variables)
-                        # for initvalue, variable in zip(make_surrogate_posterior().trainable_variables[:l], surrogate_posterior.trainable_variables):
-                        #     variable.assign(initvalue)
-                        # for initvalue, variable in zip(create_weights()[l:], [l1weights, l2weights, lgweights, ohweights, smweights]):
-                        #     variable.assign(initvalue)
                         best_score = 1e10
                         rounds_without_score_improvement = 0
 
@@ -2457,17 +2463,21 @@
                     oldscore = 1e10
                     r = 0
                     while(True):
-                        score, loss_train, loss_test = train_surrogate_posterior(model_with_data, metaparams, learning_rate, steps=stepsize)
                         r += stepsize
-                        print((r, score, loss_train["real_points"], loss_train["real_points_league"], loss_train["real_points_cup"], " ", loss_test["real_points"], loss_test["real_points_league"], loss_test["real_points_cup"]))
+                        score1, loss_train, loss_test = train_surrogate_posterior(model_with_data, metaparams, learning_rate, steps=stepsize)
+                        print((r, loss_train["datapoints"], score1, loss_train["real_points"], loss_train["real_points_league"], loss_train["real_points_cup"], " ", loss_test["real_points"], loss_test["real_points_league"], loss_test["real_points_cup"]))
+                        score2, loss_train2, loss_test2 = train_surrogate_posterior(model_with_data2, metaparams, learning_rate, steps=stepsize)
+                        print((r, loss_train2["datapoints"], score2, loss_train2["real_points"], loss_train2["real_points_league"], loss_train2["real_points_cup"], " ", loss_test2["real_points"], loss_test2["real_points_league"], loss_test2["real_points_cup"]))
+                        score = (score1+score2)/2
                         if score > oldscore:
-                            return score, loss_train, loss_test
+                            return score, loss_train, loss_test, loss_train2, loss_test2
                         else:
                             oldscore = score
 
 
                 # save previous values
                 oldvalues = [v.numpy() for v in list(model_with_data['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data['weight_tensors']]
+                oldvalues2 = [v.numpy() for v in list(model_with_data2['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data2['weight_tensors']]
 
                 es0, loss0a, loss0b =   calc_score_from_trained_model(model_with_data)
 
@@ -2475,17 +2485,17 @@
                 print(pd.DataFrame([loss0a, loss0b]).T.iloc[11:])
 
                 if FLAGS.save_steps==0:
-                    es1, loss1a, loss1b  = optimize_surrogate_posterior(1e-2)
+                    es1, loss1a, loss1b, loss1ax, loss1bx  = optimize_surrogate_posterior(1e-2)
                     loss1b["score"] = es1
-                    print(pd.DataFrame([loss0a, loss1a, dictdiff(loss0a, loss1a), loss0b, loss1b, dictdiff(loss0b, loss1b)]).T.iloc[11:])
+                    print(pd.DataFrame([loss0a, loss1a, loss1ax, dictdiff(loss0a, loss1a), loss0b, loss1b, loss1bx, dictdiff(loss0b, loss1b)]).T.iloc[11:])
 
-                    es3, loss3a, loss3b  = optimize_surrogate_posterior(1e-3)
+                    es3, loss3a, loss3b, loss3ax, loss3bx  = optimize_surrogate_posterior(1e-3)
                     loss3b["score"] = es3
-                    print(pd.DataFrame([loss1a, loss3a, dictdiff(loss1a, loss3a), loss1b, loss3b, dictdiff(loss1b, loss3b)]).T.iloc[11:])
+                    print(pd.DataFrame([loss1a, loss3a, loss3ax, dictdiff(loss1a, loss3a), loss1b, loss3b, loss3bx, dictdiff(loss1b, loss3b)]).T.iloc[11:])
 
-                    es2, loss2a, loss2b  = optimize_surrogate_posterior(1e-4)
+                    es2, loss2a, loss2b, loss2ax, loss2bx   = optimize_surrogate_posterior(1e-4)
                     loss2b["score"] = es2
-                    print(pd.DataFrame([loss3a, loss2a, dictdiff(loss3a, loss2a), loss3b, loss2b, dictdiff(loss3b, loss2b)]).T.iloc[11:])
+                    print(pd.DataFrame([loss3a, loss2a, loss2ax, dictdiff(loss3a, loss2a), loss3b, loss2b, loss2bx, dictdiff(loss3b, loss2b)]).T.iloc[11:])
 
                 else:
                     es1, loss1a, loss1b  = train_surrogate_posterior(learning_rate=1e-2, steps=FLAGS.save_steps)
@@ -2521,18 +2531,26 @@
                     filehandler = open(filename, 'wb')
                     pickle.dump((model_with_data['surrogate_posterior'].trainable_variables, model_with_data['weight_tensors'], metaparams), filehandler)
 
+                    filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+"__2.pickle"
+                    filehandler = open(filename, 'wb')
+                    pickle.dump((model_with_data2['surrogate_posterior'].trainable_variables, model_with_data2['weight_tensors'], metaparams), filehandler)
+
                     filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
                     searchlog.to_csv(filename, index=False)
 
                 else:
                     # restore previous values
+                    def reset_previous(model_with_data, oldvalues):
+                        l = len(model_with_data['surrogate_posterior'].trainable_variables)
+                        for value, variable in zip(oldvalues[:l], model_with_data['surrogate_posterior'].trainable_variables):
+                            variable.assign(value)
+                        for value, variable in zip(oldvalues[l:], model_with_data['weight_tensors']):
+                            variable.assign(value)
+
                     metaparams = oldmetaparams
                     reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
-                    l = len(model_with_data['surrogate_posterior'].trainable_variables)
-                    for value, variable in zip(oldvalues[:l], model_with_data['surrogate_posterior'].trainable_variables):
-                        variable.assign(value)
-                    for value, variable in zip(oldvalues[l:], model_with_data['weight_tensors']):
-                        variable.assign(value)
+                    reset_previous(model_with_data, oldvalues)
+                    reset_previous(model_with_data2, oldvalues2)
 
 
             filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
@@ -2541,11 +2559,15 @@
         plot_searchlog_points(searchlog)
         plot_weights_distribution(model_with_data['surrogate_posterior'], model_with_data['weight_tensors'])
         plot_train_test_results(model_with_data, metaparams)
+        plot_train_test_results(model_with_data2, metaparams)
 
         plot_train_test_results_detailed(model_with_data, 'train')
+        plot_train_test_results_detailed(model_with_data2, 'train')
         plot_train_test_results_detailed(model_with_data, 'test')
+        plot_train_test_results_detailed(model_with_data2, 'test')
 
         calc_and_plot_new_predictions(model_with_data)
+        calc_and_plot_new_predictions(model_with_data2)
 
     if True:
         Y_train_oh = model_with_data['train']['Y_OH']
