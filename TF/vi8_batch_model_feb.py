@@ -110,7 +110,7 @@
         all_labels = pd.read_csv(data_dir + "/all_labels.csv")
         team_mapping = pd.read_csv(data_dir + "/team_mapping.csv")
         # all_features = pd.read_csv(data_dir+"/lfda_data.csv")
-        if True:
+        if False:
             filter = all_data.cup.eq(0) | all_data.Predict | (all_data.Season.isin(["1920", "1516"]) & all_data.Feb) # all_data.Wednesday & all_data.Feb &
             print("filter")
             print(filter.value_counts())
@@ -1672,29 +1672,49 @@
         train_points = sample_train["real_points"].numpy()
         test_points = sample_test["real_points"].numpy()
 
+        train_points_league = sample_train["real_points_league"].numpy()
+        test_points_league = sample_test["real_points_league"].numpy()
+
+        train_points_cup = sample_train["real_points_cup"].numpy()
+        test_points_cup = sample_test["real_points_cup"].numpy()
+
         train_softpoints = sample_train["mean_points"].numpy()
         test_softpoints = sample_test["mean_points"].numpy()
 
         train_mean_points = mean_train["real_points"].numpy()
         test_mean_points = mean_test["real_points"].numpy()
 
-        train_mean_softpoints = mean_train["mean_points"].numpy()
-        test_mean_softpoints = mean_train["mean_points"].numpy()
+        train_mean_points_cup = mean_train["real_points_cup"].numpy()
+        test_mean_points_cup = mean_test["real_points_cup"].numpy()
 
-        train_mean_logpoints = mean_test["logpoints"].numpy()
+        train_mean_points_league = mean_train["real_points_league"].numpy()
+        test_mean_points_league = mean_test["real_points_league"].numpy()
+
+        train_mean_softpoints = mean_train["mean_points"].numpy()
+        test_mean_softpoints = mean_test["mean_points"].numpy()
+
+        train_mean_logpoints = mean_train["logpoints"].numpy()
         test_mean_logpoints = mean_test["logpoints"].numpy()
 
         fig, ax = plt.subplots(3, 2)
         plt.subplots_adjust(left=0.04, bottom=0.08, right=0.96, top=0.92, wspace=0.08, hspace=0.18)
         for i in range(batch_size):
-            sns.kdeplot(train_points[:,i], ax=ax[0][0])
-            sns.kdeplot(test_points[:,i], ax=ax[0][1])
+            sns.kdeplot(train_points_league[:,i], ax=ax[0][0], linestyle="solid")
+            sns.kdeplot(test_points_league[:,i], ax=ax[0][1], linestyle="solid")
+            sns.kdeplot(train_points[:,i], ax=ax[0][0], linestyle="--")
+            sns.kdeplot(test_points[:,i], ax=ax[0][1], linestyle="--")
+            sns.kdeplot(train_points_cup[:,i], ax=ax[0][0], linestyle="dotted")
+            sns.kdeplot(test_points_cup[:,i], ax=ax[0][1], linestyle="dotted")
             sns.kdeplot(train_softpoints[:,i], ax=ax[1][0])
             sns.kdeplot(test_softpoints[:,i], ax=ax[1][1])
             sns.kdeplot(sample_train["logpoints"].numpy()[:,i], ax=ax[2][0])
             sns.kdeplot(sample_test["logpoints"].numpy()[:,i], ax=ax[2][1])
-        ax[0][0].axvline(x=train_mean_points)
-        ax[0][1].axvline(x=test_mean_points)
+        ax[0][0].axvline(x=train_mean_points_league, linestyle="solid")
+        ax[0][1].axvline(x=test_mean_points_league, linestyle="solid")
+        ax[0][0].axvline(x=train_mean_points, linestyle="--")
+        ax[0][1].axvline(x=test_mean_points, linestyle="--")
+        ax[0][0].axvline(x=train_mean_points_cup, linestyle="dotted")
+        ax[0][1].axvline(x=test_mean_points_cup, linestyle="dotted")
         ax[1][0].axvline(x=train_mean_softpoints)
         ax[1][1].axvline(x=test_mean_softpoints)
         ax[2][0].axvline(x=train_mean_logpoints)
@@ -1765,7 +1785,8 @@
                mainresult = tfd.Independent(tfd.OneHotCategorical(logits=l), reinterpreted_batch_ndims=1),
                sidebets = tfd.Independent(tfd.Poisson(log_rate=x2), reinterpreted_batch_ndims=2),
                sidebets_gaussian = tfd.Independent(tfd.Normal(loc=x2g, scale=1.0), reinterpreted_batch_ndims=2),
-               softmax = tfd.Independent(tfd.OneHotCategorical(logits=sml), reinterpreted_batch_ndims=1)
+               softmax = tfd.Independent(tfd.OneHotCategorical(logits=sml), reinterpreted_batch_ndims=1),
+               softmax_stop_gradient = tfd.Independent(tfd.OneHotCategorical(logits=tf.stop_gradient(sml)), reinterpreted_batch_ndims=1)
             ))
 
         sc = 2.0
@@ -1832,7 +1853,7 @@
                 'lgw_out': lgw_out,
                 'w_out': w_out,
                 'sm_out': sm_out,
-                'outputs': {"mainresult": Y, "sidebets": Y_pois, "sidebets_gaussian": Y_gaus, "softmax": Y}
+                'outputs': {"mainresult": Y, "sidebets": Y_pois, "sidebets_gaussian": Y_gaus, "softmax": Y, "softmax_stop_gradient": Y}
             })
             # normalize log prob by tensor sizes
             lpp['l1w_in'] /= tensor_size(l1w_in)
@@ -1879,7 +1900,7 @@
             poisson_lp = pred.parameters["model"]["sidebets"].log_prob(Y_pois) / Y_pois.shape[-2] / Y_pois.shape[-1]
             gaussian_lp = pred.parameters["model"]["sidebets_gaussian"].log_prob(Y_gaus) / Y_gaus.shape[-2] / \
                           Y_gaus.shape[-1]
-            kl_div = pred.parameters["model"]["mainresult"].kl_divergence(pred.parameters["model"]["softmax"]) / \
+            kl_div = pred.parameters["model"]["mainresult"].kl_divergence(pred.parameters["model"]["softmax_stop_gradient"]) / \
                      Y2.shape[-2] / Y2.shape[-1]
             softmax_acc = tf.reduce_sum(
                 tf.one_hot(tf.argmax(pred.parameters["model"]["softmax"].mean(), axis=-1), 49) * Y, axis=-1)
@@ -2250,12 +2271,12 @@
         )
         parser.add_argument(
             "--warmup", type=int,
-            default=5,
+            default=40,
             help="Number of initial rounds without Gaussian Process meta-parameter search."
         )
         parser.add_argument(
             "--train_steps", type=int,
-            default=10,
+            default=70,
             help="Number of training steps."
         )
         parser.add_argument(
@@ -2291,22 +2312,22 @@
         parser.add_argument(
             "--target_system",
             type=str,
-            #default="Pistor",
+            default="Pistor",
             #default="Sky",
             # default="TCS",
-            default="GoalDiff",
+            #default="GoalDiff",
             help="Point system to optimize for"
         )
         parser.add_argument(
             "--prefix", type=str,
-            default="vi8_2122_batch_feb2",
+            default="vi8_2122_batch_feb4",
             #default="vi8relubatch",
             help="The prefix to be used for model files"
         )
         parser.add_argument(
             "--checkpoints", type=str,
-            #default="best",
-            default="-1",  # slice(-2, None)
+            default="best",
+            #default="-1",  # slice(-2, None)
             #default="20211101_135039",
             #default = "20211108_090047",
             # default="",
@@ -2356,15 +2377,15 @@
         L1size = 32
         L2size = train_test_data['train']['Y'].shape[1]
 
-        reg1  = 1000.0
-        reg2  = 1000.0
-        reg2g = 1000.0
-        reg3  = 1000.0
-        reg4  = 1000.0
-        kl   = 100.0
-        lpt  = 10.0
-        pois = 10.0
-        gaus = 10.0
+        reg1  = 100.0
+        reg2  = 100.0
+        reg2g = 100.0
+        reg3  = 100.0
+        reg4  = 10.0
+        kl   = 10.0
+        lpt  = 1.0
+        pois = 1.0
+        gaus = 1.0
         smx  = 10.0
 
         metaparams = (reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx )
@@ -2393,7 +2414,7 @@
         inputfilename = ["mcmc_deterministic_vi5d2_Sky_20201129_161219.pickle"]
         inputfilename = ["mcmc_deterministic_vi5d2_Pistor_20201128_202100.pickle"] # 0.84
         inputfilename = sorted([f for f in os.listdir("models") if re.search("mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+".*pickle", f)])
-        if FLAGS.checkpoints != "" and len(inputfilename) > 0:
+        if False and FLAGS.checkpoints != "" and len(inputfilename) > 0:
             if str.isnumeric(FLAGS.checkpoints[1:]):
                 inputfilename2 = inputfilename[int(FLAGS.checkpoints)]
                 inputfilename = inputfilename2.replace("__2.pickle", ".pickle")
@@ -2406,7 +2427,6 @@
             print(inputfilename)
             filehandler = open("models/"+inputfilename, 'rb')
             all_states, all_weights, metaparams = pickle.load(filehandler)
-            reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
             filehandler2 = open("models/"+inputfilename2, 'rb')
             all_states2, all_weights2, metaparams = pickle.load(filehandler2)
 
@@ -2418,139 +2438,155 @@
             print(searchlog)
             best_score = 1e10
             last_accepted_score = 1e10
+            if len(searchlog.loc[searchlog.accept].index) > 0:
+                last_accepted_score = searchlog.loc[searchlog.accept, "score"].iloc[-1]
             rounds_without_score_improvement = 0
             for round_number in range(FLAGS.train_steps):
-                print({"Round":round_number})
-                reset_performed = False
-                oldoldmetaparams = metaparams
-                if (np.mod(round_number, 5)==0): # jump away every five rounds
-                    metaparams = [m * np.random.lognormal(0, 0.1) for m in metaparams]
+                    print({"Round":round_number})
+                    reset_performed = False
+                    oldoldmetaparams = metaparams
+                    if (np.mod(round_number, 5)==0): # jump away every five rounds
+                        metaparams = [m * np.random.lognormal(0, 0.1) for m in metaparams]
 
-                oldmetaparams = metaparams
+                    oldmetaparams = metaparams
 
-                if (round_number<FLAGS.warmup):
-                    metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams]
-                else:
-                    metaparams = find_next_params_from_gaussian_process(searchlog)
+                    if (round_number<FLAGS.warmup):
+                        metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams]
+                    else:
+                        metaparams = find_next_params_from_gaussian_process(searchlog)
 
-                # Perform a model reset if no improvement is showing
-                if  False and round_number>0 and es2<best_score:
-                    best_score = es2
-                    rounds_without_score_improvement = 0
-                else:
-                    rounds_without_score_improvement += 1
-                    print("rounds_without_score_improvement: "+str(rounds_without_score_improvement))
-
-                    if rounds_without_score_improvement>=0 and round_number != FLAGS.train_steps-1:
-                        print("MODEL RESET")
-                        reset_performed = True
-                        #metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams] # jump elsewhere
-
-                        model_with_data = make_model_instance(train_test_data, all_weights=None, all_states=None)
-                        model_with_data2 = make_model_instance(test_train_data, all_weights=None, all_states=None)
-
-                        best_score = 1e10
+                    # Perform a model reset if no improvement is showing
+                    if  False and round_number>0 and es2<best_score:
+                        best_score = es2
                         rounds_without_score_improvement = 0
+                    else:
+                        rounds_without_score_improvement += 1
+                        print("rounds_without_score_improvement: "+str(rounds_without_score_improvement))
+
+                        if rounds_without_score_improvement>=0 and round_number != FLAGS.train_steps-1:
+                            print("MODEL RESET")
+                            reset_performed = True
+                            #metaparams = [m * np.random.lognormal(0, 0.3) for m in metaparams] # jump elsewhere
+
+                            model_with_data = make_model_instance(train_test_data, all_weights=None, all_states=None)
+                            model_with_data2 = make_model_instance(test_train_data, all_weights=None, all_states=None)
+
+                            best_score = 1e10
+                            rounds_without_score_improvement = 0
 
 
-                comparedf = pd.DataFrame({"previous":oldoldmetaparams, "candidate":metaparams},
-                                         index = ["reg1", "reg2", "reg2g", "reg3", "reg4", "kl", "lpt", "pois", "gaus", "smx"])
-                print(comparedf)
-                reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
-                print(metaparams)
+                    comparedf = pd.DataFrame({"previous":oldoldmetaparams, "candidate":metaparams},
+                                             index = ["reg1", "reg2", "reg2g", "reg3", "reg4", "kl", "lpt", "pois", "gaus", "smx"])
+                    print(comparedf)
+                    print(metaparams)
 
-                def optimize_surrogate_posterior(learning_rate, stepsize = 50):
-                    oldscore = 1e10
-                    r = 0
-                    while(True):
-                        r += stepsize
-                        score1, loss_train, loss_test = train_surrogate_posterior(model_with_data, metaparams, learning_rate, steps=stepsize)
-                        print((r, loss_train["datapoints"], score1, loss_train["real_points"], loss_train["real_points_league"], loss_train["real_points_cup"], " ", loss_test["real_points"], loss_test["real_points_league"], loss_test["real_points_cup"]))
-                        score2, loss_train2, loss_test2 = train_surrogate_posterior(model_with_data2, metaparams, learning_rate, steps=stepsize)
-                        print((r, loss_train2["datapoints"], score2, loss_train2["real_points"], loss_train2["real_points_league"], loss_train2["real_points_cup"], " ", loss_test2["real_points"], loss_test2["real_points_league"], loss_test2["real_points_cup"]))
-                        score = (score1+score2)/2
-                        if score > oldscore:
-                            return score, loss_train, loss_test, loss_train2, loss_test2
+                    def optimize_surrogate_posterior(learning_rate, stepsize = 50):
+                        oldscore = 1e10
+                        r = 0
+                        while(True):
+                            r += stepsize
+                            score1, loss_train, loss_test = train_surrogate_posterior(model_with_data, metaparams, learning_rate, steps=stepsize)
+                            print((r, loss_train["datapoints"], score1, loss_train["real_points"], loss_train["real_points_league"], loss_train["real_points_cup"], " ", loss_test["real_points"], loss_test["real_points_league"], loss_test["real_points_cup"]))
+                            score2, loss_train2, loss_test2 = train_surrogate_posterior(model_with_data2, metaparams, learning_rate, steps=stepsize)
+                            print((r, loss_train2["datapoints"], score2, loss_train2["real_points"], loss_train2["real_points_league"], loss_train2["real_points_cup"], " ", loss_test2["real_points"], loss_test2["real_points_league"], loss_test2["real_points_cup"]))
+                            loss_train_combined = {k: (loss_train[k] + loss_train2[k]) / 2 for k in loss_train.keys()}
+                            loss_test_combined = {k: (loss_test[k] + loss_test2[k]) / 2 for k in loss_test.keys()}
+                            score = (score1+score2)/2
+                            print((r, loss_train_combined["datapoints"], score, loss_train_combined["real_points"], loss_train_combined["real_points_league"], loss_train_combined["real_points_cup"], " ", loss_test_combined["real_points"], loss_test_combined["real_points_league"], loss_test_combined["real_points_cup"]))
+                            if score > oldscore or loss_train["accuracy"]>0.56 or loss_train2["accuracy"]>0.56:
+                                return score, loss_train, loss_test, loss_train2, loss_test2, loss_train_combined, loss_test_combined
+                            else:
+                                oldscore = score
+
+
+                    # save previous values
+                    oldvalues = [v.numpy() for v in list(model_with_data['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data['weight_tensors']]
+                    oldvalues2 = [v.numpy() for v in list(model_with_data2['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data2['weight_tensors']]
+
+                    es0, loss0a, loss0b =   calc_score_from_trained_model(model_with_data)
+
+                    loss0b["score"] = es0
+                    print(pd.DataFrame([loss0a, loss0b]).T.iloc[11:])
+
+                    if FLAGS.save_steps==0:
+                        es1, loss1a, loss1b, loss1ax, loss1bx, loss1a_combined, loss1b_combined   = optimize_surrogate_posterior(1e-2)
+                        loss1b["score"] = es1
+                        print(pd.DataFrame([loss0a, loss1a, loss1ax, loss1a_combined, dictdiff(loss0a, loss1a), loss0b, loss1b, loss1bx, loss1b_combined, dictdiff(loss0b, loss1b)]).T.iloc[11:])
+                        if loss1a["accuracy"]<0.56 and loss1ax["accuracy"]<0.56:
+                            es3, loss3a, loss3b, loss3ax, loss3bx, loss3a_combined, loss3b_combined  = optimize_surrogate_posterior(1e-3)
+                            loss3b["score"] = es3
+                            print(pd.DataFrame([loss1a, loss3a, loss3ax, loss3a_combined, dictdiff(loss1a, loss3a), loss1b, loss3b, loss3bx, loss3b_combined, dictdiff(loss1b, loss3b)]).T.iloc[11:])
                         else:
-                            oldscore = score
+                            es3, loss3a, loss3b, loss3ax, loss3bx = es1, loss1a, loss1b, loss1ax, loss1bx
+                        if loss3a["accuracy"] < 0.56 and loss3ax["accuracy"] < 0.56:
+                            es2, loss2a, loss2b, loss2ax, loss2bx, loss2a_combined, loss2b_combined   = optimize_surrogate_posterior(1e-4)
+                            loss2b["score"] = es2
+                            print(pd.DataFrame([loss3a, loss2a, loss2ax, loss2a_combined, dictdiff(loss3a, loss2a), loss3b, loss2b, loss2bx, loss2b_combined, dictdiff(loss3b, loss2b)]).T.iloc[11:])
+                        else:
+                            es2, loss2a, loss2b, loss2ax, loss2bx = es3, loss3a, loss3b, loss3ax, loss3bx
+                    else:
+                        es1, loss1a, loss1b  = train_surrogate_posterior(learning_rate=1e-2, steps=FLAGS.save_steps)
+                        loss1b["score"] = es1
+                        print(pd.DataFrame([loss0a, loss1a, dictdiff(loss0a, loss1a), loss0b, loss1b, dictdiff(loss0b, loss1b)]).T.iloc[11:])
 
+                        es2, loss2a, loss2b  = train_surrogate_posterior(learning_rate=1e-3, steps=FLAGS.save_steps)
+                        loss2b["score"] = es2
+                        print(pd.DataFrame([loss0a, loss2a, dictdiff(loss0a, loss2a), loss0b, loss2b, dictdiff(loss0b, loss2b)]).T.iloc[11:])
 
-                # save previous values
-                oldvalues = [v.numpy() for v in list(model_with_data['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data['weight_tensors']]
-                oldvalues2 = [v.numpy() for v in list(model_with_data2['surrogate_posterior'].trainable_variables)] + [v.numpy() for v in model_with_data2['weight_tensors']]
+                    #accept_prob = np.exp((es0-es2)/0.03)
+                    accept_prob = np.exp((last_accepted_score-es2)/0.12)
+                    #accept_prob = np.exp((loss2b["real_points"] - loss0b["real_points"]) / 0.02)
 
-                es0, loss0a, loss0b =   calc_score_from_trained_model(model_with_data)
+                    best_points = searchlog.pts.max()
+                    last_points = 0
+                    if len(searchlog.loc[searchlog.accept].index) > 0:
+                        last_points = searchlog.loc[searchlog.accept, "pts"].iloc[-1]
+                    min_points = searchlog.pts.quantile(0.7)
+                    real_points_train = (loss2a["real_points_league"]+loss2ax["real_points_league"]) / 2
+                    real_points_test  = (loss2b["real_points_league"]+loss2bx["real_points_league"]) / 2
+                    logpoints_test = (loss2b["logpoints"] + loss2bx["logpoints"]) / 2
+                    poisson_lp_mean_test = (loss2b["poisson_lp_mean"] + loss2bx["poisson_lp_mean"]) / 2
+                    gaussian_lp_mean_test = (loss2b["gaussian_lp_mean"] + loss2bx["gaussian_lp_mean"]) / 2
+                    softmax_lp_mean_test = (loss2b["softmax_lp_mean"] + loss2bx["softmax_lp_mean"]) / 2
 
-                loss0b["score"] = es0
-                print(pd.DataFrame([loss0a, loss0b]).T.iloc[11:])
+                    accept = es2 < last_accepted_score or random.random() < accept_prob or real_points_test > best_points or real_points_test > last_points #or (loss2b["real_points"]>loss0b["real_points"] and loss2b["real_points"]>min_points)
+                    if es2 < last_accepted_score:
+                        accept_prob = np.nan
+                    # accept = loss2b["real_points"]>loss0b["real_points"] or random.random() < accept_prob
+                    # if loss2b["real_points"]>loss0b["real_points"]:
+                    #     accept_prob = np.nan
+                    print((last_accepted_score, es0, es1, es2, accept, accept_prob, loss0b["real_points_league"], loss1b["real_points_league"], loss2b["real_points_league"], loss2bx["real_points_league"], real_points_test))
 
-                if FLAGS.save_steps==0:
-                    es1, loss1a, loss1b, loss1ax, loss1bx  = optimize_surrogate_posterior(1e-2)
-                    loss1b["score"] = es1
-                    print(pd.DataFrame([loss0a, loss1a, loss1ax, dictdiff(loss0a, loss1a), loss0b, loss1b, loss1bx, dictdiff(loss0b, loss1b)]).T.iloc[11:])
+                    dtn = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    new_row = [dtn, accept, accept_prob, es2, real_points_train, real_points_test, logpoints_test, poisson_lp_mean_test, gaussian_lp_mean_test, softmax_lp_mean_test]+metaparams+[reset_performed]
+                    searchlog = searchlog.append({k:v for k,v in zip(searchlog.columns, new_row)}, ignore_index=True)
+                    print(searchlog)
+                    if accept:
+                        last_accepted_score = es2
 
-                    es3, loss3a, loss3b, loss3ax, loss3bx  = optimize_surrogate_posterior(1e-3)
-                    loss3b["score"] = es3
-                    print(pd.DataFrame([loss1a, loss3a, loss3ax, dictdiff(loss1a, loss3a), loss1b, loss3b, loss3bx, dictdiff(loss1b, loss3b)]).T.iloc[11:])
+                        filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+".pickle"
+                        filehandler = open(filename, 'wb')
+                        pickle.dump((model_with_data['surrogate_posterior'].trainable_variables, model_with_data['weight_tensors'], metaparams), filehandler)
 
-                    es2, loss2a, loss2b, loss2ax, loss2bx   = optimize_surrogate_posterior(1e-4)
-                    loss2b["score"] = es2
-                    print(pd.DataFrame([loss3a, loss2a, loss2ax, dictdiff(loss3a, loss2a), loss3b, loss2b, loss2bx, dictdiff(loss3b, loss2b)]).T.iloc[11:])
+                        filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+"__2.pickle"
+                        filehandler = open(filename, 'wb')
+                        pickle.dump((model_with_data2['surrogate_posterior'].trainable_variables, model_with_data2['weight_tensors'], metaparams), filehandler)
 
-                else:
-                    es1, loss1a, loss1b  = train_surrogate_posterior(learning_rate=1e-2, steps=FLAGS.save_steps)
-                    loss1b["score"] = es1
-                    print(pd.DataFrame([loss0a, loss1a, dictdiff(loss0a, loss1a), loss0b, loss1b, dictdiff(loss0b, loss1b)]).T.iloc[11:])
+                        filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
+                        searchlog.to_csv(filename, index=False)
 
-                    es2, loss2a, loss2b  = train_surrogate_posterior(learning_rate=1e-3, steps=FLAGS.save_steps)
-                    loss2b["score"] = es2
-                    print(pd.DataFrame([loss0a, loss2a, dictdiff(loss0a, loss2a), loss0b, loss2b, dictdiff(loss0b, loss2b)]).T.iloc[11:])
+                    else:
+                        # restore previous values
+                        def reset_previous(model_with_data, oldvalues):
+                            l = len(model_with_data['surrogate_posterior'].trainable_variables)
+                            for value, variable in zip(oldvalues[:l], model_with_data['surrogate_posterior'].trainable_variables):
+                                variable.assign(value)
+                            for value, variable in zip(oldvalues[l:], model_with_data['weight_tensors']):
+                                variable.assign(value)
 
-                #accept_prob = np.exp((es0-es2)/0.03)
-                accept_prob = np.exp((last_accepted_score-es2)/0.12)
-                #accept_prob = np.exp((loss2b["real_points"] - loss0b["real_points"]) / 0.02)
-
-                best_points = searchlog.pts.max()
-                min_points = searchlog.pts.quantile(0.7)
-                accept = es2 < last_accepted_score or random.random() < accept_prob or loss2b["real_points"]>best_points or (loss2b["real_points"]>loss0b["real_points"] and loss2b["real_points"]>min_points)
-                if es2 < last_accepted_score:
-                    accept_prob = np.nan
-                # accept = loss2b["real_points"]>loss0b["real_points"] or random.random() < accept_prob
-                # if loss2b["real_points"]>loss0b["real_points"]:
-                #     accept_prob = np.nan
-                print((last_accepted_score, es0, es1, es2, accept, accept_prob, loss0b["real_points"], loss1b["real_points"], loss2b["real_points"]))
-
-                dtn = datetime.now().strftime("%Y%m%d_%H%M%S")
-                new_row = [dtn, accept, accept_prob, es2, loss2a["real_points"], loss2b["real_points"], loss2b["logpoints"], loss2b["poisson_lp_mean"], loss2b["gaussian_lp_mean"], loss2b["softmax_lp_mean"]]+metaparams+[reset_performed]
-                searchlog = searchlog.append({k:v for k,v in zip(searchlog.columns, new_row)}, ignore_index=True)
-                print(searchlog)
-                if accept:
-                    last_accepted_score = es2
-
-                    filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+".pickle"
-                    filehandler = open(filename, 'wb')
-                    pickle.dump((model_with_data['surrogate_posterior'].trainable_variables, model_with_data['weight_tensors'], metaparams), filehandler)
-
-                    filename = "models/mcmc_deterministic_"+FLAGS.prefix+"_"+FLAGS.target_system+"_"+dtn+"__2.pickle"
-                    filehandler = open(filename, 'wb')
-                    pickle.dump((model_with_data2['surrogate_posterior'].trainable_variables, model_with_data2['weight_tensors'], metaparams), filehandler)
-
-                    filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
-                    searchlog.to_csv(filename, index=False)
-
-                else:
-                    # restore previous values
-                    def reset_previous(model_with_data, oldvalues):
-                        l = len(model_with_data['surrogate_posterior'].trainable_variables)
-                        for value, variable in zip(oldvalues[:l], model_with_data['surrogate_posterior'].trainable_variables):
-                            variable.assign(value)
-                        for value, variable in zip(oldvalues[l:], model_with_data['weight_tensors']):
-                            variable.assign(value)
-
-                    metaparams = oldmetaparams
-                    reg1, reg2, reg2g, reg3, reg4, kl, lpt, pois, gaus, smx = metaparams
-                    reset_previous(model_with_data, oldvalues)
-                    reset_previous(model_with_data2, oldvalues2)
+                        metaparams = oldmetaparams
+                        reset_previous(model_with_data, oldvalues)
+                        reset_previous(model_with_data2, oldvalues2)
 
 
             filename = "models/mcmc_deterministic_" + FLAGS.prefix + "_" + FLAGS.target_system + "_" + dtn + ".csv"
