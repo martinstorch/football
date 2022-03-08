@@ -1,0 +1,61 @@
+Date,Time,Dow,Season,HomeTeam,AwayTeam,HTHG,HTAG,HTR,FTHG,FTAG,FTR,ETHG,ETAG,ETR,PENHG,PENAG,PENR,Predict
+06.08.2021,20:45,Friday,2122,Dynamo Dresden,SC Paderborn 07,0.0,0.0,D,2.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+06.08.2021,20:45,Friday,2122,TSV 1860 München,SV Darmstadt 98,0.0,0.0,D,1.0,1.0,D,1.0,1.0,D,5.0,4.0,H,False
+07.08.2021,15:30,Saturday,2122,SC Weiche Flensburg 08,Holstein Kiel,0.0,0.0,D,0.0,0.0,D,2.0,4.0,A,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,1. FC Lok Leipzig,Bayer 04 Leverkusen,0.0,2.0,A,0.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,SV Sandhausen,RB Leipzig,0.0,2.0,A,0.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,SpVgg Oberfranken Bayreuth,Arminia Bielefeld,1.0,2.0,A,3.0,6.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,Greifswalder FC,FC Augsburg,1.0,1.0,D,2.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,VfL Osnabrück,Werder Bremen,1.0,0.0,H,2.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,Eintracht Norderstedt,Hannover 96,0.0,2.0,A,0.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,Wuppertaler SV,VfL Bochum,1.0,0.0,H,1.0,1.0,D,1.0,2.0,A,-1.0,-1.0,-1,False
+07.08.2021,15:30,Saturday,2122,BFC Dynamo,VfB Stuttgart,0.0,2.0,A,0.0,6.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,18:30,Saturday,2122,SSV Ulm 1846 Fußball,1. FC Nürnberg,0.0,0.0,D,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,18:30,Saturday,2122,SV Babelsberg 03,SpVgg Greuther Fürth,1.0,1.0,D,2.0,2.0,D,2.0,2.0,D,5.0,4.0,H,False
+07.08.2021,18:30,Saturday,2122,1. FC Magdeburg,FC St. Pauli,1.0,2.0,A,2.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+07.08.2021,20:45,Saturday,2122,SV Wehen Wiesbaden,Borussia Dortmund,0.0,2.0,A,0.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,SV Meppen,Hertha BSC,0.0,0.0,D,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,SV Elversberg,1. FSV Mainz 05,0.0,0.0,D,1.0,1.0,D,2.0,2.0,D,7.0,8.0,A,False
+08.08.2021,15:30,Sunday,2122,FC Carl Zeiss Jena,1. FC Köln,1.0,0.0,H,1.0,1.0,D,1.0,1.0,D,2.0,4.0,A,False
+08.08.2021,15:30,Sunday,2122,FC 08 Villingen,FC Schalke 04,1.0,1.0,D,1.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,SV Waldhof Mannheim,Eintracht Frankfurt,0.0,0.0,D,2.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,FC Rot-Weiß Koblenz,Jahn Regensburg,0.0,2.0,A,0.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,Türkgücü München,1. FC Union Berlin,0.0,1.0,A,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,VfL Oldenburg,Fortuna Düsseldorf,0.0,3.0,A,0.0,5.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,15:30,Sunday,2122,Preußen Münster,VfL Wolfsburg,2.0,0.0,H,2.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,18:30,Sunday,2122,Eintracht Braunschweig,Hamburger SV,1.0,1.0,D,1.0,2.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,18:30,Sunday,2122,FC Würzburger Kickers,SC Freiburg,0.0,1.0,A,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+08.08.2021,18:30,Sunday,2122,Hansa Rostock,1. FC Heidenheim,0.0,1.0,A,1.0,1.0,D,3.0,2.0,H,-1.0,-1.0,-1,False
+09.08.2021,18:30,Monday,2122,FC Ingolstadt,Erzgebirge Aue,1.0,0.0,H,2.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+09.08.2021,18:30,Monday,2122,FC Viktoria Köln,TSG Hoffenheim,1.0,1.0,D,1.0,1.0,D,2.0,3.0,A,-1.0,-1.0,-1,False
+09.08.2021,18:30,Monday,2122,Sportfreunde Lotte,Karlsruher SC,0.0,1.0,A,1.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+09.08.2021,20:45,Monday,2122,1. FC Kaiserslautern,Borussia Mönchengladbach,0.0,1.0,A,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+25.08.2021,20:15,Wednesday,2122,Bremer SV,Bayern München,0.0,5.0,A,0.0,12.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,18:30,Tuesday,2122,Preußen Münster,Hertha BSC,1.0,1.0,D,1.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,18:30,Tuesday,2122,SV Babelsberg 03,RB Leipzig,0.0,1.0,A,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,18:30,Tuesday,2122,TSV 1860 München,FC Schalke 04,1.0,0.0,H,1.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,18:30,Tuesday,2122,TSG Hoffenheim,Holstein Kiel,2.0,0.0,H,5.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,20:00,Tuesday,2122,Borussia Dortmund,FC Ingolstadt,0.0,0.0,D,2.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+26.10.2021,20:45,Tuesday,2122,VfL Osnabrück,SC Freiburg,0.0,1.0,A,1.0,1.0,D,2.0,2.0,D,2.0,3.0,A,False
+26.10.2021,20:45,Tuesday,2122,1. FC Nürnberg,Hamburger SV,0.0,1.0,A,1.0,1.0,D,1.0,1.0,D,2.0,4.0,A,False
+26.10.2021,20:45,Tuesday,2122,1. FSV Mainz 05,Arminia Bielefeld,0.0,1.0,A,2.0,2.0,D,3.0,2.0,H,-1.0,-1.0,-1,False
+27.10.2021,18:30,Wednesday,2122,SV Waldhof Mannheim,1. FC Union Berlin,1.0,1.0,D,1.0,1.0,D,1.0,3.0,A,-1.0,-1.0,-1,False
+27.10.2021,18:30,Wednesday,2122,VfL Bochum,FC Augsburg,1.0,0.0,H,2.0,2.0,D,2.0,2.0,D,5.0,4.0,H,False
+27.10.2021,18:30,Wednesday,2122,Dynamo Dresden,FC St. Pauli,0.0,0.0,D,2.0,2.0,D,2.0,3.0,A,-1.0,-1.0,-1,False
+27.10.2021,18:30,Wednesday,2122,Bayer 04 Leverkusen,Karlsruher SC,0.0,1.0,A,1.0,2.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+27.10.2021,20:45,Wednesday,2122,Hannover 96,Fortuna Düsseldorf,1.0,0.0,H,3.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+27.10.2021,20:45,Wednesday,2122,Borussia Mönchengladbach,Bayern München,3.0,0.0,H,5.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+27.10.2021,20:45,Wednesday,2122,Jahn Regensburg,Hansa Rostock,0.0,1.0,A,2.0,2.0,D,3.0,3.0,D,2.0,4.0,A,False
+27.10.2021,20:45,Wednesday,2122,VfB Stuttgart,1. FC Köln,0.0,0.0,D,0.0,2.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+18.01.2022,18:30,Tuesday,2122,TSV 1860 München,Karlsruher SC,0.0,0.0,D,0.0,1.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+18.01.2022,18:30,Tuesday,2122,1. FC Köln,Hamburger SV,0.0,0.0,D,0.0,0.0,D,1.0,1.0,D,3.0,4.0,A,False
+18.01.2022,20:45,Tuesday,2122,FC St. Pauli,Borussia Dortmund,2.0,0.0,H,2.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+18.01.2022,20:45,Tuesday,2122,VfL Bochum,1. FSV Mainz 05,0.0,1.0,A,3.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+19.01.2022,18:30,Wednesday,2122,Hannover 96,Borussia Mönchengladbach,2.0,0.0,H,3.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+19.01.2022,18:30,Wednesday,2122,RB Leipzig,Hansa Rostock,1.0,0.0,H,2.0,0.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+19.01.2022,20:45,Wednesday,2122,TSG Hoffenheim,SC Freiburg,0.0,2.0,A,1.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+19.01.2022,20:45,Wednesday,2122,Hertha BSC,1. FC Union Berlin,0.0,1.0,A,2.0,3.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+01.03.2022,20:45,Tuesday,2122,1. FC Union Berlin,FC St. Pauli,1.0,1.0,D,2.0,1.0,H,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+02.03.2022,18:30,Wednesday,2122,Hamburger SV,Karlsruher SC,0.0,1.0,A,2.0,2.0,D,2.0,2.0,D,3.0,2.0,H,False
+02.03.2022,18:30,Wednesday,2122,Hannover 96,RB Leipzig,0.0,2.0,A,0.0,4.0,A,-1.0,-1.0,-1,-1.0,-1.0,-1,False
+02.03.2022,20:45,Wednesday,2122,VfL Bochum,SC Freiburg,0.0,0.0,D,1.0,1.0,D,1.0,2.0,A,-1.0,-1.0,-1,False

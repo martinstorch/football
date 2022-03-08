@@ -1,0 +1,694 @@
+Date,Time,Dow,Season,HomeTeam,AwayTeam,HTHG,HTAG,HTR,FTHG,FTAG,FTR,ETHG,ETAG,ETR,PENHG,PENAG,PENR,Predict
+13.08.2010,19:00,Friday,1011,SV Wilhelmshaven,Eintracht Frankfurt,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+13.08.2010,19:00,Friday,1011,FC Ingolstadt,Karlsruher SC,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+13.08.2010,19:00,Friday,1011,VfB Lübeck,MSV Duisburg,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+13.08.2010,19:00,Friday,1011,FSV Frankfurt,SC Paderborn 07,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+13.08.2010,19:00,Friday,1011,VfL Osnabrück,1. FC Kaiserslautern,1,0,H,1,1,D,2,3,A,-1,-1,-1,False
+13.08.2010,19:00,Friday,1011,Jahn Regensburg,Arminia Bielefeld,0,1,A,1,1,D,1,1,D,5,6,A,False
+14.08.2010,15:30,Saturday,1011,FK Pirmasens,Bayer 04 Leverkusen,0,1,A,1,11,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,SV Wacker Burghausen,Borussia Dortmund,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,SV Babelsberg 03,VfB Stuttgart,1,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,FC Oberneuland,SC Freiburg,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,SC Pfullendorf,Hertha BSC,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,Rot Weiss Ahlen,Werder Bremen,0,1,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,SC Verl,TSV 1860 München,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,Hansa Rostock,1899 Hoffenheim,0,4,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+14.08.2010,15:30,Saturday,1011,Chemnitzer FC,FC St. Pauli,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+14.08.2010,19:30,Saturday,1011,SV Sandhausen,FC Augsburg,2,1,H,3,3,D,4,4,D,1,3,A,False
+14.08.2010,19:30,Saturday,1011,SV 07 Elversberg,Hannover 96,0,0,D,0,0,D,0,0,D,5,4,H,False
+14.08.2010,19:30,Saturday,1011,Eintracht Braunschweig,SpVgg Greuther Fürth,0,0,D,0,0,D,1,2,A,-1,-1,-1,False
+14.08.2010,19:30,Saturday,1011,Erzgebirge Aue,Borussia Mönchengladbach,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,14:30,Sunday,1011,Schwarz-Weiß Essen,Alemannia Aachen,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,14:30,Sunday,1011,TuS Koblenz,Fortuna Düsseldorf,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+15.08.2010,14:30,Sunday,1011,SC Victoria Hamburg,Rot-Weiß Oberhausen,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+15.08.2010,14:30,Sunday,1011,ZFC Meuselwitz,1. FC Köln,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,14:30,Sunday,1011,TuS Heeslingen,Energie Cottbus,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,16:00,Sunday,1011,Eintracht Trier,1. FC Nürnberg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,16:00,Sunday,1011,Berliner AK 07,1. FSV Mainz 05,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,17:30,Sunday,1011,Hallescher FC,1. FC Union Berlin,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+15.08.2010,17:30,Sunday,1011,Torgelower SV Greif,Hamburger SV,1,1,D,1,5,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,17:30,Sunday,1011,SC Preußen Münster,VfL Wolfsburg,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+15.08.2010,17:30,Sunday,1011,Kickers Offenbach,VfL Bochum,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+16.08.2010,18:00,Monday,1011,Germania Windeck,Bayern München,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+16.08.2010,20:30,Monday,1011,VfR Aalen,FC Schalke 04,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+26.10.2010,19:00,Tuesday,1011,TuS Koblenz,Hertha BSC,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2010,19:00,Tuesday,1011,SC Victoria Hamburg,VfL Wolfsburg,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+26.10.2010,19:00,Tuesday,1011,1. FC Köln,TSV 1860 München,0,0,D,3,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2010,19:00,Tuesday,1011,SpVgg Greuther Fürth,FC Augsburg,1,0,H,1,1,D,2,4,A,-1,-1,-1,False
+26.10.2010,20:30,Tuesday,1011,Energie Cottbus,SC Freiburg,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2010,20:30,Tuesday,1011,FSV Frankfurt,FC Schalke 04,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+26.10.2010,20:30,Tuesday,1011,Bayern München,Werder Bremen,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2010,20:30,Tuesday,1011,1. FC Kaiserslautern,Arminia Bielefeld,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+27.10.2010,19:00,Wednesday,1011,Hallescher FC,MSV Duisburg,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+27.10.2010,19:00,Wednesday,1011,Eintracht Frankfurt,Hamburger SV,3,1,H,5,2,H,-1,-1,-1,-1,-1,-1,False
+27.10.2010,19:00,Wednesday,1011,1899 Hoffenheim,FC Ingolstadt,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+27.10.2010,19:00,Wednesday,1011,Alemannia Aachen,1. FSV Mainz 05,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+27.10.2010,20:30,Wednesday,1011,Kickers Offenbach,Borussia Dortmund,0,0,D,0,0,D,0,0,D,4,2,H,False
+27.10.2010,20:30,Wednesday,1011,SV 07 Elversberg,1. FC Nürnberg,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+27.10.2010,20:30,Wednesday,1011,Chemnitzer FC,VfB Stuttgart,0,0,D,1,1,D,1,3,A,-1,-1,-1,False
+27.10.2010,20:30,Wednesday,1011,Borussia Mönchengladbach,Bayer 04 Leverkusen,0,0,D,0,0,D,1,1,D,5,4,H,False
+21.12.2010,20:30,Tuesday,1011,FC Augsburg,FC Schalke 04,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+21.12.2010,20:30,Tuesday,1011,1899 Hoffenheim,Borussia Mönchengladbach,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+22.12.2010,19:00,Wednesday,1011,VfL Wolfsburg,Energie Cottbus,0,3,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+22.12.2010,19:10,Wednesday,1011,1. FC Köln,MSV Duisburg,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+22.12.2010,20:30,Wednesday,1011,VfB Stuttgart,Bayern München,2,2,D,3,6,A,-1,-1,-1,-1,-1,-1,False
+22.12.2010,20:30,Wednesday,1011,Alemannia Aachen,Eintracht Frankfurt,0,0,D,0,0,D,1,1,D,5,3,H,False
+19.01.2011,19:00,Wednesday,1011,TuS Koblenz,1. FC Kaiserslautern,1,0,H,1,4,A,-1,-1,-1,-1,-1,-1,False
+19.01.2011,19:15,Wednesday,1011,Kickers Offenbach,1. FC Nürnberg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+25.01.2011,20:30,Tuesday,1011,FC Schalke 04,1. FC Nürnberg,1,2,A,2,2,D,3,2,H,-1,-1,-1,False
+26.01.2011,19:00,Wednesday,1011,Energie Cottbus,1899 Hoffenheim,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+26.01.2011,19:00,Wednesday,1011,MSV Duisburg,1. FC Kaiserslautern,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+26.01.2011,20:30,Wednesday,1011,Alemannia Aachen,Bayern München,0,1,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+01.03.2011,20:30,Tuesday,1011,MSV Duisburg,Energie Cottbus,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+02.03.2011,20:30,Wednesday,1011,Bayern München,FC Schalke 04,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+21.05.2011,20:00,Saturday,1011,MSV Duisburg,FC Schalke 04,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+29.07.2011,20:30,Friday,1112,Rot-Weiss Essen,1. FC Union Berlin,1,0,H,2,2,D,2,2,D,4,3,H,False
+29.07.2011,20:30,Friday,1112,RB Leipzig,VfL Wolfsburg,3,2,H,3,2,H,-1,-1,-1,-1,-1,-1,False
+29.07.2011,20:30,Friday,1112,1. FC Saarbrücken,Erzgebirge Aue,0,1,A,1,1,D,1,3,A,-1,-1,-1,False
+29.07.2011,20:30,Friday,1112,Jahn Regensburg,Borussia Mönchengladbach,1,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+29.07.2011,20:30,Friday,1112,SV Wehen Wiesbaden,VfB Stuttgart,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+29.07.2011,20:30,Friday,1112,VfL Osnabrück,TSV 1860 München,2,1,H,2,2,D,2,3,A,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,BFC Dynamo,1. FC Kaiserslautern,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,Hallescher FC,Eintracht Frankfurt,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,1. FC Heidenheim,Werder Bremen,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,Dynamo Dresden,Bayer 04 Leverkusen,0,2,A,3,3,D,4,3,H,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,Eintracht Trier,FC St. Pauli,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,Arminia Bielefeld,1. FC Nürnberg,1,3,A,1,5,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,Rot Weiss Ahlen,SC Paderborn 07,0,4,A,0,10,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,SV Babelsberg 03,MSV Duisburg,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,15:30,Saturday,1112,VfB Oldenburg,Hamburger SV,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,19:30,Saturday,1112,Holstein Kiel,Energie Cottbus,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+30.07.2011,19:30,Saturday,1112,SV Sandhausen,Borussia Dortmund,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+30.07.2011,19:30,Saturday,1112,Kickers Emden,FSV Frankfurt,1,1,D,1,1,D,1,5,A,-1,-1,-1,False
+30.07.2011,19:30,Saturday,1112,Hansa Rostock,VfL Bochum,1,0,H,2,2,D,2,2,D,3,5,A,False
+30.07.2011,19:30,Saturday,1112,Rot-Weiß Oberhausen,FC Augsburg,1,1,D,1,1,D,1,2,A,-1,-1,-1,False
+31.07.2011,14:30,Sunday,1112,FC Oberneuland,FC Ingolstadt,1,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,14:30,Sunday,1112,SpVgg Unterhaching,SC Freiburg,1,1,D,3,2,H,-1,-1,-1,-1,-1,-1,False
+31.07.2011,14:30,Sunday,1112,Karlsruher SC,Alemannia Aachen,1,1,D,3,1,H,-1,-1,-1,-1,-1,-1,False
+31.07.2011,14:30,Sunday,1112,Eimsbütteler TV,SpVgg Greuther Fürth,0,3,A,0,10,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,14:30,Sunday,1112,FC Anker Wismar,Hannover 96,0,4,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,16:00,Sunday,1112,ZFC Meuselwitz,Hertha BSC,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,16:00,Sunday,1112,Germania Windeck,1899 Hoffenheim,1,0,H,1,1,D,1,3,A,-1,-1,-1,False
+31.07.2011,17:30,Sunday,1112,FC Teningen,FC Schalke 04,1,6,A,1,11,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,17:30,Sunday,1112,Hessen Kassel,Fortuna Düsseldorf,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+31.07.2011,17:30,Sunday,1112,SVN Zweibrücken,1. FSV Mainz 05,0,0,D,0,0,D,1,2,A,-1,-1,-1,False
+31.07.2011,17:30,Sunday,1112,SC Wiedenbrück 2000,1. FC Köln,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+01.08.2011,20:30,Monday,1112,Eintracht Braunschweig,Bayern München,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2011,19:00,Tuesday,1112,RB Leipzig,FC Augsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+25.10.2011,19:00,Tuesday,1112,SpVgg Unterhaching,VfL Bochum,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+25.10.2011,19:00,Tuesday,1112,1. FC Heidenheim,Borussia Mönchengladbach,0,0,D,0,0,D,0,0,D,3,4,A,False
+25.10.2011,19:00,Tuesday,1112,Fortuna Düsseldorf,TSV 1860 München,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+25.10.2011,20:30,Tuesday,1112,Eintracht Trier,Hamburger SV,1,0,H,1,1,D,1,2,A,-1,-1,-1,False
+25.10.2011,20:30,Tuesday,1112,SpVgg Greuther Fürth,SC Paderborn 07,3,0,H,4,0,H,-1,-1,-1,-1,-1,-1,False
+25.10.2011,20:30,Tuesday,1112,1899 Hoffenheim,1. FC Köln,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+25.10.2011,20:45,Tuesday,1112,Borussia Dortmund,Dynamo Dresden,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2011,19:00,Wednesday,1112,Rot-Weiss Essen,Hertha BSC,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+26.10.2011,19:00,Wednesday,1112,Hannover 96,1. FSV Mainz 05,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+26.10.2011,19:00,Wednesday,1112,Karlsruher SC,FC Schalke 04,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+26.10.2011,19:00,Wednesday,1112,Holstein Kiel,MSV Duisburg,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2011,20:30,Wednesday,1112,Erzgebirge Aue,1. FC Nürnberg,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+26.10.2011,20:30,Wednesday,1112,Bayern München,FC Ingolstadt,1,0,H,6,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2011,20:30,Wednesday,1112,VfB Stuttgart,FSV Frankfurt,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2011,20:30,Wednesday,1112,Eintracht Frankfurt,1. FC Kaiserslautern,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+20.12.2011,19:00,Tuesday,1112,VfL Bochum,Bayern München,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+20.12.2011,19:00,Tuesday,1112,1. FC Nürnberg,SpVgg Greuther Fürth,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+20.12.2011,20:30,Tuesday,1112,1899 Hoffenheim,FC Augsburg,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+20.12.2011,20:30,Tuesday,1112,Fortuna Düsseldorf,Borussia Dortmund,0,0,D,0,0,D,0,0,D,4,5,A,False
+21.12.2011,19:00,Wednesday,1112,Hertha BSC,1. FC Kaiserslautern,1,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+21.12.2011,19:00,Wednesday,1112,Holstein Kiel,1. FSV Mainz 05,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+21.12.2011,20:30,Wednesday,1112,Borussia Mönchengladbach,FC Schalke 04,1,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+21.12.2011,20:30,Wednesday,1112,VfB Stuttgart,Hamburger SV,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+07.02.2012,20:30,Tuesday,1112,Holstein Kiel,Borussia Dortmund,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+08.02.2012,19:00,Wednesday,1112,1899 Hoffenheim,SpVgg Greuther Fürth,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+08.02.2012,19:00,Wednesday,1112,Hertha BSC,Borussia Mönchengladbach,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+08.02.2012,20:30,Wednesday,1112,VfB Stuttgart,Bayern München,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+20.03.2012,20:30,Tuesday,1112,SpVgg Greuther Fürth,Borussia Dortmund,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+21.03.2012,20:30,Wednesday,1112,Borussia Mönchengladbach,Bayern München,0,0,D,0,0,D,0,0,D,2,4,A,False
+12.05.2012,20:00,Saturday,1112,Borussia Dortmund,Bayern München,3,1,H,5,2,H,-1,-1,-1,-1,-1,-1,False
+17.08.2012,19:00,Friday,1213,SG Sonnenhof Großaspach,FSV Frankfurt,1,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+17.08.2012,19:00,Friday,1213,VfB Lübeck,Eintracht Braunschweig,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+17.08.2012,20:00,Friday,1213,SV Wilhelmshaven,FC Augsburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,Alemannia Aachen,Borussia Mönchengladbach,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,FC Carl Zeiss Jena,Bayer 04 Leverkusen,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,Berliner AK 07,1899 Hoffenheim,3,0,H,4,0,H,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,Offenburger FV,FC St. Pauli,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,Hallescher FC,MSV Duisburg,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,FC Oberneuland,Borussia Dortmund,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,SC Victoria Hamburg,SC Freiburg,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,SpVgg Unterhaching,1. FC Köln,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,15:30,Saturday,1213,SV Falkensee-Finkenkrug,VfB Stuttgart,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,18:00,Saturday,1213,1. FC Heidenheim,VfL Bochum,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2012,20:30,Saturday,1213,Kickers Offenbach,SpVgg Greuther Fürth,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+18.08.2012,20:30,Saturday,1213,FC Schönberg 95,VfL Wolfsburg,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,14:30,Sunday,1213,FC Hennef 05,TSV 1860 München,0,2,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,14:30,Sunday,1213,TSV Havelse,1. FC Nürnberg,1,1,D,2,2,D,3,2,H,-1,-1,-1,False
+19.08.2012,14:30,Sunday,1213,FC Nöttingen,Hannover 96,0,2,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,14:30,Sunday,1213,VfR Wormatia Worms,Hertha BSC,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+19.08.2012,14:30,Sunday,1213,Karlsruher SC,Hamburger SV,1,2,A,4,2,H,-1,-1,-1,-1,-1,-1,False
+19.08.2012,16:00,Sunday,1213,Erzgebirge Aue,Eintracht Frankfurt,1,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+19.08.2012,16:00,Sunday,1213,SC Preußen Münster,Werder Bremen,0,1,A,2,2,D,4,2,H,-1,-1,-1,False
+19.08.2012,16:00,Sunday,1213,Arminia Bielefeld,SC Paderborn 07,0,1,A,3,1,H,-1,-1,-1,-1,-1,-1,False
+19.08.2012,16:00,Sunday,1213,1. FC Saarbrücken,FC Schalke 04,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,16:00,Sunday,1213,VfR Aalen,FC Ingolstadt,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+19.08.2012,18:30,Sunday,1213,SV Wacker Burghausen,Fortuna Düsseldorf,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,18:30,Sunday,1213,Hansa Rostock,1. FC Kaiserslautern,0,0,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+19.08.2012,20:30,Sunday,1213,SV Roßbach/Verscheid,1. FSV Mainz 05,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+20.08.2012,18:30,Monday,1213,Chemnitzer FC,Dynamo Dresden,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+20.08.2012,18:30,Monday,1213,SV Sandhausen,Energie Cottbus,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+20.08.2012,18:30,Monday,1213,Rot-Weiss Essen,1. FC Union Berlin,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+20.08.2012,20:30,Monday,1213,Jahn Regensburg,Bayern München,0,1,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,19:00,Tuesday,1213,Berliner AK 07,TSV 1860 München,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,19:00,Tuesday,1213,VfR Wormatia Worms,1. FC Köln,0,0,D,0,0,D,0,0,D,3,4,A,False
+30.10.2012,19:00,Tuesday,1213,SC Preußen Münster,FC Augsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,19:00,Tuesday,1213,Eintracht Braunschweig,SC Freiburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,20:30,Tuesday,1213,TSV Havelse,VfL Bochum,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,20:30,Tuesday,1213,FC Schalke 04,SV Sandhausen,1,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+30.10.2012,20:30,Tuesday,1213,VfR Aalen,Borussia Dortmund,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+30.10.2012,20:30,Tuesday,1213,1. FSV Mainz 05,Erzgebirge Aue,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2012,19:00,Wednesday,1213,Arminia Bielefeld,Bayer 04 Leverkusen,1,1,D,2,2,D,2,3,A,-1,-1,-1,False
+31.10.2012,19:00,Wednesday,1213,Kickers Offenbach,1. FC Union Berlin,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2012,19:00,Wednesday,1213,VfB Stuttgart,FC St. Pauli,3,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2012,19:00,Wednesday,1213,Karlsruher SC,MSV Duisburg,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2012,20:30,Wednesday,1213,Hannover 96,Dynamo Dresden,1,1,D,1,1,D,1,1,D,4,3,H,False
+31.10.2012,20:30,Wednesday,1213,Bayern München,1. FC Kaiserslautern,1,0,H,4,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2012,20:30,Wednesday,1213,Fortuna Düsseldorf,Borussia Mönchengladbach,0,0,D,0,0,D,1,0,H,-1,-1,-1,False
+31.10.2012,20:30,Wednesday,1213,VfL Wolfsburg,FSV Frankfurt,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+18.12.2012,19:00,Tuesday,1213,Karlsruher SC,SC Freiburg,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.12.2012,19:00,Tuesday,1213,FC Schalke 04,1. FSV Mainz 05,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+18.12.2012,20:30,Tuesday,1213,Kickers Offenbach,Fortuna Düsseldorf,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+18.12.2012,20:30,Tuesday,1213,FC Augsburg,Bayern München,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+19.12.2012,19:00,Wednesday,1213,VfL Wolfsburg,Bayer 04 Leverkusen,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+19.12.2012,19:00,Wednesday,1213,VfL Bochum,TSV 1860 München,1,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+19.12.2012,20:30,Wednesday,1213,Borussia Dortmund,Hannover 96,3,0,H,5,1,H,-1,-1,-1,-1,-1,-1,False
+19.12.2012,20:30,Wednesday,1213,VfB Stuttgart,1. FC Köln,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+26.02.2013,19:00,Tuesday,1213,1. FSV Mainz 05,SC Freiburg,2,0,H,2,2,D,2,3,A,-1,-1,-1,False
+26.02.2013,20:30,Tuesday,1213,Kickers Offenbach,VfL Wolfsburg,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+27.02.2013,19:00,Wednesday,1213,VfB Stuttgart,VfL Bochum,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+27.02.2013,20:30,Wednesday,1213,Bayern München,Borussia Dortmund,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+16.04.2013,20:35,Tuesday,1213,Bayern München,VfL Wolfsburg,2,1,H,6,1,H,-1,-1,-1,-1,-1,-1,False
+17.04.2013,20:30,Wednesday,1213,VfB Stuttgart,SC Freiburg,2,1,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+01.06.2013,20:00,Saturday,1213,Bayern München,VfB Stuttgart,1,0,H,3,2,H,-1,-1,-1,-1,-1,-1,False
+02.08.2013,19:00,Friday,1314,VfL Osnabrück,Erzgebirge Aue,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+02.08.2013,19:00,Friday,1314,1. FC Heidenheim,TSV 1860 München,0,0,D,1,1,D,1,1,D,3,4,A,False
+02.08.2013,20:00,Friday,1314,RB Leipzig,FC Augsburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,SF Baumberg,FC Ingolstadt,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,SG Aumund-Vegesack,1899 Hoffenheim,0,0,D,0,9,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,Neckarsulmer Sport-Union,1. FC Kaiserslautern,0,2,A,0,7,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,SV Lippstadt 08,Bayer 04 Leverkusen,1,3,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,Fortuna Köln,1. FSV Mainz 05,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,TSG Neustrelitz,SC Freiburg,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,1. FC Magdeburg,Energie Cottbus,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,SV Wilhelmshaven,Borussia Dortmund,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,15:30,Saturday,1314,Bahlinger SC,VfL Bochum,0,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,18:00,Saturday,1314,TSV 1860 Rosenheim,VfR Aalen,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,20:30,Saturday,1314,Eintracht Trier,1. FC Köln,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+03.08.2013,20:30,Saturday,1314,Karlsruher SC,VfL Wolfsburg,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,14:30,Sunday,1314,TSG Pfeddersheim,SpVgg Greuther Fürth,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,14:30,Sunday,1314,1. FC Saarbrücken,Werder Bremen,1,0,H,1,1,D,3,1,H,-1,-1,-1,False
+04.08.2013,14:30,Sunday,1314,SV Darmstadt 98,Borussia Mönchengladbach,0,0,D,0,0,D,0,0,D,5,4,H,False
+04.08.2013,14:30,Sunday,1314,Arminia Bielefeld,Eintracht Braunschweig,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+04.08.2013,14:30,Sunday,1314,SC Victoria Hamburg,Hannover 96,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,16:00,Sunday,1314,SV Schott Jena,Hamburger SV,0,0,D,0,4,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,16:00,Sunday,1314,SC Wiedenbrück 2000,Fortuna Düsseldorf,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+04.08.2013,16:00,Sunday,1314,Optik Rathenow,FSV Frankfurt,0,1,A,1,1,D,1,3,A,-1,-1,-1,False
+04.08.2013,16:00,Sunday,1314,BFC Dynamo,VfB Stuttgart,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,16:00,Sunday,1314,VfR Neumünster,Hertha BSC,1,2,A,2,2,D,2,3,A,-1,-1,-1,False
+04.08.2013,18:30,Sunday,1314,FV Illertissen,Eintracht Frankfurt,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.08.2013,18:30,Sunday,1314,SC Preußen Münster,FC St. Pauli,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+04.08.2013,20:30,Sunday,1314,SV Sandhausen,1. FC Nürnberg,0,1,A,1,1,D,1,1,D,4,3,H,False
+05.08.2013,18:30,Monday,1314,MSV Duisburg,SC Paderborn 07,1,2,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+05.08.2013,18:30,Monday,1314,Jahn Regensburg,1. FC Union Berlin,1,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+05.08.2013,18:30,Monday,1314,FC Nöttingen,FC Schalke 04,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+05.08.2013,20:30,Monday,1314,BSV Rehden,Bayern München,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+24.09.2013,19:00,Tuesday,1314,SC Preußen Münster,FC Augsburg,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+24.09.2013,19:00,Tuesday,1314,SC Wiedenbrück 2000,SV Sandhausen,1,0,H,1,3,A,-1,-1,-1,-1,-1,-1,False
+24.09.2013,19:00,Tuesday,1314,TSV 1860 München,Borussia Dortmund,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+24.09.2013,19:00,Tuesday,1314,VfL Wolfsburg,VfR Aalen,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+24.09.2013,20:30,Tuesday,1314,Arminia Bielefeld,Bayer 04 Leverkusen,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+24.09.2013,20:30,Tuesday,1314,Hamburger SV,SpVgg Greuther Fürth,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+24.09.2013,20:30,Tuesday,1314,1899 Hoffenheim,Energie Cottbus,0,0,D,0,0,D,3,0,H,-1,-1,-1,False
+24.09.2013,20:30,Tuesday,1314,1. FSV Mainz 05,1. FC Köln,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+25.09.2013,19:00,Wednesday,1314,1. FC Saarbrücken,SC Paderborn 07,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+25.09.2013,19:00,Wednesday,1314,Eintracht Frankfurt,VfL Bochum,2,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+25.09.2013,19:00,Wednesday,1314,FSV Frankfurt,FC Ingolstadt,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+25.09.2013,19:00,Wednesday,1314,1. FC Kaiserslautern,Hertha BSC,0,1,A,3,1,H,-1,-1,-1,-1,-1,-1,False
+25.09.2013,20:30,Wednesday,1314,VfL Osnabrück,1. FC Union Berlin,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+25.09.2013,20:30,Wednesday,1314,SV Darmstadt 98,FC Schalke 04,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+25.09.2013,20:30,Wednesday,1314,Bayern München,Hannover 96,2,1,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+25.09.2013,20:30,Wednesday,1314,SC Freiburg,VfB Stuttgart,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+03.12.2013,19:00,Tuesday,1314,1. FC Union Berlin,1. FC Kaiserslautern,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+03.12.2013,19:00,Tuesday,1314,Hamburger SV,1. FC Köln,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+03.12.2013,20:30,Tuesday,1314,FC Schalke 04,1899 Hoffenheim,0,3,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+03.12.2013,20:30,Tuesday,1314,1. FC Saarbrücken,Borussia Dortmund,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.12.2013,19:00,Wednesday,1314,SC Freiburg,Bayer 04 Leverkusen,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+04.12.2013,19:00,Wednesday,1314,VfL Wolfsburg,FC Ingolstadt,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+04.12.2013,20:30,Wednesday,1314,Eintracht Frankfurt,SV Sandhausen,1,0,H,4,2,H,-1,-1,-1,-1,-1,-1,False
+04.12.2013,20:30,Wednesday,1314,FC Augsburg,Bayern München,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+11.02.2014,20:45,Tuesday,1314,Eintracht Frankfurt,Borussia Dortmund,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+12.02.2014,19:00,Wednesday,1314,1899 Hoffenheim,VfL Wolfsburg,1,2,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+12.02.2014,19:00,Wednesday,1314,Bayer 04 Leverkusen,1. FC Kaiserslautern,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+12.02.2014,20:30,Wednesday,1314,Hamburger SV,Bayern München,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+15.04.2014,20:30,Tuesday,1314,Borussia Dortmund,VfL Wolfsburg,2,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+16.04.2014,20:30,Wednesday,1314,Bayern München,1. FC Kaiserslautern,2,0,H,5,1,H,-1,-1,-1,-1,-1,-1,False
+17.05.2014,20:00,Saturday,1314,Borussia Dortmund,Bayern München,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+15.08.2014,19:00,Friday,1415,Chemnitzer FC,1. FSV Mainz 05,0,1,A,3,3,D,5,5,D,5,4,H,False
+15.08.2014,19:00,Friday,1415,SV Alemannia Waldalgesheim,Bayer 04 Leverkusen,0,4,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+15.08.2014,20:00,Friday,1415,MSV Duisburg,1. FC Nürnberg,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,VfL Bochum,VfB Stuttgart,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,Stuttgarter Kickers,Borussia Dortmund,0,1,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,FC 08 Homburg,Borussia Mönchengladbach,1,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,FC Viktoria Köln,Hertha BSC,0,2,A,2,4,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,FC-Astoria Walldorf,Hannover 96,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,FT Braunschweig,1. FC Köln,0,0,D,0,4,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,Optik Rathenow,FC St. Pauli,0,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,Bremer SV,Eintracht Braunschweig,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,15:30,Saturday,1415,SV Waldkirch,SpVgg Greuther Fürth,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,18:00,Saturday,1415,SV Wehen Wiesbaden,1. FC Kaiserslautern,0,0,D,0,0,D,0,0,D,3,5,A,False
+16.08.2014,20:30,Saturday,1415,FC Viktoria 1889 Berlin,Eintracht Frankfurt,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+16.08.2014,20:30,Saturday,1415,Sportfreunde Siegen,FSV Frankfurt,2,1,H,2,2,D,3,3,D,4,5,A,False
+17.08.2014,14:30,Sunday,1415,Holstein Kiel,TSV 1860 München,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,14:30,Sunday,1415,FV Illertissen,Werder Bremen,1,1,D,1,1,D,2,3,A,-1,-1,-1,False
+17.08.2014,14:30,Sunday,1415,Uhlenhorster SC Paloma,1899 Hoffenheim,0,7,A,0,9,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,14:30,Sunday,1415,BSV Rehden,VfR Aalen,1,0,H,1,1,D,1,1,D,3,4,A,False
+17.08.2014,14:30,Sunday,1415,FC Carl Zeiss Jena,Erzgebirge Aue,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,16:00,Sunday,1415,SC Preußen Münster,Bayern München,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,16:00,Sunday,1415,Arminia Bielefeld,SV Sandhausen,1,0,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+17.08.2014,16:00,Sunday,1415,Eintracht Trier,SC Freiburg,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,16:00,Sunday,1415,FC Würzburger Kickers,Fortuna Düsseldorf,0,1,A,2,2,D,3,2,H,-1,-1,-1,False
+17.08.2014,16:00,Sunday,1415,1. FC Neubrandenburg,Karlsruher SC,0,0,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+17.08.2014,18:30,Sunday,1415,RB Leipzig,SC Paderborn 07,1,1,D,1,1,D,2,1,H,-1,-1,-1,False
+17.08.2014,18:30,Sunday,1415,1. FC Magdeburg,FC Augsburg,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+17.08.2014,20:30,Sunday,1415,SV Darmstadt 98,VfL Wolfsburg,0,0,D,0,0,D,0,0,D,4,5,A,False
+18.08.2014,18:30,Monday,1415,1. FC Heidenheim,1. FC Union Berlin,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+18.08.2014,18:30,Monday,1415,Energie Cottbus,Hamburger SV,1,0,H,1,1,D,2,2,D,1,4,A,False
+18.08.2014,18:30,Monday,1415,Kickers Offenbach,FC Ingolstadt,0,0,D,0,0,D,0,0,D,4,2,H,False
+18.08.2014,20:30,Monday,1415,Dynamo Dresden,FC Schalke 04,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+28.10.2014,19:00,Tuesday,1415,Chemnitzer FC,Werder Bremen,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+28.10.2014,19:00,Tuesday,1415,Arminia Bielefeld,Hertha BSC,0,0,D,0,0,D,0,0,D,4,2,H,False
+28.10.2014,19:00,Tuesday,1415,Kickers Offenbach,Karlsruher SC,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+28.10.2014,19:00,Tuesday,1415,VfR Aalen,Hannover 96,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+28.10.2014,20:30,Tuesday,1415,MSV Duisburg,1. FC Köln,0,0,D,0,0,D,0,0,D,1,4,A,False
+28.10.2014,20:30,Tuesday,1415,1. FC Kaiserslautern,SpVgg Greuther Fürth,2,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+28.10.2014,20:30,Tuesday,1415,FC St. Pauli,Borussia Dortmund,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+28.10.2014,20:30,Tuesday,1415,Dynamo Dresden,VfL Bochum,0,0,D,1,1,D,2,1,H,-1,-1,-1,False
+29.10.2014,19:00,Wednesday,1415,1. FC Magdeburg,Bayer 04 Leverkusen,1,1,D,1,1,D,2,2,D,4,5,A,False
+29.10.2014,19:00,Wednesday,1415,FC Würzburger Kickers,Eintracht Braunschweig,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+29.10.2014,19:00,Wednesday,1415,TSV 1860 München,SC Freiburg,1,1,D,2,5,A,-1,-1,-1,-1,-1,-1,False
+29.10.2014,19:00,Wednesday,1415,RB Leipzig,Erzgebirge Aue,0,1,A,1,1,D,3,1,H,-1,-1,-1,False
+29.10.2014,20:30,Wednesday,1415,Hamburger SV,Bayern München,0,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+29.10.2014,20:30,Wednesday,1415,1899 Hoffenheim,FSV Frankfurt,2,0,H,5,1,H,-1,-1,-1,-1,-1,-1,False
+29.10.2014,20:30,Wednesday,1415,VfL Wolfsburg,1. FC Heidenheim,2,1,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+29.10.2014,20:30,Wednesday,1415,Eintracht Frankfurt,Borussia Mönchengladbach,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+03.03.2015,19:00,Tuesday,1415,Bayer 04 Leverkusen,1. FC Kaiserslautern,0,0,D,0,0,D,2,0,H,-1,-1,-1,False
+03.03.2015,19:00,Tuesday,1415,VfR Aalen,1899 Hoffenheim,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+03.03.2015,20:30,Tuesday,1415,SC Freiburg,1. FC Köln,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+03.03.2015,20:30,Tuesday,1415,Dynamo Dresden,Borussia Dortmund,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.03.2015,19:00,Wednesday,1415,RB Leipzig,VfL Wolfsburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.03.2015,19:00,Wednesday,1415,Arminia Bielefeld,Werder Bremen,1,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+04.03.2015,20:30,Wednesday,1415,Kickers Offenbach,Borussia Mönchengladbach,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+04.03.2015,20:30,Wednesday,1415,Bayern München,Eintracht Braunschweig,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+07.04.2015,19:00,Tuesday,1415,VfL Wolfsburg,SC Freiburg,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+07.04.2015,20:30,Tuesday,1415,Borussia Dortmund,1899 Hoffenheim,1,2,A,2,2,D,3,2,H,-1,-1,-1,False
+08.04.2015,19:00,Wednesday,1415,Arminia Bielefeld,Borussia Mönchengladbach,1,1,D,1,1,D,1,1,D,5,4,H,False
+08.04.2015,20:30,Wednesday,1415,Bayer 04 Leverkusen,Bayern München,0,0,D,0,0,D,0,0,D,3,5,A,False
+28.04.2015,20:30,Tuesday,1415,Bayern München,Borussia Dortmund,1,0,H,1,1,D,1,1,D,0,2,A,False
+29.04.2015,20:30,Wednesday,1415,Arminia Bielefeld,VfL Wolfsburg,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+30.05.2015,20:00,Saturday,1415,Borussia Dortmund,VfL Wolfsburg,1,3,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+07.08.2015,19:00,Friday,1516,TuS Erndtebrück,SV Darmstadt 98,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+07.08.2015,19:00,Friday,1516,BFC Dynamo,FSV Frankfurt,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+07.08.2015,20:00,Friday,1516,SV Elversberg,FC Augsburg,0,0,D,1,1,D,1,3,A,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,FC Viktoria Köln,1. FC Union Berlin,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,SV Meppen,1. FC Köln,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,Hallescher FC,Eintracht Braunschweig,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,Stuttgarter Kickers,VfL Wolfsburg,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,Sportfreunde Lotte,Bayer 04 Leverkusen,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,MSV Duisburg,FC Schalke 04,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,FC Würzburger Kickers,Werder Bremen,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,Erzgebirge Aue,SpVgg Greuther Fürth,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+08.08.2015,15:30,Saturday,1516,Bremer SV,Eintracht Frankfurt,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+08.08.2015,18:00,Saturday,1516,TSV 1860 München,1899 Hoffenheim,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+08.08.2015,20:30,Saturday,1516,SSV Reutlingen,Karlsruher SC,2,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+08.08.2015,20:30,Saturday,1516,Holstein Kiel,VfB Stuttgart,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,14:30,Sunday,1516,FC Carl Zeiss Jena,Hamburger SV,1,0,H,2,2,D,3,2,H,-1,-1,-1,False
+09.08.2015,14:30,Sunday,1516,Bahlinger SC,SV Sandhausen,0,0,D,0,0,D,0,0,D,3,5,A,False
+09.08.2015,14:30,Sunday,1516,HSV Barmbek-Uhlenhorst,SC Freiburg,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,14:30,Sunday,1516,FSV Salmrohr,VfL Bochum,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,14:30,Sunday,1516,Chemnitzer FC,Borussia Dortmund,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,16:00,Sunday,1516,VfB Lübeck,SC Paderborn 07,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,16:00,Sunday,1516,Rot-Weiss Essen,Fortuna Düsseldorf,0,0,D,0,0,D,0,0,D,1,3,A,False
+09.08.2015,16:00,Sunday,1516,FK Pirmasens,1. FC Heidenheim,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,16:00,Sunday,1516,SpVgg Unterhaching,FC Ingolstadt,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+09.08.2015,16:00,Sunday,1516,FC Nöttingen,Bayern München,1,3,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,18:30,Sunday,1516,Hansa Rostock,1. FC Kaiserslautern,0,0,D,0,0,D,0,0,D,4,5,A,False
+09.08.2015,18:30,Sunday,1516,Hessen Kassel,Hannover 96,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+09.08.2015,20:30,Sunday,1516,Energie Cottbus,1. FSV Mainz 05,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+10.08.2015,18:30,Monday,1516,Arminia Bielefeld,Hertha BSC,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+10.08.2015,18:30,Monday,1516,VfL Osnabrück,RB Leipzig,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+10.08.2015,18:30,Monday,1516,VfR Aalen,1. FC Nürnberg,0,0,D,0,0,D,0,0,D,1,2,A,False
+10.08.2015,20:30,Monday,1516,FC St. Pauli,Borussia Mönchengladbach,1,0,H,1,4,A,-1,-1,-1,-1,-1,-1,False
+27.10.2015,19:00,Tuesday,1516,Erzgebirge Aue,Eintracht Frankfurt,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+27.10.2015,19:00,Tuesday,1516,FSV Frankfurt,Hertha BSC,0,0,D,1,1,D,1,2,A,-1,-1,-1,False
+27.10.2015,19:00,Tuesday,1516,1. FSV Mainz 05,TSV 1860 München,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+27.10.2015,19:00,Tuesday,1516,1. FC Nürnberg,Fortuna Düsseldorf,4,0,H,5,1,H,-1,-1,-1,-1,-1,-1,False
+27.10.2015,20:30,Tuesday,1516,SpVgg Unterhaching,RB Leipzig,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+27.10.2015,20:30,Tuesday,1516,SV Darmstadt 98,Hannover 96,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+27.10.2015,20:30,Tuesday,1516,VfL Bochum,1. FC Kaiserslautern,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+27.10.2015,20:30,Tuesday,1516,VfL Wolfsburg,Bayern München,0,3,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,19:00,Wednesday,1516,FC Viktoria Köln,Bayer 04 Leverkusen,0,3,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,19:00,Wednesday,1516,SV Sandhausen,1. FC Heidenheim,0,0,D,0,0,D,0,0,D,3,4,A,False
+28.10.2015,19:00,Wednesday,1516,Borussia Dortmund,SC Paderborn 07,3,1,H,7,1,H,-1,-1,-1,-1,-1,-1,False
+28.10.2015,19:00,Wednesday,1516,SC Freiburg,FC Augsburg,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,20:30,Wednesday,1516,FC Carl Zeiss Jena,VfB Stuttgart,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,20:30,Wednesday,1516,SSV Reutlingen,Eintracht Braunschweig,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,20:30,Wednesday,1516,FC Schalke 04,Borussia Mönchengladbach,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+28.10.2015,20:30,Wednesday,1516,Werder Bremen,1. FC Köln,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+15.12.2015,19:00,Tuesday,1516,SpVgg Unterhaching,Bayer 04 Leverkusen,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+15.12.2015,19:00,Tuesday,1516,Borussia Mönchengladbach,Werder Bremen,1,0,H,3,4,A,-1,-1,-1,-1,-1,-1,False
+15.12.2015,20:30,Tuesday,1516,Erzgebirge Aue,1. FC Heidenheim,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+15.12.2015,20:30,Tuesday,1516,Bayern München,SV Darmstadt 98,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+16.12.2015,19:00,Wednesday,1516,1. FC Nürnberg,Hertha BSC,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+16.12.2015,19:00,Wednesday,1516,VfB Stuttgart,Eintracht Braunschweig,1,1,D,1,1,D,3,2,H,-1,-1,-1,False
+16.12.2015,20:30,Wednesday,1516,FC Augsburg,Borussia Dortmund,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+16.12.2015,20:30,Wednesday,1516,TSV 1860 München,VfL Bochum,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+09.02.2016,19:00,Tuesday,1516,Bayer 04 Leverkusen,Werder Bremen,1,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+09.02.2016,20:30,Tuesday,1516,VfB Stuttgart,Borussia Dortmund,1,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+10.02.2016,19:00,Wednesday,1516,1. FC Heidenheim,Hertha BSC,1,2,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+10.02.2016,20:30,Wednesday,1516,VfL Bochum,Bayern München,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+19.04.2016,20:30,Tuesday,1516,Bayern München,Werder Bremen,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+20.04.2016,20:30,Wednesday,1516,Hertha BSC,Borussia Dortmund,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+21.05.2016,20:00,Saturday,1516,Bayern München,Borussia Dortmund,0,0,D,0,0,D,0,0,D,4,3,H,False
+19.08.2016,20:45,Friday,1617,VfB Lübeck,FC St. Pauli,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+19.08.2016,20:45,Friday,1617,FV Ravensburg,FC Augsburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+19.08.2016,20:45,Friday,1617,FC Carl Zeiss Jena,Bayern München,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,SV Drochtersen/Assel,Borussia Mönchengladbach,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,FC Würzburger Kickers,Eintracht Braunschweig,0,0,D,0,0,D,1,0,H,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,SV Babelsberg 03,SC Freiburg,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,FC Viktoria Köln,1. FC Nürnberg,0,0,D,1,1,D,1,1,D,5,6,A,False
+20.08.2016,15:30,Saturday,1617,Rot-Weiss Essen,Arminia Bielefeld,0,1,A,2,2,D,2,2,D,4,5,A,False
+20.08.2016,15:30,Saturday,1617,FC 08 Villingen,FC Schalke 04,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,Dynamo Dresden,RB Leipzig,0,2,A,2,2,D,2,2,D,5,4,H,False
+20.08.2016,15:30,Saturday,1617,BFC Preussen 1894,1. FC Köln,0,2,A,0,7,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,15:30,Saturday,1617,Hallescher FC,1. FC Kaiserslautern,1,2,A,3,3,D,4,3,H,-1,-1,-1,False
+20.08.2016,18:30,Saturday,1617,TSV 1860 München,Karlsruher SC,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+20.08.2016,18:30,Saturday,1617,Hansa Rostock,Fortuna Düsseldorf,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,18:30,Saturday,1617,FC 08 Homburg,VfB Stuttgart,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+20.08.2016,20:45,Saturday,1617,FSV Frankfurt,VfL Wolfsburg,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,Sportfreunde Lotte,Werder Bremen,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,MSV Duisburg,1. FC Union Berlin,0,0,D,1,1,D,1,2,A,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,Eintracht Norderstedt,SpVgg Greuther Fürth,0,1,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,FC-Astoria Walldorf,VfL Bochum,1,1,D,2,2,D,4,3,H,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,1. FC Magdeburg,Eintracht Frankfurt,0,1,A,1,1,D,1,1,D,3,4,A,False
+21.08.2016,15:30,Sunday,1617,SpVgg Unterhaching,1. FSV Mainz 05,1,1,D,3,3,D,3,3,D,2,4,A,False
+21.08.2016,15:30,Sunday,1617,1. FC Germania Egestorf/Langreder,TSG Hoffenheim,0,4,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,SC Hauenstein,Bayer 04 Leverkusen,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,15:30,Sunday,1617,Bremer SV,SV Darmstadt 98,0,4,A,0,7,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,18:30,Sunday,1617,SG Wattenscheid 09,1. FC Heidenheim,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+21.08.2016,18:30,Sunday,1617,Jahn Regensburg,Hertha BSC,0,0,D,1,1,D,1,1,D,3,5,A,False
+21.08.2016,18:30,Sunday,1617,Erzgebirge Aue,FC Ingolstadt,0,0,D,0,0,D,0,0,D,7,8,A,False
+22.08.2016,18:30,Monday,1617,Kickers Offenbach,Hannover 96,1,2,A,2,2,D,2,3,A,-1,-1,-1,False
+22.08.2016,18:30,Monday,1617,FSV Zwickau,Hamburger SV,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+22.08.2016,18:30,Monday,1617,SC Paderborn 07,SV Sandhausen,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+22.08.2016,20:45,Monday,1617,Eintracht Trier,Borussia Dortmund,0,3,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2016,18:30,Tuesday,1617,Sportfreunde Lotte,Bayer 04 Leverkusen,0,1,A,1,1,D,2,2,D,4,3,H,False
+25.10.2016,18:30,Tuesday,1617,Dynamo Dresden,Arminia Bielefeld,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+25.10.2016,18:30,Tuesday,1617,FC Würzburger Kickers,TSV 1860 München,0,0,D,0,0,D,0,0,D,3,4,A,False
+25.10.2016,18:30,Tuesday,1617,SC Freiburg,SV Sandhausen,1,1,D,3,3,D,3,3,D,3,4,A,False
+25.10.2016,20:45,Tuesday,1617,Hallescher FC,Hamburger SV,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+25.10.2016,20:45,Tuesday,1617,Eintracht Frankfurt,FC Ingolstadt,0,0,D,0,0,D,0,0,D,4,1,H,False
+25.10.2016,20:45,Tuesday,1617,Borussia Mönchengladbach,VfB Stuttgart,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+25.10.2016,20:45,Tuesday,1617,FC St. Pauli,Hertha BSC,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+26.10.2016,18:30,Wednesday,1617,FC-Astoria Walldorf,SV Darmstadt 98,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+26.10.2016,18:30,Wednesday,1617,Hannover 96,Fortuna Düsseldorf,5,1,H,6,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2016,18:30,Wednesday,1617,1. FC Heidenheim,VfL Wolfsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+26.10.2016,18:30,Wednesday,1617,SpVgg Greuther Fürth,1. FSV Mainz 05,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2016,20:45,Wednesday,1617,1. FC Nürnberg,FC Schalke 04,0,3,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+26.10.2016,20:45,Wednesday,1617,1. FC Köln,TSG Hoffenheim,1,1,D,1,1,D,2,1,H,-1,-1,-1,False
+26.10.2016,20:45,Wednesday,1617,Bayern München,FC Augsburg,2,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+26.10.2016,20:45,Wednesday,1617,Borussia Dortmund,1. FC Union Berlin,1,0,H,1,1,D,1,1,D,3,0,H,False
+07.02.2017,18:30,Tuesday,1617,Hamburger SV,1. FC Köln,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+07.02.2017,18:30,Tuesday,1617,FC-Astoria Walldorf,Arminia Bielefeld,0,0,D,1,1,D,1,1,D,4,5,A,False
+07.02.2017,20:45,Tuesday,1617,Bayern München,VfL Wolfsburg,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+07.02.2017,20:45,Tuesday,1617,SpVgg Greuther Fürth,Borussia Mönchengladbach,0,2,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+08.02.2017,18:30,Wednesday,1617,Sportfreunde Lotte,TSV 1860 München,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+08.02.2017,18:30,Wednesday,1617,SV Sandhausen,FC Schalke 04,0,3,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+08.02.2017,20:45,Wednesday,1617,Borussia Dortmund,Hertha BSC,0,1,A,1,1,D,1,1,D,3,2,H,False
+08.02.2017,20:45,Wednesday,1617,Hannover 96,Eintracht Frankfurt,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+28.02.2017,18:30,Tuesday,1617,Eintracht Frankfurt,Arminia Bielefeld,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+01.03.2017,18:30,Wednesday,1617,Hamburger SV,Borussia Mönchengladbach,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+01.03.2017,20:45,Wednesday,1617,Bayern München,FC Schalke 04,3,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+14.03.2017,18:30,Tuesday,1617,Sportfreunde Lotte,Borussia Dortmund,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+25.04.2017,20:45,Tuesday,1617,Borussia Mönchengladbach,Eintracht Frankfurt,1,1,D,1,1,D,1,1,D,6,7,A,False
+26.04.2017,20:45,Wednesday,1617,Bayern München,Borussia Dortmund,2,1,H,2,3,A,-1,-1,-1,-1,-1,-1,False
+27.05.2017,20:00,Saturday,1617,Eintracht Frankfurt,Borussia Dortmund,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+11.08.2017,19:00,Friday,1718,TuS Koblenz,Dynamo Dresden,1,1,D,2,3,A,-1,-1,-1,-1,-1,-1,False
+11.08.2017,20:45,Friday,1718,Rot-Weiss Essen,Borussia Mönchengladbach,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+11.08.2017,20:45,Friday,1718,Karlsruher SC,Bayer 04 Leverkusen,0,0,D,0,0,D,0,3,A,-1,-1,-1,False
+11.08.2017,20:45,Friday,1718,Holstein Kiel,Eintracht Braunschweig,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,Germania Halberstadt,SC Freiburg,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,Chemnitzer FC,Bayern München,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,Lüneburger SK Hansa,1. FSV Mainz 05,1,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,Leher TS Bremerhaven,1. FC Köln,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,SpVgg Unterhaching,1. FC Heidenheim,0,1,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,TuS Erndtebrück,Eintracht Frankfurt,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,1. FC Rielasingen-Arlen,Borussia Dortmund,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,15:30,Saturday,1718,SV Eichede,1. FC Kaiserslautern,0,2,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,18:30,Saturday,1718,Rot-Weiß Erfurt,TSG Hoffenheim,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+12.08.2017,18:30,Saturday,1718,Jahn Regensburg,SV Darmstadt 98,1,1,D,3,1,H,-1,-1,-1,-1,-1,-1,False
+12.08.2017,18:30,Saturday,1718,Arminia Bielefeld,Fortuna Düsseldorf,0,0,D,1,1,D,1,3,A,-1,-1,-1,False
+12.08.2017,20:45,Saturday,1718,FC Würzburger Kickers,Werder Bremen,0,0,D,0,3,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,TSV 1860 München,FC Ingolstadt,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,VfL Osnabrück,Hamburger SV,1,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,Bonner SC,Hannover 96,1,1,D,2,6,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,SF Dorfmerkingen,RB Leipzig,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,1. FC Schweinfurt 05,SV Sandhausen,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,SV Morlautern,SpVgg Greuther Fürth,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,1. FC Saarbrücken,1. FC Union Berlin,1,1,D,1,1,D,1,2,A,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,FC Nöttingen,VfL Bochum,0,2,A,2,5,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,15:30,Sunday,1718,Eintracht Norderstedt,VfL Wolfsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+13.08.2017,18:30,Sunday,1718,1. FC Magdeburg,FC Augsburg,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+13.08.2017,18:30,Sunday,1718,Energie Cottbus,VfB Stuttgart,2,0,H,2,2,D,2,2,D,3,4,A,False
+13.08.2017,18:30,Sunday,1718,SV Wehen Wiesbaden,Erzgebirge Aue,2,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+14.08.2017,18:30,Monday,1718,MSV Duisburg,1. FC Nürnberg,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+14.08.2017,18:30,Monday,1718,SC Paderborn 07,FC St. Pauli,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+14.08.2017,18:30,Monday,1718,BFC Dynamo,FC Schalke 04,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+14.08.2017,20:45,Monday,1718,Hansa Rostock,Hertha BSC,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+24.10.2017,18:30,Tuesday,1718,SC Paderborn 07,VfL Bochum,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+24.10.2017,18:30,Tuesday,1718,SV Wehen Wiesbaden,FC Schalke 04,0,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+24.10.2017,18:30,Tuesday,1718,Fortuna Düsseldorf,Borussia Mönchengladbach,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+24.10.2017,18:30,Tuesday,1718,Bayer 04 Leverkusen,1. FC Union Berlin,1,0,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+24.10.2017,20:45,Tuesday,1718,1. FC Schweinfurt 05,Eintracht Frankfurt,0,1,A,0,4,A,-1,-1,-1,-1,-1,-1,False
+24.10.2017,20:45,Tuesday,1718,1. FC Magdeburg,Borussia Dortmund,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+24.10.2017,20:45,Tuesday,1718,1. FSV Mainz 05,Holstein Kiel,1,0,H,2,2,D,3,2,H,-1,-1,-1,False
+24.10.2017,20:45,Tuesday,1718,SpVgg Greuther Fürth,FC Ingolstadt,0,0,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2017,18:30,Wednesday,1718,VfL Osnabrück,1. FC Nürnberg,1,1,D,2,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2017,18:30,Wednesday,1718,Hertha BSC,1. FC Köln,0,2,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2017,18:30,Wednesday,1718,VfL Wolfsburg,Hannover 96,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+25.10.2017,18:30,Wednesday,1718,1. FC Kaiserslautern,VfB Stuttgart,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+25.10.2017,20:45,Wednesday,1718,Jahn Regensburg,1. FC Heidenheim,1,2,A,2,5,A,-1,-1,-1,-1,-1,-1,False
+25.10.2017,20:45,Wednesday,1718,Werder Bremen,TSG Hoffenheim,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+25.10.2017,20:45,Wednesday,1718,SC Freiburg,Dynamo Dresden,0,0,D,3,1,H,-1,-1,-1,-1,-1,-1,False
+25.10.2017,20:45,Wednesday,1718,RB Leipzig,Bayern München,0,0,D,1,1,D,1,1,D,4,5,A,False
+19.12.2017,18:30,Tuesday,1718,1. FSV Mainz 05,VfB Stuttgart,0,1,A,3,1,H,-1,-1,-1,-1,-1,-1,False
+19.12.2017,18:30,Tuesday,1718,SC Paderborn 07,FC Ingolstadt,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+19.12.2017,20:45,Tuesday,1718,1. FC Nürnberg,VfL Wolfsburg,0,0,D,0,0,D,0,2,A,-1,-1,-1,False
+19.12.2017,20:45,Tuesday,1718,FC Schalke 04,1. FC Köln,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+20.12.2017,18:30,Wednesday,1718,Werder Bremen,SC Freiburg,2,1,H,3,2,H,-1,-1,-1,-1,-1,-1,False
+20.12.2017,18:30,Wednesday,1718,Borussia Mönchengladbach,Bayer 04 Leverkusen,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+20.12.2017,20:45,Wednesday,1718,Bayern München,Borussia Dortmund,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+20.12.2017,20:45,Wednesday,1718,1. FC Heidenheim,Eintracht Frankfurt,0,0,D,0,0,D,1,2,A,-1,-1,-1,False
+06.02.2018,18:30,Tuesday,1718,SC Paderborn 07,Bayern München,0,3,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+06.02.2018,20:45,Tuesday,1718,Bayer 04 Leverkusen,Werder Bremen,1,2,A,2,2,D,4,2,H,-1,-1,-1,False
+07.02.2018,18:30,Wednesday,1718,Eintracht Frankfurt,1. FSV Mainz 05,1,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+07.02.2018,20:45,Wednesday,1718,FC Schalke 04,VfL Wolfsburg,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+17.04.2018,20:45,Tuesday,1718,Bayer 04 Leverkusen,Bayern München,1,2,A,2,6,A,-1,-1,-1,-1,-1,-1,False
+18.04.2018,20:45,Wednesday,1718,FC Schalke 04,Eintracht Frankfurt,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+19.05.2018,20:00,Saturday,1718,Bayern München,Eintracht Frankfurt,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+17.08.2018,20:45,Friday,1819,SV Wehen Wiesbaden,FC St. Pauli,1,0,H,1,1,D,3,2,H,-1,-1,-1,False
+17.08.2018,20:45,Friday,1819,1. FC Magdeburg,SV Darmstadt 98,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+17.08.2018,20:45,Friday,1819,1. FC Schweinfurt 05,FC Schalke 04,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,SV Linx,1. FC Nürnberg,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,SV Rödinghausen,Dynamo Dresden,2,2,D,2,2,D,3,2,H,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,SV Elversberg,VfL Wolfsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,TuS Dassendorf,MSV Duisburg,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,VfR Wormatia Worms,Werder Bremen,1,5,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,SV Drochtersen/Assel,Bayern München,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,1. FC Kaiserslautern,TSG Hoffenheim,1,3,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,1.CfR Pforzheim,Bayer 04 Leverkusen,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,15:30,Saturday,1819,SSV Ulm 1846 Fußball,Eintracht Frankfurt,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+18.08.2018,18:30,Saturday,1819,TuS Erndtebrück,Hamburger SV,1,2,A,3,5,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,18:30,Saturday,1819,Rot-Weiß Oberhausen,SV Sandhausen,0,2,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,18:30,Saturday,1819,Erzgebirge Aue,1. FSV Mainz 05,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+18.08.2018,20:45,Saturday,1819,Hansa Rostock,VfB Stuttgart,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,1. FC Lok Stendal,Arminia Bielefeld,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,TSV Steinbach Haiger,FC Augsburg,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,TuS Rot-Weiß Koblenz,Fortuna Düsseldorf,0,4,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,SC Weiche Flensburg 08,VfL Bochum,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,BSG Chemie Leipzig,Jahn Regensburg,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,BFC Dynamo,1. FC Köln,1,4,A,1,9,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,SSV Jeddeloh,1. FC Heidenheim,0,3,A,2,5,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,FC Viktoria Köln,RB Leipzig,1,0,H,1,3,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,15:30,Sunday,1819,Karlsruher SC,Hannover 96,0,3,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,18:30,Sunday,1819,TSV 1860 München,Holstein Kiel,1,0,H,1,3,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,18:30,Sunday,1819,FC Carl Zeiss Jena,1. FC Union Berlin,2,3,A,2,4,A,-1,-1,-1,-1,-1,-1,False
+19.08.2018,18:30,Sunday,1819,BSC Hastedt,Borussia Mönchengladbach,0,6,A,1,11,A,-1,-1,-1,-1,-1,-1,False
+20.08.2018,18:30,Monday,1819,SC Paderborn 07,FC Ingolstadt,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+20.08.2018,18:30,Monday,1819,Energie Cottbus,SC Freiburg,0,0,D,1,1,D,2,2,D,3,5,A,False
+20.08.2018,18:30,Monday,1819,Eintracht Braunschweig,Hertha BSC,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+20.08.2018,20:45,Monday,1819,SpVgg Greuther Fürth,Borussia Dortmund,0,0,D,1,1,D,1,2,A,-1,-1,-1,False
+30.10.2018,18:30,Tuesday,1819,SV Darmstadt 98,Hertha BSC,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+30.10.2018,18:30,Tuesday,1819,Hannover 96,VfL Wolfsburg,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+30.10.2018,18:30,Tuesday,1819,SSV Ulm 1846 Fußball,Fortuna Düsseldorf,1,4,A,1,5,A,-1,-1,-1,-1,-1,-1,False
+30.10.2018,18:30,Tuesday,1819,BSG Chemie Leipzig,SC Paderborn 07,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+30.10.2018,20:45,Tuesday,1819,FC Augsburg,1. FSV Mainz 05,1,2,A,2,2,D,3,2,H,-1,-1,-1,False
+30.10.2018,20:45,Tuesday,1819,1. FC Heidenheim,SV Sandhausen,2,0,H,3,0,H,-1,-1,-1,-1,-1,-1,False
+30.10.2018,20:45,Tuesday,1819,SV Rödinghausen,Bayern München,0,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+30.10.2018,20:45,Tuesday,1819,SV Wehen Wiesbaden,Hamburger SV,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+31.10.2018,18:30,Wednesday,1819,Borussia Dortmund,1. FC Union Berlin,1,0,H,2,2,D,3,2,H,-1,-1,-1,False
+31.10.2018,18:30,Wednesday,1819,1. FC Köln,FC Schalke 04,1,0,H,1,1,D,1,1,D,5,6,A,False
+31.10.2018,18:30,Wednesday,1819,SC Weiche Flensburg 08,Werder Bremen,1,3,A,1,5,A,-1,-1,-1,-1,-1,-1,False
+31.10.2018,18:30,Wednesday,1819,Hansa Rostock,1. FC Nürnberg,1,0,H,1,1,D,2,2,D,2,4,A,False
+31.10.2018,20:45,Wednesday,1819,Borussia Mönchengladbach,Bayer 04 Leverkusen,0,2,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+31.10.2018,20:45,Wednesday,1819,RB Leipzig,TSG Hoffenheim,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+31.10.2018,20:45,Wednesday,1819,Arminia Bielefeld,MSV Duisburg,0,3,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+31.10.2018,20:45,Wednesday,1819,Holstein Kiel,SC Freiburg,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+05.02.2019,18:30,Tuesday,1819,Hamburger SV,1. FC Nürnberg,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+05.02.2019,18:30,Tuesday,1819,1. FC Heidenheim,Bayer 04 Leverkusen,0,1,A,2,1,H,-1,-1,-1,-1,-1,-1,False
+05.02.2019,20:45,Tuesday,1819,MSV Duisburg,SC Paderborn 07,0,0,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+05.02.2019,20:45,Tuesday,1819,Borussia Dortmund,Werder Bremen,1,1,D,1,1,D,3,3,D,2,4,A,False
+06.02.2019,18:30,Wednesday,1819,Holstein Kiel,FC Augsburg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+06.02.2019,18:30,Wednesday,1819,RB Leipzig,VfL Wolfsburg,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+06.02.2019,20:45,Wednesday,1819,FC Schalke 04,Fortuna Düsseldorf,1,0,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+06.02.2019,20:45,Wednesday,1819,Hertha BSC,Bayern München,1,1,D,2,2,D,2,3,A,-1,-1,-1,False
+02.04.2019,18:30,Tuesday,1819,SC Paderborn 07,Hamburger SV,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+02.04.2019,20:45,Tuesday,1819,FC Augsburg,RB Leipzig,0,0,D,1,1,D,1,2,A,-1,-1,-1,False
+03.04.2019,18:30,Wednesday,1819,Bayern München,1. FC Heidenheim,1,2,A,5,4,H,-1,-1,-1,-1,-1,-1,False
+03.04.2019,20:45,Wednesday,1819,FC Schalke 04,Werder Bremen,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+23.04.2019,20:45,Tuesday,1819,Hamburger SV,RB Leipzig,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+24.04.2019,20:45,Wednesday,1819,Werder Bremen,Bayern München,0,1,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+25.05.2019,20:00,Saturday,1819,RB Leipzig,Bayern München,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+09.08.2019,20:45,Friday,1920,KFC Uerdingen,Borussia Dortmund,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+09.08.2019,20:45,Friday,1920,FC Ingolstadt,1. FC Nürnberg,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+09.08.2019,21:30,Friday,1920,SV Sandhausen,Borussia Mönchengladbach,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,1. FC Kaiserslautern,1. FSV Mainz 05,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,Alemannia Aachen,Bayer 04 Leverkusen,0,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,TuS Dassendorf,Dynamo Dresden,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,FC 08 Villingen,Fortuna Düsseldorf,1,0,H,1,1,D,1,3,A,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,SV Drochtersen/Assel,FC Schalke 04,0,1,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,SC Verl,FC Augsburg,2,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,FC Viktoria 1889 Berlin,Arminia Bielefeld,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,Wacker Nordhausen,Erzgebirge Aue,1,1,D,1,4,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,15:30,Saturday,1920,1. FC Magdeburg,SC Freiburg,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+10.08.2019,18:30,Saturday,1920,FC Würzburger Kickers,TSG Hoffenheim,0,1,A,2,2,D,3,3,D,4,5,A,False
+10.08.2019,18:30,Saturday,1920,KSV Baunatal,VfL Bochum,2,1,H,2,3,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,18:30,Saturday,1920,SSV Ulm 1846 Fußball,1. FC Heidenheim,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+10.08.2019,20:45,Saturday,1920,Atlas Delmenhorst,Werder Bremen,1,4,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,FSV Salmrohr,Holstein Kiel,0,1,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,Germania Halberstadt,1. FC Union Berlin,0,1,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,SV Rödinghausen,SC Paderborn 07,0,2,A,3,3,D,3,3,D,2,4,A,False
+11.08.2019,15:30,Sunday,1920,SV Waldhof Mannheim,Eintracht Frankfurt,2,2,D,3,5,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,FC Oberneuland,SV Darmstadt 98,0,3,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,1. FC Saarbrücken,Jahn Regensburg,0,0,D,3,2,H,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,VfB Lübeck,FC St. Pauli,1,0,H,2,2,D,3,3,D,3,4,A,False
+11.08.2019,15:30,Sunday,1920,VfB Eichstätt,Hertha BSC,0,3,A,1,5,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,15:30,Sunday,1920,VfL Osnabrück,RB Leipzig,1,3,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+11.08.2019,18:30,Sunday,1920,Chemnitzer FC,Hamburger SV,0,0,D,2,2,D,2,2,D,5,6,A,False
+11.08.2019,18:30,Sunday,1920,MSV Duisburg,SpVgg Greuther Fürth,2,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+11.08.2019,18:30,Sunday,1920,SV Wehen Wiesbaden,1. FC Köln,0,2,A,2,2,D,3,3,D,2,3,A,False
+12.08.2019,18:30,Monday,1920,Hallescher FC,VfL Wolfsburg,1,1,D,3,3,D,3,5,A,-1,-1,-1,False
+12.08.2019,18:30,Monday,1920,Karlsruher SC,Hannover 96,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+12.08.2019,18:30,Monday,1920,Hansa Rostock,VfB Stuttgart,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+12.08.2019,20:45,Monday,1920,Energie Cottbus,Bayern München,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+29.10.2019,18:30,Tuesday,1920,MSV Duisburg,TSG Hoffenheim,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+29.10.2019,18:30,Tuesday,1920,1. FC Saarbrücken,1. FC Köln,0,0,D,3,2,H,-1,-1,-1,-1,-1,-1,False
+29.10.2019,18:30,Tuesday,1920,SC Freiburg,1. FC Union Berlin,1,1,D,1,3,A,-1,-1,-1,-1,-1,-1,False
+29.10.2019,18:30,Tuesday,1920,Hamburger SV,VfB Stuttgart,1,1,D,1,1,D,1,2,A,-1,-1,-1,False
+29.10.2019,20:00,Tuesday,1920,VfL Bochum,Bayern München,1,0,H,1,2,A,-1,-1,-1,-1,-1,-1,False
+29.10.2019,20:45,Tuesday,1920,SV Darmstadt 98,Karlsruher SC,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+29.10.2019,20:45,Tuesday,1920,Bayer 04 Leverkusen,SC Paderborn 07,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+29.10.2019,20:45,Tuesday,1920,Arminia Bielefeld,FC Schalke 04,0,3,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+30.10.2019,18:30,Wednesday,1920,1. FC Kaiserslautern,1. FC Nürnberg,1,1,D,2,2,D,2,2,D,6,5,H,False
+30.10.2019,18:30,Wednesday,1920,SC Verl,Holstein Kiel,1,1,D,1,1,D,1,1,D,8,7,H,False
+30.10.2019,18:30,Wednesday,1920,VfL Wolfsburg,RB Leipzig,0,1,A,1,6,A,-1,-1,-1,-1,-1,-1,False
+30.10.2019,18:30,Wednesday,1920,Werder Bremen,1. FC Heidenheim,4,1,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+30.10.2019,20:45,Wednesday,1920,Fortuna Düsseldorf,Erzgebirge Aue,1,1,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+30.10.2019,20:45,Wednesday,1920,Borussia Dortmund,Borussia Mönchengladbach,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+30.10.2019,20:45,Wednesday,1920,Hertha BSC,Dynamo Dresden,0,1,A,2,2,D,3,3,D,5,4,H,False
+30.10.2019,20:45,Wednesday,1920,FC St. Pauli,Eintracht Frankfurt,1,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+04.02.2020,18:30,Tuesday,1920,Eintracht Frankfurt,RB Leipzig,1,0,H,3,1,H,-1,-1,-1,-1,-1,-1,False
+04.02.2020,18:30,Tuesday,1920,1. FC Kaiserslautern,Fortuna Düsseldorf,2,1,H,2,5,A,-1,-1,-1,-1,-1,-1,False
+04.02.2020,20:45,Tuesday,1920,FC Schalke 04,Hertha BSC,0,2,A,2,2,D,3,2,H,-1,-1,-1,False
+04.02.2020,20:45,Tuesday,1920,Werder Bremen,Borussia Dortmund,2,0,H,3,2,H,-1,-1,-1,-1,-1,-1,False
+05.02.2020,18:30,Wednesday,1920,Bayer 04 Leverkusen,VfB Stuttgart,0,0,D,2,1,H,-1,-1,-1,-1,-1,-1,False
+05.02.2020,18:30,Wednesday,1920,SC Verl,1. FC Union Berlin,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+05.02.2020,20:45,Wednesday,1920,Bayern München,TSG Hoffenheim,3,1,H,4,3,H,-1,-1,-1,-1,-1,-1,False
+05.02.2020,20:45,Wednesday,1920,1. FC Saarbrücken,Karlsruher SC,0,0,D,0,0,D,0,0,D,5,3,H,False
+03.03.2020,18:30,Tuesday,1920,1. FC Saarbrücken,Fortuna Düsseldorf,1,0,H,1,1,D,1,1,D,7,6,H,False
+03.03.2020,20:45,Tuesday,1920,FC Schalke 04,Bayern München,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+04.03.2020,18:30,Wednesday,1920,Bayer 04 Leverkusen,1. FC Union Berlin,0,1,A,3,1,H,-1,-1,-1,-1,-1,-1,False
+04.03.2020,20:45,Wednesday,1920,Eintracht Frankfurt,Werder Bremen,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+09.06.2020,20:45,Tuesday,1920,1. FC Saarbrücken,Bayer 04 Leverkusen,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+10.06.2020,20:45,Wednesday,1920,Bayern München,Eintracht Frankfurt,1,0,H,2,1,H,-1,-1,-1,-1,-1,-1,False
+04.07.2020,20:00,Saturday,1920,Bayer 04 Leverkusen,Bayern München,0,2,A,2,4,A,-1,-1,-1,-1,-1,-1,False
+11.09.2020,20:45,Friday,2021,TSV Havelse,1. FSV Mainz 05,1,0,H,1,5,A,-1,-1,-1,-1,-1,-1,False
+11.09.2020,20:45,Friday,2021,Eintracht Braunschweig,Hertha BSC,3,2,H,5,4,H,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,FV Engers,VfL Bochum,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,FSV Union Fürstenwalde,VfL Wolfsburg,1,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,FC Oberneuland,Borussia Mönchengladbach,0,5,A,0,8,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,RSV Meinerzhagen,SpVgg Greuther Fürth,0,0,D,1,1,D,1,6,A,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,VSG Altglienicke,1. FC Köln,0,3,A,0,6,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,1. FC Nürnberg,RB Leipzig,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,SV Todesfelde,VfL Osnabrück,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,TSV 1860 München,Eintracht Frankfurt,0,0,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,15:30,Saturday,2021,MTV Eintracht Celle,FC Augsburg,0,2,A,0,7,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,18:30,Saturday,2021,SSV Ulm 1846 Fußball,Erzgebirge Aue,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+12.09.2020,18:30,Saturday,2021,FC Ingolstadt,Fortuna Düsseldorf,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+12.09.2020,18:30,Saturday,2021,Karlsruher SC,1. FC Union Berlin,0,0,D,0,0,D,0,1,A,-1,-1,-1,False
+12.09.2020,20:45,Saturday,2021,FC Carl Zeiss Jena,Werder Bremen,0,0,D,0,2,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,TSV Steinbach Haiger,SV Sandhausen,1,2,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,SV Elversberg,FC St. Pauli,2,1,H,4,2,H,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,Eintracht Norderstedt,Bayer 04 Leverkusen,0,6,A,0,7,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,SC Wiedenbrück,SC Paderborn 07,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,1. FC Kaiserslautern,Jahn Regensburg,0,1,A,1,1,D,1,1,D,3,4,A,False
+13.09.2020,15:30,Sunday,2021,Chemnitzer FC,TSG Hoffenheim,0,0,D,1,1,D,2,2,D,2,3,A,False
+13.09.2020,15:30,Sunday,2021,1. FC Rielasingen-Arlen,Holstein Kiel,1,5,A,1,7,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,15:30,Sunday,2021,Hansa Rostock,VfB Stuttgart,0,1,A,0,1,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,18:30,Sunday,2021,SV Waldhof Mannheim,SC Freiburg,0,1,A,1,2,A,-1,-1,-1,-1,-1,-1,False
+13.09.2020,18:30,Sunday,2021,1. FC Magdeburg,SV Darmstadt 98,2,0,H,2,2,D,2,3,A,-1,-1,-1,False
+13.09.2020,18:30,Sunday,2021,SV Wehen Wiesbaden,1. FC Heidenheim,0,0,D,1,0,H,-1,-1,-1,-1,-1,-1,False
+14.09.2020,18:30,Monday,2021,Dynamo Dresden,Hamburger SV,2,0,H,4,1,H,-1,-1,-1,-1,-1,-1,False
+14.09.2020,18:30,Monday,2021,FC Würzburger Kickers,Hannover 96,0,1,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+14.09.2020,18:30,Monday,2021,Rot-Weiss Essen,Arminia Bielefeld,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+14.09.2020,20:45,Monday,2021,MSV Duisburg,Borussia Dortmund,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+15.10.2020,20:45,Thursday,2021,1. FC Düren,Bayern München,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+03.11.2020,16:30,Tuesday,2021,1. FC Schweinfurt 05,FC Schalke 04,1,2,A,1,4,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,18:30,Tuesday,2021,FC Augsburg,RB Leipzig,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,18:30,Tuesday,2021,1. FC Köln,VfL Osnabrück,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+22.12.2020,18:30,Tuesday,2021,TSG Hoffenheim,SpVgg Greuther Fürth,1,1,D,2,2,D,2,2,D,6,7,A,False
+22.12.2020,18:30,Tuesday,2021,SSV Ulm 1846 Fußball,FC Schalke 04,0,1,A,1,3,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,20:00,Tuesday,2021,Eintracht Braunschweig,Borussia Dortmund,0,1,A,0,2,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,20:45,Tuesday,2021,1. FC Union Berlin,SC Paderborn 07,1,3,A,2,3,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,20:45,Tuesday,2021,SV Elversberg,Borussia Mönchengladbach,0,3,A,0,5,A,-1,-1,-1,-1,-1,-1,False
+22.12.2020,20:45,Tuesday,2021,Dynamo Dresden,SV Darmstadt 98,0,1,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+23.12.2020,18:30,Wednesday,2021,VfL Wolfsburg,SV Sandhausen,3,0,H,4,0,H,-1,-1,-1,-1,-1,-1,False
+23.12.2020,18:30,Wednesday,2021,Rot-Weiss Essen,Fortuna Düsseldorf,2,1,H,3,2,H,-1,-1,-1,-1,-1,-1,False
+23.12.2020,20:45,Wednesday,2021,VfB Stuttgart,SC Freiburg,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+23.12.2020,20:45,Wednesday,2021,Hannover 96,Werder Bremen,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+23.12.2020,20:45,Wednesday,2021,1. FSV Mainz 05,VfL Bochum,1,0,H,2,2,D,2,2,D,0,3,A,False
+23.12.2020,20:45,Wednesday,2021,SV Wehen Wiesbaden,Jahn Regensburg,0,0,D,0,0,D,0,0,D,2,4,A,False
+12.01.2021,20:45,Tuesday,2021,Bayer 04 Leverkusen,Eintracht Frankfurt,1,1,D,4,1,H,-1,-1,-1,-1,-1,-1,False
+13.01.2021,20:45,Wednesday,2021,Holstein Kiel,Bayern München,1,1,D,2,2,D,2,2,D,6,5,H,False
+02.02.2021,18:30,Tuesday,2021,Rot-Weiss Essen,Bayer 04 Leverkusen,0,0,D,0,0,D,2,1,H,-1,-1,-1,False
+02.02.2021,18:30,Tuesday,2021,Holstein Kiel,SV Darmstadt 98,0,0,D,1,1,D,1,1,D,7,6,H,False
+02.02.2021,20:45,Tuesday,2021,Werder Bremen,SpVgg Greuther Fürth,1,0,H,2,0,H,-1,-1,-1,-1,-1,-1,False
+02.02.2021,20:45,Tuesday,2021,Borussia Dortmund,SC Paderborn 07,2,0,H,2,2,D,3,2,H,-1,-1,-1,False
+03.02.2021,18:30,Wednesday,2021,VfL Wolfsburg,FC Schalke 04,1,0,H,1,0,H,-1,-1,-1,-1,-1,-1,False
+03.02.2021,18:30,Wednesday,2021,RB Leipzig,VfL Bochum,2,0,H,4,0,H,-1,-1,-1,-1,-1,-1,False
+03.02.2021,20:45,Wednesday,2021,Jahn Regensburg,1. FC Köln,2,2,D,2,2,D,2,2,D,4,3,H,False
+03.02.2021,20:45,Wednesday,2021,VfB Stuttgart,Borussia Mönchengladbach,1,1,D,1,2,A,-1,-1,-1,-1,-1,-1,False
+02.03.2021,20:45,Tuesday,2021,Borussia Mönchengladbach,Borussia Dortmund,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+03.03.2021,18:30,Wednesday,2021,Rot-Weiss Essen,Holstein Kiel,0,2,A,0,3,A,-1,-1,-1,-1,-1,-1,False
+03.03.2021,20:45,Wednesday,2021,RB Leipzig,VfL Wolfsburg,0,0,D,2,0,H,-1,-1,-1,-1,-1,-1,False
+07.04.2021,18:30,Wednesday,2021,Jahn Regensburg,Werder Bremen,0,0,D,0,1,A,-1,-1,-1,-1,-1,-1,False
+30.04.2021,20:30,Friday,2021,Werder Bremen,RB Leipzig,0,0,D,0,0,D,1,2,A,-1,-1,-1,False
+01.05.2021,20:30,Saturday,2021,Borussia Dortmund,Holstein Kiel,5,0,H,5,0,H,-1,-1,-1,-1,-1,-1,False
+13.05.2021,20:45,Thursday,2021,RB Leipzig,Borussia Dortmund,0,3,A,1,4,A,-1,-1,-1,-1,-1,-1,False

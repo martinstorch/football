@@ -10,17 +10,19 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 200)
 #import numpy as np
-import re
 import json
 from urllib import request
 import os 
 import ssl
 from datetime import datetime, date, time, timedelta
+from dateutil import tz
 from requests_html import HTMLSession
 import re
 import sys
 import time
 import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -88,45 +90,44 @@ def load_expected_goals(season):
       })
   return rxgdf
 
+def render_web_page_chrome(url, sleep=5):
+    context = ssl.create_default_context()
+    der_certs = context.get_ca_certs(binary_form=True)
+    pem_certs = [ssl.DER_cert_to_PEM_cert(der) for der in der_certs]
+
+    with open(dir_path + '/wincacerts.pem', 'w') as outfile:
+        for pem in pem_certs:
+            outfile.write(pem + '\n')
+
+    chrome_options = Options()
+    #chrome_options.add_argument("--headless")
+    #chrome_options.binary_location = '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
+    chrome_options.binary_location = 'C:/Users/marti/AppData/Local/Google/Chrome SxS/Application'
+    chrome_options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+
+    driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver98/chromedriver.exe",   chrome_options=chrome_options)
+    driver.set_page_load_timeout(30000)
+    driver.set_script_timeout(30000)
+    driver.get(url)
+    time.sleep(5)
+    html = driver.execute_script("return document.documentElement.outerHTML")
+    with open("page.html", "w+", encoding="utf-8") as f:
+      f.write(html)
+    return html
+
+
 def load_bwin_quotes():
-  context = ssl.create_default_context()
-  der_certs = context.get_ca_certs(binary_form=True)
-  pem_certs = [ssl.DER_cert_to_PEM_cert(der) for der in der_certs]
-  
-  with open(dir_path+'/wincacerts.pem', 'w') as outfile:
-      for pem in pem_certs:
-          outfile.write(pem + '\n')
-  
-  #url='https://sports.bwin.com/de/sports/4/43/wetten/bundesliga#leagueIds=43&sportId=4'
+
   url='https://sports.bwin.de/de/sports/fu%C3%9Fball-4/wetten/deutschland-17/bundesliga-43'
   #html_content = request.urlopen(url).read()
-  
+
   #text_content1 = html_content.decode('unicode_escape')  # Converts bytes to unicode
   #with open("books_utf8.html", "w+") as f:
   #  f.write(text_content1)
   #"C:\Users\marti\AppData\Local\Google\Chrome SxS\Application\chrome.exe"
 
-  import os
-  from selenium import webdriver
-  from selenium.webdriver.common.keys import Keys
-  from selenium.webdriver.chrome.options import Options
+  html = render_web_page_chrome(url, sleep=5)
 
-  chrome_options = Options()
-  #chrome_options.add_argument("--headless")
-  #chrome_options.binary_location = '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'
-  chrome_options.binary_location = 'C:/Users/marti/AppData/Local/Google/Chrome SxS/Application'
-  chrome_options.binary_location = "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-
-  #driver = webdriver.Chrome(executable_path=os.path.abspath("chromedriver"),   chrome_options=chrome_options)
-  #driver = webdriver.Chrome(executable_path='C:/Users/marti/AppData/Local/Google/Chrome SxS/Application/chromedriver.exe',   chrome_options=chrome_options)
-  driver = webdriver.Chrome(executable_path="C:/git/football/TF/chromedriver98/chromedriver.exe",   chrome_options=chrome_options)
-  driver.set_page_load_timeout(30000)
-  driver.set_script_timeout(30000)
-  driver.get(url)
-  time.sleep(5)
-  html = driver.execute_script("return document.documentElement.outerHTML")
-  with open("bwin.html", "w+", encoding="utf-8") as f:
-      f.write(html)
   if re.search("gladbach", html) is None:
       print("Rendering not successful")
       print(url)
@@ -155,8 +156,9 @@ def load_bwin_quotes():
 
       with open("bwin.html", "w+", encoding="utf-8") as f:
         f.write(r.html.html)
-  with open("bwin.html", "r", encoding="utf-8") as f:
-    html_content = f.read()    
+  # with open("bwin.html", "r", encoding="utf-8") as f:
+  #   html_content = f.read()
+  html_content = html
   soup = BeautifulSoup(html_content, 'html.parser')
   quotes = soup.find_all('a', attrs={'class':'grid-event-wrapper'})
   if len(quotes)==0:
@@ -261,7 +263,7 @@ def download_data(model_dir, season, skip_download):
 
 def download_betonjamesdata(model_dir, season, skip_download, prefix="DE", league="germany-bundesliga"):
     """Maybe downloads training data and returns train and test file names."""
-    file_name = dir_path + "/boj_" + prefix + "_" + season + ".csv"
+    file_name = model_dir + "/boj_" + prefix + "_" + season + ".csv"
     print(file_name)
     if (not skip_download):
         url = "https://www.betonjames.com/wp-content/uploads/boj-free-data-downloads/"+ league + "-20"+season[:2]+"-20"+season[2:] + ".csv"
@@ -301,9 +303,195 @@ def getFiveThirtyEightData(skip_download):
       skiprows=0)
     #data["Season"]= season
     return data
-    
+
+def calc_match_result(HG, AG):
+    HG = int(HG)
+    AG = int(AG)
+    if HG == -1 and AG == -1:
+        return -1
+    if HG > AG:
+        return 'H'
+    elif HG < AG:
+        return 'A'
+    else:
+        return 'D'
+
+def split_sub_results(s):
+    s = s.strip()
+    results = re.findall("\((\d+):(\d+)\)", s)
+    result = [{'HG':int(x[0]), 'AG':int(x[1]), 'R':calc_match_result(x[0], x[1]) } for x in results]
+    return result
+
+def download_dfb_pokal_data(model_dir, season, skip_download, runde="F1-runde"):
+    """Maybe downloads training data and returns train and test file names."""
+    file_name = model_dir + "/dfb_" + season + "_" + runde + ".html"
+    print(file_name)
+    if (not skip_download):
+        if season <= "1819":
+            url = "https://www.dfb.de/dfb-pokal/spieltag/?spieledb_path=/datencenter/dfb-pokal/20"+season[:2]+"-20"+season[2:]+"/current&spieledb_path=%2Fde%2Fcompetitions%2Fdfb-pokal%2Fseasons%2F20"+season[:2]+"-20"+season[2:]+"%2Fmatchday%2F"+ runde
+        else:
+            url = 'https://www.dfb.de/dfb-pokal/spieltag/?spieledb_path=%2Fde%2Fcompetitions%2Fdfb-pokal%2Fseasons%2F20'+season[:2]+'-'+season[2:]+'%2Fmatchday%2F'+runde
+        print(url)
+        html_content = request.urlopen(url).read()
+        # with open(file_name, 'wb') as outfile:
+        #     outfile.write(html_content)
+        soup = BeautifulSoup(html_content, 'html.parser')
+        thetable = soup.find('table', {'class':'table-match-comparison'})
+
+        if thetable is None:
+            html_content = render_web_page_chrome(url, sleep=10)
+            soup = BeautifulSoup(html_content, 'html.parser')
+            thetable = soup.find('table', {'class':'table-match-comparison'})
+
+        matches = thetable.find('tbody').find_all('tr')
+
+        seasons = []
+        hometeams = []
+        awayteams = []
+        HTHGs = []
+        HTAGs = []
+        HTRs = []
+        FTHGs = []
+        FTAGs = []
+        FTRs = []
+        ETHGs = []
+        ETAGs = []
+        ETRs = []
+        PENHGs = []
+        PENAGs = []
+        PENRs = []
+        dates = []
+        times = []
+        dows = []
+        for m in matches:
+            if m.find('td', {'class': 'column-date'}) is None:
+                continue # not a real row
+            tds = m.find_all('td')
+            FTHG = tds[3].find('a').text.split(":")[0].strip()
+            FTAG = tds[3].find('a').text.split(":")[1].strip()
+            if FTHG == '-' and FTAG == '-':
+                continue
+            ETHG, ETAG, PENHG, PENAG = -1, -1, -1, -1
+            if FTAG.endswith('Wert.'):
+                FTAG = FTAG[:-5]
+                HTHG = FTHG
+                HTAG = FTAG
+            else:
+                matchurl = tds[3].find('a')['href']
+                print(matchurl)
+                html_content2 = request.urlopen(matchurl).read()
+                # with open("match.html", 'wb') as outfile:
+                #     outfile.write(html_content2)
+                soup2 = BeautifulSoup(html_content2, 'html.parser')
+                htres = soup2.find('div', {'class':'score-halftime'}).text.strip()
+                srs = split_sub_results(htres)
+                HTHG = srs[0]['HG']
+                HTAG = srs[0]['AG']
+                HTR = srs[0]['R']
+                if FTAG.endswith('n.V.'):
+                    ETHG = int(FTHG)
+                    ETAG = int(FTAG[:-4])
+                    FTHG = srs[1]['HG']
+                    FTAG = srs[1]['AG']
+                    FTR = srs[1]['R']
+                elif FTAG.endswith('i.E.'):
+                    PENHG = int(FTHG)
+                    PENAG = int(FTAG[:-4])
+                    FTHG = srs[1]['HG']
+                    FTAG = srs[1]['AG']
+                    FTR = srs[1]['R']
+                    ETHG = srs[2]['HG']
+                    ETAG = srs[2]['AG']
+                    ETR = srs[2]['R']
+            hometeams.append(tds[1].find('a').text)
+            awayteams.append(tds[5].find('a').text)
+            HTHGs.append(int(HTHG))
+            HTAGs.append(int(HTAG))
+            HTRs.append(calc_match_result(HTHG, HTAG))
+            FTHGs.append(int(FTHG))
+            FTAGs.append(int(FTAG))
+            FTRs.append(calc_match_result(FTHG, FTAG))
+            ETHGs.append(int(ETHG))
+            ETAGs.append(int(ETAG))
+            ETRs.append(calc_match_result(ETHG, ETAG))
+            PENHGs.append(int(PENHG))
+            PENAGs.append(int(PENAG))
+            PENRs.append(calc_match_result(PENHG, PENAG))
+            datestr = tds[0].text.strip()
+            mdate = datetime.strptime(datestr.split(",")[1], '%d.%m.%Y%H:%M Uhr')
+            dates.append(mdate.strftime('%d.%m.%Y'))
+            times.append(mdate.strftime('%H:%M'))
+            dows.append(mdate.strftime('%A'))
+            seasons.append(season)
+
+        dfbdf = pd.DataFrame({
+            'Date': dates,
+            'Time': times,
+            'Dow': dows,
+            'Season': seasons,
+            'HomeTeam': hometeams,
+            'AwayTeam': awayteams,
+            'HTHG': HTHGs,
+            'HTAG': HTAGs,
+            'HTR': HTRs,
+            'FTHG': FTHGs,
+            'FTAG': FTAGs,
+            'FTR': FTRs,
+            'ETHG': ETHGs,
+            'ETAG': ETAGs,
+            'ETR': ETRs,
+            'PENHG': PENHGs,
+            'PENAG': PENAGs,
+            'PENR': PENRs,
+
+        })
+        print(dfbdf)
+        return dfbdf
+
 
 all_seasons = ["0910", "1011", "1112", "1213", "1314","1415", "1516", "1617", "1718", "1819", "1920", "2021", "2122"]
+
+if skip_download or True:
+    dfb_pokal_data_hist = pd.read_csv("dfb_pokal_hist.csv")
+else:
+    dfb_pokal_data_hist = []
+    for s in all_seasons[1:-1]:
+        for r in ['1-runde', '2-runde', 'achtelfinale', 'viertelfinale', 'halbfinale', 'finale']:
+          sdata = download_dfb_pokal_data(dir_path, s, skip_download=False, runde=r)
+          sdata["Predict"]=False
+          dfb_pokal_data_hist.append(sdata)
+    dfb_pokal_data_hist = pd.concat(dfb_pokal_data_hist, ignore_index=True)
+    dfb_pokal_data_hist.to_csv("dfb_pokal_hist.csv", index=False)
+
+if True or skip_download:
+    dfb_pokal_data_current = pd.read_csv("dfb_pokal_current.csv")
+else:
+    dfb_pokal_data_current = []
+    for s in all_seasons[-1:]:
+        for r in ['1-runde', '2-runde', 'achtelfinale', 'viertelfinale', 'halbfinale', 'finale']:
+          sdata = download_dfb_pokal_data(dir_path, s, skip_download=False, runde=r)
+          sdata["Predict"]=False
+          dfb_pokal_data_current.append(sdata)
+    dfb_pokal_data_current = pd.concat(dfb_pokal_data_current, ignore_index=True)
+    dfb_pokal_data_current.to_csv("dfb_pokal_current.csv", index=False)
+
+dfb_pokal_data = pd.concat([dfb_pokal_data_hist, dfb_pokal_data_current], ignore_index=True)
+print(sorted(dfb_pokal_data.AwayTeam.unique()))
+dfb_team_mapping= pd.read_csv(dir_path+"/dfb_team_mapping.csv", sep='\t')
+print(dfb_pokal_data.iloc[-9:])
+dfb_pokal_data["LEAGUE"] = 'DFB Pokal'
+dfb_pokal_data = dfb_pokal_data.merge(dfb_team_mapping, left_on="HomeTeam", right_on="dfbTeam", how="left")
+dfb_pokal_data = dfb_pokal_data.merge(dfb_team_mapping, left_on="AwayTeam", right_on="dfbTeam", how="left")
+dfb_pokal_data = dfb_pokal_data.rename(columns={"HomeTeam":"HOME_TEAM", "AwayTeam":"AWAY_TEAM", "stdTeam_x":"HomeTeam", "stdTeam_y":"AwayTeam"})
+dfb_pokal_data.drop(columns = ['dfbTeam_x', 'dfbTeam_y'], inplace=True)
+print(dfb_pokal_data.HOME_TEAM.loc[pd.isna(dfb_pokal_data.HomeTeam)].unique())
+print(dfb_pokal_data.AWAY_TEAM.loc[pd.isna(dfb_pokal_data.AwayTeam)].unique())
+
+dfb_pokal_data = dfb_pokal_data.loc[~pd.isna(dfb_pokal_data.HomeTeam) | ~pd.isna(dfb_pokal_data.AwayTeam)]
+dfb_pokal_data.HomeTeam.loc[pd.isna(dfb_pokal_data.HomeTeam)] = dfb_pokal_data.LEAGUE.loc[pd.isna(dfb_pokal_data.HomeTeam)]
+dfb_pokal_data.AwayTeam.loc[pd.isna(dfb_pokal_data.AwayTeam)] = dfb_pokal_data.LEAGUE.loc[pd.isna(dfb_pokal_data.AwayTeam)]
+print(dfb_pokal_data.iloc[-9:])
+
 boj_data = []
 for s in all_seasons[1:]:
   sdata = download_betonjamesdata(dir_path, s, skip_download=False)
@@ -393,6 +581,19 @@ for s in all_seasons:
   all_data.append(sdata)
 all_data = pd.concat(all_data, ignore_index=True)
 all_data = all_data[['Season' ,'Predict',"Date","Time","HomeTeam","AwayTeam","FTHG","FTAG","FTR","HTHG","HTAG","HTR","HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR","BWH","BWD","BWA","B365H","B365D","B365A"]]
+matchtimes = all_data.Date.str.cat(all_data.Time)
+def utc_to_local(dt):
+    if pd.isna(dt):
+        return dt
+    dt = datetime.strptime(dt, '%d/%m/%Y%H:%M')
+    from_zone = tz.tzutc()
+    to_zone = tz.tzlocal()
+    dt = dt.replace(tzinfo=from_zone)
+    dt = dt.astimezone(to_zone)
+    return dt.strftime('%H:%M')
+newtimes = matchtimes.map(utc_to_local)
+all_data[['Time']] = newtimes
+
 print(all_data.HomeTeam.unique())
 print(all_data.iloc[-9:,list(range(22))+[24, 25, 26]])
 #print(all_data.columns.values)
@@ -465,7 +666,7 @@ full_data["Date"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x:
 full_data = full_data.merge(xgdf[["HomeTeam", "AwayTeam", "Date", "Time", "xHG" , "xAG"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 
 full_data = full_data.merge(boj_data[["HomeTeam", "AwayTeam", "Date", "H_PT" , "A_PT"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
-full_data = pd.concat([full_data, cup_data], ignore_index=True) # add cup data to league play data
+full_data = pd.concat([full_data, cup_data, dfb_pokal_data], ignore_index=True) # add cup data to league play data
 
 full_data = full_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA", "HGFTa", "AGFTa", "Hxsg", "Axsg", "Hxnsg", "Axnsg"]],
                             how="left", on=["HomeTeam", "AwayTeam", "Date"])
@@ -475,7 +676,7 @@ full_data["Dow"]= pd.to_datetime(full_data.Date, dayfirst=True).apply(lambda x: 
 new_data = quotes_bwin[["HomeTeam", "AwayTeam", "Date", "Time", "Dow", "BWH" , "BWD", "BWA", "Season", "Predict"]]
 new_data = new_data.merge(spidf[["HomeTeam", "AwayTeam", "Date", "Hspi", "Aspi", "Himp", "Aimp", "HGFTe", "AGFTe", "ppH", "ppD", "ppA"]], how="left", on=["HomeTeam", "AwayTeam", "Date"])
 full_data = pd.concat([full_data, new_data])
-full_data.info()
+#full_data.info()
 full_data.fillna(-1, inplace=True)
 full_data = full_data.astype({'FTHG':int, 'FTAG':int,
                               'HTHG':int, 'HTAG':int,
@@ -487,4 +688,4 @@ full_data = full_data.astype({'FTHG':int, 'FTAG':int,
                               'PENHG':int, 'PENAG':int,
                               })
 full_data.to_csv(dir_path+"/full_data.csv", index=False)
-full_data.info()
+#full_data.info()

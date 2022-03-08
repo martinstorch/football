@@ -60,7 +60,6 @@ def build_features(df_data):
   df_data.reset_index(drop=True, inplace=True)
   df_data.replace(-1, np.nan, inplace=True)
   df_data.replace("-1", np.nan, inplace=True)
-
   # use FTHG / FTAG as xHG/xAG where expected goals are not available
   df_data.loc[pd.isna(df_data.xHG), "xHG"]=df_data.loc[pd.isna(df_data.xHG), "FTHG"]
   df_data.loc[pd.isna(df_data.xAG), "xAG"]=df_data.loc[pd.isna(df_data.xAG), "FTAG"]
@@ -80,12 +79,13 @@ def build_features(df_data):
   df_data.loc[pd.isna(df_data.HTHG), "HTHG"] = 0
   df_data.loc[pd.isna(df_data.HTAG), "HTAG"] = 0
   df_data.loc[pd.isna(df_data.HTR), "HTR"] = 'D'
-  df_data.loc[pd.isna(df_data.BWH), "BWH"] = 1/0.4
-  df_data.loc[pd.isna(df_data.BWD), "BWD"] = 1/0.25
-  df_data.loc[pd.isna(df_data.BWA), "BWA"] = 1/0.35
-  df_data.loc[pd.isna(df_data.ppH), "ppH"] = 0.4
-  df_data.loc[pd.isna(df_data.ppD), "ppD"] = 0.25
-  df_data.loc[pd.isna(df_data.ppA), "ppA"] = 0.35
+
+  # df_data.loc[pd.isna(df_data.BWH), "BWH"] = 1/0.4
+  # df_data.loc[pd.isna(df_data.BWD), "BWD"] = 1/0.25
+  # df_data.loc[pd.isna(df_data.BWA), "BWA"] = 1/0.35
+  # df_data.loc[pd.isna(df_data.ppH), "ppH"] = 0.4
+  # df_data.loc[pd.isna(df_data.ppD), "ppD"] = 0.25
+  # df_data.loc[pd.isna(df_data.ppA), "ppA"] = 0.35
   df_data.loc[pd.isna(df_data.H_PT), "H_PT"] = 50
   df_data.loc[pd.isna(df_data.A_PT), "A_PT"] = 50
   df_data.H_PT /= 100 # percentage to 0..1
@@ -98,12 +98,27 @@ def build_features(df_data):
   #fill NA with mean() of each column in boston dataset
   #print(df_data.isna().any())
   #df_data = df_data.apply(lambda x: x.fillna(x.mean()),axis=0)
+
   impute_cols = ["HS","AS","HST","AST","HF","AF","HC","AC","HY","AY","HR","AR"]
   to_be_imputed_rows = pd.isna(df_data.HS)
-  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].index))
-  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].index))
-  df_data.loc[to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].sample(len(df_data.loc[to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].index))
-  df_data.loc[to_be_imputed_rows, impute_cols] = df_data.loc[~to_be_imputed_rows, impute_cols].sample(len(df_data.loc[to_be_imputed_rows, impute_cols].index))
+  indexH = to_be_imputed_rows & df_data.FTR.eq('H')
+  indexD = to_be_imputed_rows & df_data.FTR.eq('D')
+  indexA = to_be_imputed_rows & df_data.FTR.eq('A')
+  df_data.loc[indexH, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].sample(len(df_data.loc[indexH].index)).set_index(df_data.loc[indexH].index)
+  df_data.loc[indexD, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].sample(len(df_data.loc[indexD].index)).set_index(df_data.loc[indexD].index)
+  df_data.loc[indexA, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].sample(len(df_data.loc[indexA].index)).set_index(df_data.loc[indexA].index)
+
+  impute_cols = ['BWH', 'BWD', 'BWA', 'ppH', 'ppD', 'ppA']
+  to_be_imputed_rows = pd.isna(df_data.BWH)
+  indexH = to_be_imputed_rows & df_data.FTR.eq('H')
+  indexD = to_be_imputed_rows & df_data.FTR.eq('D')
+  indexA = to_be_imputed_rows & df_data.FTR.eq('A')
+  df_data.loc[indexH, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('H'), impute_cols].sample(
+    len(df_data.loc[indexH].index)).set_index(df_data.loc[indexH].index)
+  df_data.loc[indexD, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('D'), impute_cols].sample(
+    len(df_data.loc[indexD].index)).set_index(df_data.loc[indexD].index)
+  df_data.loc[indexA, impute_cols] = df_data.loc[~to_be_imputed_rows & df_data.FTR.eq('A'), impute_cols].sample(
+    len(df_data.loc[indexA].index)).set_index(df_data.loc[indexA].index)
 
   df_data["FT_ET_PEN_R"] = df_data.PENR.combine_first(df_data.ETR.combine_first(df_data.FTR))
   df_data["is_ET"] = (~pd.isna(df_data.ETR)).astype(int)
